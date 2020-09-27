@@ -1,32 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace TheEliteExplorer
 {
+    /// <summary>
+    /// Startup.
+    /// </summary>
     public class Startup
     {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Instance of <see cref="IConfiguration"/>.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <c>Null</c>.</exception>
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
+        /// <summary>
+        /// Configuration.
+        /// </summary>
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// This method gets called by the runtime.
+        /// Use this method to add services to the container.
+        /// </summary>
+        /// <param name="services">Collection of <see cref="ServiceDescriptor"/>.</param>
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        /// This method gets called by the runtime.
+        /// Use this method to configure the HTTP request pipeline.
+        /// </summary>
+        /// <param name="app">Application builder.</param>
+        /// <param name="env">Environment informations.</param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())

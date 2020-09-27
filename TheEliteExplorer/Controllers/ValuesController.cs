@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-
-namespace TheEliteExplorer.Controllers
-{
+﻿namespace TheEliteExplorer.Controllers
+{/*
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
@@ -40,5 +34,5 @@ namespace TheEliteExplorer.Controllers
         public void Delete(int id)
         {
         }
-    }
+    }*/
 }
