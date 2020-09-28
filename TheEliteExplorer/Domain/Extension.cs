@@ -2,9 +2,6 @@
 
 namespace TheEliteExplorer.Domain
 {
-    /// <summary>
-    /// Extension methods.
-    /// </summary>
 
     internal static class Extension
     {
@@ -17,16 +14,22 @@ namespace TheEliteExplorer.Domain
             { (Level.Medium, Game.PerfectDark), "Special agent" },
             { (Level.Hard, Game.PerfectDark), "Perfect agent" },
         };
+        private static readonly Dictionary<string, ControlStyle> _controlStyleConverters = new Dictionary<string, ControlStyle>
+        {
+            { "1.1", ControlStyle.OnePointOne },
+            { "1.2", ControlStyle.OnePointTwo }
+        };
 
-        /// <summary>
-        /// Gets the label associated to a <see cref="Level"/> for a specified <see cref="Game"/>.
-        /// </summary>
-        /// <param name="level">The level.</param>
-        /// <param name="game">The game.</param>
-        /// <returns>The label.</returns>
         internal static string GetLabel(this Level level, Game game)
         {
-            return _levelLabels[(level, game)];
+            return _levelLabels.ContainsKey((level, game)) ?
+                _levelLabels[(level, game)] : "Unknown";
+        }
+
+        internal static ControlStyle? ToControlStyle(string controlStyleLabel)
+        {
+            return _controlStyleConverters.ContainsKey(controlStyleLabel) ?
+                _controlStyleConverters[controlStyleLabel] : default(ControlStyle?);
         }
     }
 }

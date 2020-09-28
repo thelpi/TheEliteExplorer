@@ -1,4 +1,4 @@
-﻿namespace TheEliteExplorer
+﻿namespace TheEliteExplorer.Domain
 {
     /// <summary>
     /// Control styles enumeration.

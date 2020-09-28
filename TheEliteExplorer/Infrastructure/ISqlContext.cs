@@ -12,7 +12,7 @@ namespace TheEliteExplorer.Infrastructure
         /// <summary>
         /// Gets every players from the database.
         /// </summary>
-        /// <returns>Collection of <see cref="PlayerDto"/>.</returns>
-        Task<IReadOnlyCollection<PlayerDto>> GetPlayers();
+        /// <returns>Collection of <see cref="PlayerDto"/>; can't be <c>Null</c>.</returns>
+        Task<IReadOnlyCollection<PlayerDto>> GetPlayersAsync();
     }
 }

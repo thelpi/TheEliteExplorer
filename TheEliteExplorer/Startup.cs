@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TheEliteExplorer.Infrastructure;
+using TheEliteExplorer.Infrastructure.Configuration;
 
 namespace TheEliteExplorer
 {
@@ -11,6 +14,8 @@ namespace TheEliteExplorer
     /// </summary>
     public class Startup
     {
+        private readonly IConfiguration _configuration;
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -18,13 +23,8 @@ namespace TheEliteExplorer
         /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <c>Null</c>.</exception>
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
-
-        /// <summary>
-        /// Configuration.
-        /// </summary>
-        public IConfiguration Configuration { get; }
 
         /// <summary>
         /// This method gets called by the runtime.
@@ -34,6 +34,16 @@ namespace TheEliteExplorer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+
+            var connectionStrings = new Dictionary<string, string>
+            {
+                { "ConnectionString", _configuration.GetConnectionString("ConnectionString") }
+            };
+
+            services.AddSingleton<IConnectionProvider>(new ConnectionProvider(connectionStrings));
+            services.Configure<CacheConfiguration>(_configuration.GetSection("Cache"));
+            services.AddSingleton<ISqlContext, SqlContext>();
+            services.AddDistributedMemoryCache();
         }
 
         /// <summary>
