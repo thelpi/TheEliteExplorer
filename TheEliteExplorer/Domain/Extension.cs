@@ -2,9 +2,10 @@
 
 namespace TheEliteExplorer.Domain
 {
-
     internal static class Extension
     {
+        private const string _defaultLabel = "Unknown";
+
         private static readonly Dictionary<(Level, Game), string> _levelLabels = new Dictionary<(Level, Game), string>
         {
             { (Level.Easy, Game.GoldenEye), "Agent" },
@@ -19,16 +20,15 @@ namespace TheEliteExplorer.Domain
             { "1.1", ControlStyle.OnePointOne },
             { "1.2", ControlStyle.OnePointTwo }
         };
-
         internal static string GetLabel(this Level level, Game game)
         {
             return _levelLabels.ContainsKey((level, game)) ?
-                _levelLabels[(level, game)] : "Unknown";
+                _levelLabels[(level, game)] : _defaultLabel;
         }
 
         internal static ControlStyle? ToControlStyle(string controlStyleLabel)
         {
-            return _controlStyleConverters.ContainsKey(controlStyleLabel) ?
+            return controlStyleLabel != null && _controlStyleConverters.ContainsKey(controlStyleLabel) ?
                 _controlStyleConverters[controlStyleLabel] : default(ControlStyle?);
         }
     }

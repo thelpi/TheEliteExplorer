@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 
 namespace TheEliteExplorer.Infrastructure
 {
@@ -18,13 +17,13 @@ namespace TheEliteExplorer.Infrastructure
             string cacheKey,
             DistributedCacheEntryOptions options,
             Func<Task<T>> getWithoutCacheDelegate)
-            where T : class
+            where T : class, new()
         {
             T datas = await cache.GetFromCacheAsync<T>(cacheKey).ConfigureAwait(false);
             if (datas == null)
             {
                 SemaphoreSlim semaphore = _semaphores.GetOrAdd(cacheKey, new SemaphoreSlim(1, 1));
-                semaphore.Wait();
+                await semaphore.WaitAsync().ConfigureAwait(false);
                 try
                 {
                     datas = await cache.GetFromCacheAsync<T>(cacheKey).ConfigureAwait(false);
@@ -46,10 +45,10 @@ namespace TheEliteExplorer.Infrastructure
             return datas;
         }
 
-        private static async Task<T> GetFromCacheAsync<T>(this IDistributedCache cache, string cacheKey)
+        private static async Task<T> GetFromCacheAsync<T>(this IDistributedCache cache, string cacheKey) where T : new()
         {
             var bytesFromCache = await cache.GetAsync(cacheKey).ConfigureAwait(false);
-            if (bytesFromCache != null)
+            if (bytesFromCache != null && bytesFromCache.Length > 0)
             {
                 return Deserialize<T>(bytesFromCache);
             }
@@ -57,23 +56,14 @@ namespace TheEliteExplorer.Infrastructure
             return default(T);
         }
 
-        private static T Deserialize<T>(byte[] bytesFromCache)
+        private static T Deserialize<T>(byte[] bytesFromCache) where T : new()
         {
-            var bf = new BinaryFormatter();
-            using (var ms = new MemoryStream(bytesFromCache))
-            {
-                return (T)bf.Deserialize(ms);
-            }
+            return JsonConvert.DeserializeObject<T>(Encoding.Default.GetString(bytesFromCache));
         }
 
-        private static byte[] Serialize<T>(T datas)
+        private static byte[] Serialize<T>(T datas) where T : new()
         {
-            var bf = new BinaryFormatter();
-            using (var ms = new MemoryStream())
-            {
-                bf.Serialize(ms, datas);
-                return ms.ToArray();
-            }
+            return Encoding.Default.GetBytes(JsonConvert.SerializeObject(datas));
         }
     }
 }

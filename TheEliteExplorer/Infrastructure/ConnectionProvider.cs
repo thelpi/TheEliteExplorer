@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
 namespace TheEliteExplorer.Infrastructure
 {
@@ -11,32 +12,26 @@ namespace TheEliteExplorer.Infrastructure
     /// <seealso cref="IConnectionProvider"/>
     public class ConnectionProvider : IConnectionProvider
     {
-        private readonly IReadOnlyDictionary<string, string> _connectionStrings;
+        private readonly IConfiguration _configuration;
+        private const string _theEliteConfigKey = "TheElite";
+
+        /// <inheritdoc />
+        public IDbConnection TheEliteConnection
+        {
+            get
+            {
+                return new SqlConnection(_configuration.GetConnectionString(_theEliteConfigKey));
+            }
+        }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="connectionStrings">Dictionary of named connectionstrings.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="connectionStrings"/> is <c>Null</c>.</exception>
-        public ConnectionProvider(IReadOnlyDictionary<string, string> connectionStrings)
+        /// <param name="configuration">Dictionary of named connectionstrings.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <c>Null</c>.</exception>
+        public ConnectionProvider(IConfiguration configuration)
         {
-            _connectionStrings = connectionStrings ?? throw new ArgumentNullException(nameof(connectionStrings));
-        }
-
-        /// <inheritdoc />
-        public IDbConnection GetConnection(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (!_connectionStrings.ContainsKey(name))
-            {
-                return null;
-            }
-
-            return new SqlConnection(_connectionStrings[name]);
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
     }
 }

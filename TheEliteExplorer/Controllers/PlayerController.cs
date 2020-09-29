@@ -35,12 +35,9 @@ namespace TheEliteExplorer.Controllers
         [HttpGet]
         public async Task<IReadOnlyCollection<Player>> GetPlayersAsync([FromQuery] int page, [FromQuery] int count)
         {
-            page = PaginationHelper.EnsurePage(page);
-            count = PaginationHelper.EnsureCount(count);
-
             var dtos = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
 
-            return dtos.Skip((page - 1) * count).Take(count).Select(dto => new Player(dto)).ToList();
+            return PaginatedCollection<Player>.CreateInstance(dtos, dto => new Player(dto), page, count);
         }
     }
 }

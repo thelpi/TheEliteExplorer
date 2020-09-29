@@ -35,15 +35,11 @@ namespace TheEliteExplorer
         {
             services.AddMvc();
 
-            var connectionStrings = new Dictionary<string, string>
-            {
-                { "ConnectionString", _configuration.GetConnectionString("ConnectionString") }
-            };
-
-            services.AddSingleton<IConnectionProvider>(new ConnectionProvider(connectionStrings));
-            services.Configure<CacheConfiguration>(_configuration.GetSection("Cache"));
-            services.AddSingleton<ISqlContext, SqlContext>();
-            services.AddDistributedMemoryCache();
+            services
+                .AddSingleton<IConnectionProvider>(new ConnectionProvider(_configuration))
+                .Configure<CacheConfiguration>(_configuration.GetSection("Cache"))
+                .AddSingleton<ISqlContext, SqlContext>()
+                .AddDistributedMemoryCache();
         }
 
         /// <summary>

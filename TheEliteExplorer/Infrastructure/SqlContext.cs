@@ -16,7 +16,6 @@ namespace TheEliteExplorer.Infrastructure
     /// <seealso cref="ISqlContext"/>
     public class SqlContext : ISqlContext
     {
-        private const string _defaultConnectionName = "ConnectionString";
         private const string _getPlayersCacheKey = "players";
         private const string _getEveryPlayersPsName = "[dbo].[select_player]";
 
@@ -40,6 +39,8 @@ namespace TheEliteExplorer.Infrastructure
             _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
             _cacheConfiguration = cacheConfiguration?.Value ?? throw new ArgumentNullException(nameof(cacheConfiguration));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            // TODO: it might not be the best place to put it
+            DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         /// <inheritdoc />
@@ -66,7 +67,7 @@ namespace TheEliteExplorer.Infrastructure
         {
             var players = new List<PlayerDto>();
 
-            using (IDbConnection connection = _connectionProvider.GetConnection(_defaultConnectionName))
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 var results = await connection.QueryAsync<PlayerDto>(
                    _getEveryPlayersPsName, new { },

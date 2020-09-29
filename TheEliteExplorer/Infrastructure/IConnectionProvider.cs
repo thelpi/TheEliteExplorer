@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 
 namespace TheEliteExplorer.Infrastructure
 {
@@ -9,11 +8,8 @@ namespace TheEliteExplorer.Infrastructure
     public interface IConnectionProvider
     {
         /// <summary>
-        /// Gets a SQL connection by its name.
+        /// Gets the connection to "TheElite" database.
         /// </summary>
-        /// <param name="name">Connection name.</param>
-        /// <returns>SQL connection.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="name"/> is <c>Null</c>, empty or white spaces only.</exception>
-        IDbConnection GetConnection(string name);
+        IDbConnection TheEliteConnection { get; }
     }
 }
