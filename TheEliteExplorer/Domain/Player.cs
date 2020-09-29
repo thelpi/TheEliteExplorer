@@ -35,7 +35,7 @@ namespace TheEliteExplorer.Domain
 
             RealName = dto.RealName;
             SurName = dto.SurName;
-            ControlStyle = Extension.ToControlStyle(dto.ControlStyle);
+            ControlStyle = DomainExtension.ToControlStyle(dto.ControlStyle);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorer.Domain;
@@ -12,7 +11,7 @@ namespace TheEliteExplorer.Controllers
     /// Player controller.
     /// </summary>
     /// <seealso cref="Controller"/>
-    [Route("[controller]")]
+    [Route("players")]
     public class PlayerController : Controller
     {
         private readonly ISqlContext _sqlContext;
@@ -33,7 +32,7 @@ namespace TheEliteExplorer.Controllers
         /// <param name="count">Results count to display.</param>
         /// <returns>Collection of players.</returns>
         [HttpGet]
-        public async Task<IReadOnlyCollection<Player>> GetPlayersAsync([FromQuery] int page, [FromQuery] int count)
+        public async Task<PaginatedCollection<Player>> GetPlayersAsync([FromQuery] int page, [FromQuery] int count)
         {
             var dtos = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
 

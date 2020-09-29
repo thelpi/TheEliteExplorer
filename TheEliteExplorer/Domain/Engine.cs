@@ -1,9 +1,9 @@
 ﻿namespace TheEliteExplorer.Domain
 {
     /// <summary>
-    /// Systems enumeration.
+    /// Engines enumeration.
     /// </summary>
-    public enum System
+    public enum Engine
     {
         /// <summary>
         /// Japanese NTSC.

@@ -1,4 +1,7 @@
-﻿namespace TheEliteExplorer.Domain
+﻿using System;
+using System.Collections.Generic;
+
+namespace TheEliteExplorer.Domain
 {
     /// <summary>
     /// Represents a stage.
@@ -26,6 +29,30 @@
         /// Position in the game narrative (starts at <c>1</c>).
         /// </summary>
         public int Position { get; }
+
+        /// <summary>
+        /// Gets every stages of the specified game.
+        /// </summary>
+        /// <param name="game">The <see cref="Game"/>.</param>
+        /// <returns>Collection of <see cref="Stage"/>.</returns>
+        public static IReadOnlyCollection<Stage> Get(Game game)
+        {
+            if (game == Game.GoldenEye)
+            {
+                return new List<Stage>
+                {
+                    Dam, Facility, Runway, Surface1, Bunker1,
+                    Silo, Frigate, Surface2, Bunker2, Statue,
+                    Archives, Streets, Depot, Train, Jungle,
+                    Control, Caverns, Cradle, Aztec, Egypt
+                };
+            }
+            else
+            {
+                // TODO
+                throw new NotImplementedException();
+            }
+        }
 
         private Stage(Game game, string name, int position)
         {

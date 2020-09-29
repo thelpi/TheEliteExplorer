@@ -2,7 +2,7 @@
 
 namespace TheEliteExplorer.Domain
 {
-    internal static class Extension
+    internal static class DomainExtension
     {
         private const string _defaultLabel = "Unknown";
 

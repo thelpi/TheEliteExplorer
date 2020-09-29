@@ -17,7 +17,9 @@ namespace TheEliteExplorer.Infrastructure
     public class SqlContext : ISqlContext
     {
         private const string _getPlayersCacheKey = "players";
+
         private const string _getEveryPlayersPsName = "[dbo].[select_player]";
+        private const string _getEntriesByCriteriaPsName = "[dbo].[select_entry]";
 
         private readonly IConnectionProvider _connectionProvider;
         private readonly CacheConfiguration _cacheConfiguration;
@@ -41,6 +43,33 @@ namespace TheEliteExplorer.Infrastructure
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             // TODO: it might not be the best place to put it
             DefaultTypeMap.MatchNamesWithUnderscores = true;
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate)
+        {
+            var entries = new List<EntryDto>();
+
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                var results = await connection.QueryAsync<EntryDto>(
+                   _getEntriesByCriteriaPsName,
+                   new
+                   {
+                       stage_id = stageId,
+                       level_id = levelId,
+                       start_date = startDate,
+                       end_date = endDate
+                   },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+
+                if (results != null)
+                {
+                    entries.AddRange(results);
+                }
+            }
+
+            return entries;
         }
 
         /// <inheritdoc />
@@ -80,6 +109,11 @@ namespace TheEliteExplorer.Infrastructure
             }
 
             return players;
+        }
+
+        private static object ValueOrNull<T>(T? param) where T : struct
+        {
+            return param.HasValue ? (object)param.Value : DBNull.Value;
         }
     }
 }
