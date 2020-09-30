@@ -15,5 +15,11 @@ namespace TheEliteExplorer.Infrastructure
 
             return Enum.GetValues(typeof(T)).Cast<T>();
         }
+
+        internal static DateTime? ToDateTime(this string dateTime)
+        {
+            return !string.IsNullOrWhiteSpace(dateTime) && DateTime.TryParse(dateTime, out DateTime dt) ?
+                dt : default(DateTime?);
+        }
     }
 }

@@ -4,7 +4,7 @@ namespace TheEliteExplorer.Domain
 {
     internal static class DomainExtension
     {
-        private const string _defaultLabel = "Unknown";
+        internal const string DefaultLabel = "Unknown";
 
         private static readonly Dictionary<(Level, Game), string> _levelLabels = new Dictionary<(Level, Game), string>
         {
@@ -20,10 +20,11 @@ namespace TheEliteExplorer.Domain
             { "1.1", ControlStyle.OnePointOne },
             { "1.2", ControlStyle.OnePointTwo }
         };
+
         internal static string GetLabel(this Level level, Game game)
         {
             return _levelLabels.ContainsKey((level, game)) ?
-                _levelLabels[(level, game)] : _defaultLabel;
+                _levelLabels[(level, game)] : DefaultLabel;
         }
 
         internal static ControlStyle? ToControlStyle(string controlStyleLabel)

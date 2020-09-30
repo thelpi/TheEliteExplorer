@@ -9,13 +9,6 @@ namespace TheEliteExplorer.Domain
     public class Stage
     {
         private const int GoldeneyeStagesCount = 20;
-        private long Id
-        {
-            get
-            {
-                return Game == Game.PerfectDark ? Position + GoldeneyeStagesCount : Position;
-            }
-        }
 
         /// <summary>
         /// Game.
@@ -29,6 +22,21 @@ namespace TheEliteExplorer.Domain
         /// Position in the game narrative (starts at <c>1</c>).
         /// </summary>
         public int Position { get; }
+
+        /// <summary>
+        /// Inferred; name of the stage without spaces and full lowercase.
+        /// </summary>
+        public string FormatedName { get { return Name.Replace(" ", string.Empty).ToLowerInvariant(); } }
+        /// <summary>
+        /// Inferred; stage technical identifier.
+        /// </summary>
+        public long Id
+        {
+            get
+            {
+                return Game == Game.PerfectDark ? Position + GoldeneyeStagesCount : Position;
+            }
+        }
 
         /// <summary>
         /// Gets every stages of the specified game.

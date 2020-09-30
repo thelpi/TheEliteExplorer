@@ -20,6 +20,7 @@ namespace TheEliteExplorer.Controllers
         /// Constructor.
         /// </summary>
         /// <param name="sqlContext">Instance of <see cref="ISqlContext"/>.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
         public PlayerController(ISqlContext sqlContext)
         {
             _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));

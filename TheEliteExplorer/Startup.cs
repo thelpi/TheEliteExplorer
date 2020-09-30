@@ -38,7 +38,9 @@ namespace TheEliteExplorer
             services
                 .AddSingleton<IConnectionProvider>(new ConnectionProvider(_configuration))
                 .Configure<CacheConfiguration>(_configuration.GetSection("Cache"))
+                .Configure<TheEliteWebsiteConfiguration>(_configuration.GetSection("TheEliteWebsite"))
                 .AddSingleton<ISqlContext, SqlContext>()
+                .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()
                 .AddDistributedMemoryCache();
         }
 
