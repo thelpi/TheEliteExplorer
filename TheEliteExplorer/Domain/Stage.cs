@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using TheEliteExplorer.Infrastructure;
 
 namespace TheEliteExplorer.Domain
 {
@@ -58,8 +60,17 @@ namespace TheEliteExplorer.Domain
             else
             {
                 // TODO
-                throw new NotImplementedException();
+                return new List<Stage>();
             }
+        }
+
+        /// <summary>
+        /// Gets every stages of every games.
+        /// </summary>
+        /// <returns>Collection of <see cref="Stage"/>.</returns>
+        public static IReadOnlyCollection<Stage> Get()
+        {
+            return TypeExtensions.Enumerate<Game>().SelectMany(Get).ToList();
         }
 
         private Stage(Game game, string name, int position)

@@ -4,6 +4,11 @@ namespace TheEliteExplorer.Domain
 {
     internal static class DomainExtension
     {
+        private static readonly Dictionary<Game, int> _firstYear = new Dictionary<Game, int>
+        {
+            { Game.GoldenEye, 1998 },
+            { Game.PerfectDark, 2000 }
+        };
         internal const string DefaultLabel = "Unknown";
 
         private static readonly Dictionary<(Level, Game), string> _levelLabels = new Dictionary<(Level, Game), string>
@@ -31,6 +36,12 @@ namespace TheEliteExplorer.Domain
         {
             return controlStyleLabel != null && _controlStyleConverters.ContainsKey(controlStyleLabel) ?
                 _controlStyleConverters[controlStyleLabel] : default(ControlStyle?);
+        }
+
+        internal static int GetFirstYear(this Game game)
+        {
+            return _firstYear.ContainsKey(game) ?
+                _firstYear[game] : 0;
         }
     }
 }

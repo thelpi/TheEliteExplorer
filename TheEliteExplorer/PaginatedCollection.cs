@@ -15,7 +15,7 @@ namespace TheEliteExplorer
         /// <summary>
         /// Max count allowed for a paginated collection.
         /// </summary>
-        public const int MaxCount = 1000;
+        public static readonly int MaxCount = 1000;
 
         private readonly List<T> _sourceList;
 

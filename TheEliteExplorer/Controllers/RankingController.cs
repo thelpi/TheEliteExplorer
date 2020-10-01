@@ -45,7 +45,7 @@ namespace TheEliteExplorer.Controllers
             }
             realDate = realDate.AddDays(1).Date;
 
-            var builder = new RankingBuilder(
+            var builder = new RankingBuilder(game,
                 await GetEntriesForEachStageAndLevelAsync(realDate, game).ConfigureAwait(false),
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false)
             );
