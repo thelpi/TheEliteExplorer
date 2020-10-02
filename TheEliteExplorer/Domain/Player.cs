@@ -9,6 +9,11 @@ namespace TheEliteExplorer.Domain
     public class Player
     {
         /// <summary>
+        /// Default player's hexadecimal color.
+        /// </summary>
+        public static readonly string DefaultPlayerHexColor = "000000";
+
+        /// <summary>
         /// Real name.
         /// </summary>
         public string RealName { get; }

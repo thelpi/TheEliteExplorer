@@ -141,16 +141,9 @@ namespace TheEliteExplorer.Infrastructure
             {
                 return null;
             }
-
-            return new EntryRequest
-            {
-                Date = date,
-                EngineId = await ExtractTimeEntryEngineAsync(link, logs).ConfigureAwait(false),
-                LevelId = (long)level,
-                PlayerUrlName = playerUrl,
-                StageId = stage.Id,
-                Time = time
-            };
+            
+            return new EntryRequest(stage, level.Value, playerUrl, time, date,
+                await ExtractTimeEntryEngineAsync(link, logs).ConfigureAwait(false));
         }
 
         private static DateTime? ExtractAndCheckDate(HtmlNode link, List<string> logs, DateTime? minimalDateToScan, out bool exit)
@@ -190,7 +183,7 @@ namespace TheEliteExplorer.Infrastructure
             return date;
         }
 
-        private async Task<long?> ExtractTimeEntryEngineAsync(HtmlNode link, List<string> logs)
+        private async Task<Engine?> ExtractTimeEntryEngineAsync(HtmlNode link, List<string> logs)
         {
             const string engineStringBeginString = "System:</strong>";
             const string engineStringEndString = "</li>";
@@ -208,12 +201,10 @@ namespace TheEliteExplorer.Infrastructure
                     {
                         string engineString = pageContentAtBeginPos.Substring(0, engineStringEndPos + 1);
 
-                        Engine? engine = TypeExtensions
+                        return TypeExtensions
                             .Enumerate<Engine>()
                             .Select(e => (Engine?)e)
                             .FirstOrDefault(e => e.Value.ToString().Equals(engineString.Trim().Replace("-", "_"), StringComparison.InvariantCultureIgnoreCase));
-
-                        return engine.HasValue ? (long)engine : (long?)null;
                     }
                 }
             }

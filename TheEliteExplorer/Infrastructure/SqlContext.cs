@@ -19,12 +19,11 @@ namespace TheEliteExplorer.Infrastructure
     {
         private const string _getPlayersCacheKey = "players";
 
-        private const string _defaultPlayerColor = "000000";
-
-        private const string _getEveryPlayersPsName = "[dbo].[select_player]";
-        private const string _getEntriesByCriteriaPsName = "[dbo].[select_entry]";
-        private const string _insertPlayerPsName = "[dbo].[insert_player]";
-        private const string _insertEntryPsName = "[dbo].[insert_entry]";
+        private const string _getEveryPlayersPsName = "select_player";
+        private const string _getEntriesByCriteriaPsName = "select_entry";
+        private const string _insertPlayerPsName = "insert_player";
+        private const string _insertEntryPsName = "insert_entry";
+        private const string _getLatestDateName = "select_latest_entry_date";
 
         private readonly IConnectionProvider _connectionProvider;
         private readonly CacheConfiguration _cacheConfiguration;
@@ -46,8 +45,6 @@ namespace TheEliteExplorer.Infrastructure
             _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
             _cacheConfiguration = cacheConfiguration?.Value ?? throw new ArgumentNullException(nameof(cacheConfiguration));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-            // TODO: it might not be the best place to put it
-            DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         /// <inheritdoc />
@@ -58,7 +55,7 @@ namespace TheEliteExplorer.Infrastructure
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 var results = await connection.QueryAsync<EntryDto>(
-                   _getEntriesByCriteriaPsName,
+                   ToPsName(_getEntriesByCriteriaPsName),
                    new
                    {
                        stage_id = stageId,
@@ -104,10 +101,9 @@ namespace TheEliteExplorer.Infrastructure
                 return match.Id;
             }
 
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                var dynamicParameters = new DynamicParameters();
-                dynamicParameters.AddDynamicParams(new
+            return await InsertAndGetIdAsync(
+                _insertEntryPsName,
+                new
                 {
                     player_id = playerId,
                     level_id = levelId,
@@ -115,18 +111,7 @@ namespace TheEliteExplorer.Infrastructure
                     date,
                     time,
                     system_id = systemId
-                });
-                dynamicParameters.Add("@id", dbType: DbType.Int64, direction: ParameterDirection.Output);
-
-                await connection.QueryAsync(
-                   _insertEntryPsName,
-                   dynamicParameters,
-                   commandType: CommandType.StoredProcedure).ConfigureAwait(false);
-
-                long id = dynamicParameters.Get<long>("@id");
-
-                return id;
-            }
+                }).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -138,7 +123,24 @@ namespace TheEliteExplorer.Infrastructure
         /// <inheritdoc />
         public async Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName)
         {
-            return await InsertOrRetrievePlayerInternalAsync(urlName, urlName, urlName, _defaultPlayerColor, null, true).ConfigureAwait(false);
+            return await InsertOrRetrievePlayerInternalAsync(urlName, urlName, urlName, Domain.Player.DefaultPlayerHexColor, null, true).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<DateTime> GetLatestEntryDateAsync()
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                IEnumerable<DateTime> data = await connection.QueryAsync<DateTime>(
+                    ToPsName(_getLatestDateName),
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+                return data.First();
+            }
+        }
+
+        private string ToPsName(string baseName)
+        {
+            return $"[dbo].[{baseName}]";
         }
 
         private DistributedCacheEntryOptions GetCacheOptions()
@@ -154,7 +156,7 @@ namespace TheEliteExplorer.Infrastructure
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 var results = await connection.QueryAsync<PlayerDto>(
-                   _getEveryPlayersPsName, new { },
+                   ToPsName(_getEveryPlayersPsName), new { },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
 
                 if (results != null)
@@ -176,10 +178,9 @@ namespace TheEliteExplorer.Infrastructure
                 return match.Id;
             }
 
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                var dynamicParameters = new DynamicParameters();
-                dynamicParameters.AddDynamicParams(new
+            long id = await InsertAndGetIdAsync(
+                _insertPlayerPsName,
+                new
                 {
                     url_name = urlName,
                     real_name = realName,
@@ -187,20 +188,28 @@ namespace TheEliteExplorer.Infrastructure
                     color,
                     control_style = controlStyle,
                     is_dirty = (isDirty ? 1 : 0)
-                });
+                }).ConfigureAwait(false);
+
+            // invalidates cache
+            await _cache.RemoveAsync(_getPlayersCacheKey).ConfigureAwait(false);
+
+            return id;
+        }
+
+        private async Task<long> InsertAndGetIdAsync(string psNameBase, object lambdaParameters)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                var dynamicParameters = new DynamicParameters();
+                dynamicParameters.AddDynamicParams(lambdaParameters);
                 dynamicParameters.Add("@id", dbType: DbType.Int64, direction: ParameterDirection.Output);
 
                 await connection.QueryAsync(
-                   _insertPlayerPsName,
+                   ToPsName(psNameBase),
                    dynamicParameters,
                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
 
-                long id = dynamicParameters.Get<long>("@id");
-
-                // invalidates cache
-                await _cache.RemoveAsync(_getPlayersCacheKey).ConfigureAwait(false);
-
-                return id;
+                return dynamicParameters.Get<long>("@id");
             }
         }
     }

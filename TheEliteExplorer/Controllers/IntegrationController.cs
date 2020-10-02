@@ -16,64 +16,84 @@ namespace TheEliteExplorer.Controllers
     {
         private readonly ISqlContext _sqlContext;
         private readonly ITheEliteWebSiteParser _siteParser;
+        private readonly IClockProvider _clockProvider;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="sqlContext">Instance of <see cref="ISqlContext"/>.</param>
         /// <param name="siteParser">Instance of <see cref="ITheEliteWebSiteParser"/>.</param>
+        /// <param name="clockProvider">Instance of <see cref="IClockProvider"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="siteParser"/> is <c>Null</c>.</exception>
-        public IntegrationController(ISqlContext sqlContext, ITheEliteWebSiteParser siteParser)
+        /// <exception cref="ArgumentNullException"><paramref name="clockProvider"/> is <c>Null</c>.</exception>
+        public IntegrationController(ISqlContext sqlContext,
+            ITheEliteWebSiteParser siteParser,
+            IClockProvider clockProvider)
         {
             _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
             _siteParser = siteParser ?? throw new ArgumentNullException(nameof(siteParser));
+            _clockProvider = clockProvider ?? throw new ArgumentNullException(nameof(clockProvider));
         }
 
         /// <summary>
         /// Scans the site to get new times and new players to integrate in the database.
         /// </summary>
         /// <param name="game">The game.</param>
-        /// <param name="year">The year to scan; <c>Null</c> for current.</param>
-        /// <param name="month">The month to scan; <c>Null</c> for current.</param>
-        /// <param name="minimalDateToScan">
-        /// String representation of the optionnal date where to stop scan;
-        /// if not a date, the full page will be scanned.
-        /// </param>
         /// <returns>A list of logs.</returns>
-        [HttpGet("new-times/games/{game}")] // TODO: POST
-        public async Task<IReadOnlyCollection<string>> ScanTimePageAsync([FromRoute] Game game, [FromQuery] int? year, [FromQuery] int? month, [FromQuery] string minimalDateToScan)
+        [HttpPost("new-times/games/{game}")]
+        public async Task<IReadOnlyCollection<string>> ScanTimePageAsync([FromRoute] Game game)
         {
-            (IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>) resultsAndLogs =
-                await _siteParser
-                    .ExtractTimeEntryAsync(
-                        game,
-                        year ?? DateTime.Now.Year,
-                        month ?? DateTime.Now.Month,
-                        minimalDateToScan.ToDateTime())
-                    .ConfigureAwait(false);
+            DateTime currentDate = await _sqlContext.GetLatestEntryDateAsync().ConfigureAwait(false);
 
-            List<string> logs = new List<string>(resultsAndLogs.Item2);
+            var logs = new List<string>();
+            var entries = new List<EntryRequest>();
 
-            foreach (EntryRequest entry in resultsAndLogs.Item1)
+            foreach ((int, int) monthAndYear in currentDate.LoopMonthAndYear(_clockProvider.Now))
             {
-                try
-                {
-                    long playerId = await _sqlContext
-                        .InsertOrRetrievePlayerDirtyAsync(entry.PlayerUrlName)
+                (IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>) resultsAndLogs =
+                    await _siteParser
+                        .ExtractTimeEntryAsync(
+                            game,
+                            monthAndYear.Item2,
+                            monthAndYear.Item1,
+                            currentDate)
                         .ConfigureAwait(false);
 
-                    await _sqlContext
-                        .InsertOrRetrieveTimeEntryAsync(playerId, entry.LevelId, entry.StageId, entry.Date, entry.Time, entry.EngineId)
-                        .ConfigureAwait(false);
-                }
-                catch (Exception ex)
+                logs.AddRange(resultsAndLogs.Item2);
+                entries.AddRange(resultsAndLogs.Item1);
+            }
+
+            foreach (EntryRequest entry in entries)
+            {
+                string log = await CreateEntryAsync(entry).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(log))
                 {
-                    logs.Add($"An error occured during the entry integration - {entry.ToString()} - {ex.Message}");
+                    logs.Add(log);
                 }
             }
 
             return logs;
+        }
+
+        private async Task<string> CreateEntryAsync(EntryRequest entry)
+        {
+            try
+            {
+                long playerId = await _sqlContext
+                    .InsertOrRetrievePlayerDirtyAsync(entry.PlayerUrlName)
+                    .ConfigureAwait(false);
+
+                await _sqlContext
+                    .InsertOrRetrieveTimeEntryAsync(playerId, entry.LevelId, entry.StageId, entry.Date, entry.Time, entry.EngineId)
+                    .ConfigureAwait(false);
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return $"An error occured during the entry integration - {entry.ToString()} - {ex.Message}";
+            }
         }
     }
 }

@@ -31,5 +31,20 @@ namespace TheEliteExplorer.Infrastructure
             return !string.IsNullOrWhiteSpace(dateTime) && DateTime.TryParse(dateTime, out DateTime dt) ?
                 dt : default(DateTime?);
         }
+
+        internal static IEnumerable<(int, int)> LoopMonthAndYear(this DateTime startDate, DateTime endDate)
+        {
+            for (int year = startDate.Year; year <= endDate.Year; year++)
+            {
+                int month = startDate.Month;
+                do
+                {
+                    yield return (month, year);
+                    month = month == 12 ? 1 : month + 1;
+                }
+                while (year != endDate.Year && month != endDate.Month);
+            }
+        }
+
     }
 }

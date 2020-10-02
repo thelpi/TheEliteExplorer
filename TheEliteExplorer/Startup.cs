@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +14,9 @@ namespace TheEliteExplorer
     public class Startup
     {
         private readonly IConfiguration _configuration;
+
+        private const string _cacheSection = "Cache";
+        private const string _theEliteWebsiteSection = "TheEliteWebsite";
 
         /// <summary>
         /// Constructor.
@@ -35,10 +37,13 @@ namespace TheEliteExplorer
         {
             services.AddMvc();
 
+            Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+
             services
+                .AddSingleton<IClockProvider, ClockProvider>()
                 .AddSingleton<IConnectionProvider>(new ConnectionProvider(_configuration))
-                .Configure<CacheConfiguration>(_configuration.GetSection("Cache"))
-                .Configure<TheEliteWebsiteConfiguration>(_configuration.GetSection("TheEliteWebsite"))
+                .Configure<CacheConfiguration>(_configuration.GetSection(_cacheSection))
+                .Configure<TheEliteWebsiteConfiguration>(_configuration.GetSection(_theEliteWebsiteSection))
                 .AddSingleton<ISqlContext, SqlContext>()
                 .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()
                 .AddDistributedMemoryCache();

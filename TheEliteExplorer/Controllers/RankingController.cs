@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorer.Domain;
@@ -17,15 +16,20 @@ namespace TheEliteExplorer.Controllers
     public class RankingController : Controller
     {
         private readonly ISqlContext _sqlContext;
+        private readonly IClockProvider _clockProvider;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="sqlContext">Instance of <see cref="ISqlContext"/>.</param>
+        /// <param name="clockProvider">Instance of <see cref="IClockProvider"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
-        public RankingController(ISqlContext sqlContext)
+        /// <exception cref="ArgumentNullException"><paramref name="clockProvider"/> is <c>Null</c>.</exception>
+        public RankingController(ISqlContext sqlContext,
+            IClockProvider clockProvider)
         {
             _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
+            _clockProvider = clockProvider ?? throw new ArgumentNullException(nameof(clockProvider));
         }
 
         /// <summary>
@@ -39,11 +43,7 @@ namespace TheEliteExplorer.Controllers
         [HttpGet("{date}/games/{game}")]
         public async Task<PaginatedCollection<RankingEntry>> GetRankingAsync([FromRoute] string date, [FromRoute] Game game, [FromQuery] int page, [FromQuery] int count)
         {
-            if (!DateTime.TryParse(date, out DateTime realDate))
-            {
-                realDate = DateTime.Now;
-            }
-            realDate = realDate.AddDays(1).Date;
+            DateTime realDate = ValidateDateParameter(date);
 
             var builder = new RankingBuilder(game,
                 await GetEntriesForEachStageAndLevelAsync(realDate, game).ConfigureAwait(false),
@@ -52,6 +52,16 @@ namespace TheEliteExplorer.Controllers
 
             return PaginatedCollection<RankingEntry>.CreateInstance(
                 builder.GetRankingEntries(), page, count);
+        }
+
+        private DateTime ValidateDateParameter(string date)
+        {
+            if (!DateTime.TryParse(date, out DateTime realDate))
+            {
+                realDate = _clockProvider.Now;
+            }
+            realDate = realDate.AddDays(1).Date;
+            return realDate;
         }
 
         private async Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(DateTime dateTime, Game game)

@@ -55,5 +55,11 @@ namespace TheEliteExplorer.Infrastructure
         /// <param name="urlName">Player URL name.</param>
         /// <returns>Player identifier.</returns>
         Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName);
+
+        /// <summary>
+        /// Gets the most recent entry date.
+        /// </summary>
+        /// <returns>Most recent entry date</returns>
+        Task<DateTime> GetLatestEntryDateAsync();
     }
 }
