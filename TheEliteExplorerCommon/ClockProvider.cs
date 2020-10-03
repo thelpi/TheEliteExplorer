@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TheEliteExplorer.Infrastructure
+namespace TheEliteExplorerCommon
 {
     /// <summary>
     /// Clock provider default implementation.

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TheEliteExplorer.Infrastructure
+namespace TheEliteExplorerCommon
 {
     /// <summary>
     /// Clock provider interface.
@@ -8,7 +8,7 @@ namespace TheEliteExplorer.Infrastructure
     public interface IClockProvider
     {
         /// <summary>
-        /// Represents the current date of the clocK.
+        /// Represents the current datetime of the clocK.
         /// </summary>
         DateTime Now { get; }
     }

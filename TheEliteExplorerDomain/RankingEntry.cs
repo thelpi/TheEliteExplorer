@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using TheEliteExplorer.Infrastructure;
-using TheEliteExplorer.Infrastructure.Dtos;
+using TheEliteExplorerCommon;
+using TheEliteExplorerDomain.Dtos;
 
-namespace TheEliteExplorer.Domain
+namespace TheEliteExplorerDomain
 {
     /// <summary>
     /// Represents a ranking entry.
@@ -96,7 +96,7 @@ namespace TheEliteExplorer.Domain
 
             long allStagesMaxTime = UnsetTimeValueSeconds * Stage.Get(Game).Count;
 
-            CumuledTime = allStagesMaxTime * TypeExtensions.Count<Level>();
+            CumuledTime = allStagesMaxTime * SystemExtensions.Count<Level>();
 
             _levelCumuledTime = ToLevelDictionary(allStagesMaxTime);
         }
@@ -173,7 +173,7 @@ namespace TheEliteExplorer.Domain
 
         private static Dictionary<Level, T> ToLevelDictionary<T>(T value)
         {
-            return TypeExtensions.Enumerate<Level>().ToDictionary(l => l, l => value);
+            return SystemExtensions.Enumerate<Level>().ToDictionary(l => l, l => value);
         }
     }
 }

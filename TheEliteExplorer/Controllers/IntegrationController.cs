@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using TheEliteExplorer.Domain;
-using TheEliteExplorer.Infrastructure;
+using TheEliteExplorerCommon;
+using TheEliteExplorerDomain;
+using TheEliteExplorerInfrastructure;
 
 namespace TheEliteExplorer.Controllers
 {
@@ -16,24 +17,19 @@ namespace TheEliteExplorer.Controllers
     {
         private readonly ISqlContext _sqlContext;
         private readonly ITheEliteWebSiteParser _siteParser;
-        private readonly IClockProvider _clockProvider;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="sqlContext">Instance of <see cref="ISqlContext"/>.</param>
         /// <param name="siteParser">Instance of <see cref="ITheEliteWebSiteParser"/>.</param>
-        /// <param name="clockProvider">Instance of <see cref="IClockProvider"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="siteParser"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="clockProvider"/> is <c>Null</c>.</exception>
         public IntegrationController(ISqlContext sqlContext,
-            ITheEliteWebSiteParser siteParser,
-            IClockProvider clockProvider)
+            ITheEliteWebSiteParser siteParser)
         {
             _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
             _siteParser = siteParser ?? throw new ArgumentNullException(nameof(siteParser));
-            _clockProvider = clockProvider ?? throw new ArgumentNullException(nameof(clockProvider));
         }
 
         /// <summary>
@@ -49,7 +45,7 @@ namespace TheEliteExplorer.Controllers
             var logs = new List<string>();
             var entries = new List<EntryRequest>();
 
-            foreach ((int, int) monthAndYear in currentDate.LoopMonthAndYear(_clockProvider.Now))
+            foreach ((int, int) monthAndYear in currentDate.LoopMonthAndYear(ServiceProviderAccessor.ClockProvider.Now))
             {
                 (IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>) resultsAndLogs =
                     await _siteParser

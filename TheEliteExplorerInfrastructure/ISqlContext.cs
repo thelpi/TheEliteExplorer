@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TheEliteExplorer.Infrastructure.Dtos;
+using TheEliteExplorerDomain.Dtos;
 
-namespace TheEliteExplorer.Infrastructure
+namespace TheEliteExplorerInfrastructure
 {
     /// <summary>
     /// SQL context interface.

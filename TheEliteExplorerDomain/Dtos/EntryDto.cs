@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using TheEliteExplorer.Domain;
+using TheEliteExplorerCommon;
 
-namespace TheEliteExplorer.Infrastructure.Dtos
+namespace TheEliteExplorerDomain.Dtos
 {
     /// <summary>
     /// Represents a row in the "entry" table.
@@ -52,12 +52,12 @@ namespace TheEliteExplorer.Infrastructure.Dtos
                 return false;
             }
 
-            if (!TypeExtensions.Enumerate<Level>().Any(l => (int)l == LevelId))
+            if (!SystemExtensions.Enumerate<Level>().Any(l => (int)l == LevelId))
             {
                 return false;
             }
 
-            if (SystemId.HasValue && !TypeExtensions.Enumerate<Engine>().Any(e => (int)e == SystemId.Value))
+            if (SystemId.HasValue && !SystemExtensions.Enumerate<Level>().Any(e => (int)e == SystemId.Value))
             {
                 return false;
             }
@@ -68,7 +68,7 @@ namespace TheEliteExplorer.Infrastructure.Dtos
                 return false;
             }
 
-            if (Date.HasValue && (Date.Value.Date > DateTime.Today || Date.Value.Year < game.Value.GetFirstYear()))
+            if (!game.Value.InGameLifeSpan(Date))
             {
                 return false;
             }

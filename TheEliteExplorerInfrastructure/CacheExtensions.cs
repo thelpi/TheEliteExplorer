@@ -6,12 +6,24 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 
-namespace TheEliteExplorer.Infrastructure
+namespace TheEliteExplorerInfrastructure
 {
+    /// <summary>
+    /// Cache extension methods.
+    /// </summary>
     internal static class CacheExtensions
     {
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphores = new ConcurrentDictionary<string, SemaphoreSlim>();
 
+        /// <summary>
+        /// Gets a data from cache if possible, otherwise from original source then sets cache.
+        /// </summary>
+        /// <typeparam name="T">Targeted data type.</typeparam>
+        /// <param name="cache">Cache provider.</param>
+        /// <param name="cacheKey">Cache key.</param>
+        /// <param name="options">Cache options.</param>
+        /// <param name="getWithoutCacheDelegate">Delegate to retrieve data from the original source.</param>
+        /// <returns>The data.</returns>
         internal static async Task<T> GetOrSetFromCacheAsync<T>(
             this IDistributedCache cache,
             string cacheKey,

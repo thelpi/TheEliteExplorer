@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using TheEliteExplorer.Domain;
-using TheEliteExplorer.Infrastructure;
+using TheEliteExplorerDomain;
+using TheEliteExplorerInfrastructure;
 
 namespace TheEliteExplorer.Controllers
 {

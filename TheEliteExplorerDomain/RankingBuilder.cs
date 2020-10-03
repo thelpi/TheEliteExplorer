@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using TheEliteExplorer.Infrastructure.Dtos;
+using TheEliteExplorerDomain.Dtos;
 
-namespace TheEliteExplorer.Domain
+namespace TheEliteExplorerDomain
 {
     /// <summary>
     /// Builds a ranking.

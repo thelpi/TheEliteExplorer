@@ -1,4 +1,4 @@
-﻿namespace TheEliteExplorer.Infrastructure.Configuration
+﻿namespace TheEliteExplorerInfrastructure.Configuration
 {
     /// <summary>
     /// Cache configuration.

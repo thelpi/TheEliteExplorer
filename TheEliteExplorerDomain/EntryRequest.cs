@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TheEliteExplorer.Domain
+namespace TheEliteExplorerDomain
 {
     /// <summary>
     /// Represents a time entry to process.
@@ -58,7 +58,7 @@ namespace TheEliteExplorer.Domain
                 throw new ArgumentNullException(nameof(playerUrlName));
             }
 
-            if (date.HasValue && (date.Value.Date > DateTime.Today || date.Value.Year < stage.Game.GetFirstYear()))
+            if (!stage.Game.InGameLifeSpan(date))
             {
                 throw new ArgumentException(nameof(date));
             }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TheEliteExplorer.Domain;
+using TheEliteExplorerDomain;
 
-namespace TheEliteExplorer.Infrastructure
+namespace TheEliteExplorerInfrastructure
 {
     /// <summary>
     /// The-elite website parser interface.

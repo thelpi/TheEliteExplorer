@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace TheEliteExplorer.Infrastructure
+namespace TheEliteExplorerInfrastructure
 {
     /// <summary>
     /// Connection provider interface.

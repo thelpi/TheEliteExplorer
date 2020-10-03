@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using TheEliteExplorer.Infrastructure.Configuration;
-using TheEliteExplorer.Infrastructure.Dtos;
+using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerInfrastructure.Configuration;
 
-namespace TheEliteExplorer.Infrastructure
+namespace TheEliteExplorerInfrastructure
 {
     /// <summary>
     /// SQL context.
@@ -123,7 +124,7 @@ namespace TheEliteExplorer.Infrastructure
         /// <inheritdoc />
         public async Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName)
         {
-            return await InsertOrRetrievePlayerInternalAsync(urlName, urlName, urlName, Domain.Player.DefaultPlayerHexColor, null, true).ConfigureAwait(false);
+            return await InsertOrRetrievePlayerInternalAsync(urlName, urlName, urlName, Player.DefaultPlayerHexColor, null, true).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

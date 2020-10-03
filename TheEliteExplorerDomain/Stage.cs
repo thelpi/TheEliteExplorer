@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using TheEliteExplorer.Infrastructure;
+using TheEliteExplorerCommon;
 
-namespace TheEliteExplorer.Domain
+namespace TheEliteExplorerDomain
 {
     /// <summary>
     /// Represents a stage.
@@ -69,7 +69,7 @@ namespace TheEliteExplorer.Domain
         /// <returns>Collection of <see cref="Stage"/>.</returns>
         public static IReadOnlyCollection<Stage> Get()
         {
-            return TypeExtensions.Enumerate<Game>().SelectMany(Get).ToList();
+            return SystemExtensions.Enumerate<Game>().SelectMany(Get).ToList();
         }
 
         private Stage(Game game, string name, int position)

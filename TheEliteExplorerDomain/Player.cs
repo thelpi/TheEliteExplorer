@@ -1,7 +1,7 @@
 ﻿using System;
-using TheEliteExplorer.Infrastructure.Dtos;
+using TheEliteExplorerDomain.Dtos;
 
-namespace TheEliteExplorer.Domain
+namespace TheEliteExplorerDomain
 {
     /// <summary>
     /// Represents a player.
@@ -40,7 +40,7 @@ namespace TheEliteExplorer.Domain
 
             RealName = dto.RealName;
             SurName = dto.SurName;
-            ControlStyle = DomainExtension.ToControlStyle(dto.ControlStyle);
+            ControlStyle = Extensions.ToControlStyle(dto.ControlStyle);
         }
     }
 }

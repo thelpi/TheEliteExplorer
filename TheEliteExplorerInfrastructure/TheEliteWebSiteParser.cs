@@ -5,10 +5,11 @@ using System.Net;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Options;
-using TheEliteExplorer.Domain;
-using TheEliteExplorer.Infrastructure.Configuration;
+using TheEliteExplorerCommon;
+using TheEliteExplorerDomain;
+using TheEliteExplorerInfrastructure.Configuration;
 
-namespace TheEliteExplorer.Infrastructure
+namespace TheEliteExplorerInfrastructure
 {
     /// <summary>
     /// The-elite website parse.
@@ -126,7 +127,7 @@ namespace TheEliteExplorer.Infrastructure
                 return null;
             }
 
-            Level? level = TypeExtensions
+            Level? level = SystemExtensions
                 .Enumerate<Level>()
                 .Select(l => (Level?)l)
                 .FirstOrDefault(l => l.Value.GetLabel(game).Equals(linkParts[1], StringComparison.InvariantCultureIgnoreCase));
@@ -201,7 +202,7 @@ namespace TheEliteExplorer.Infrastructure
                     {
                         string engineString = pageContentAtBeginPos.Substring(0, engineStringEndPos + 1);
 
-                        return TypeExtensions
+                        return SystemExtensions
                             .Enumerate<Engine>()
                             .Select(e => (Engine?)e)
                             .FirstOrDefault(e => e.Value.ToString().Equals(engineString.Trim().Replace("-", "_"), StringComparison.InvariantCultureIgnoreCase));
@@ -313,7 +314,7 @@ namespace TheEliteExplorer.Infrastructure
 
             failToExtractDate = false;
 
-            if (dateString != DomainExtension.DefaultLabel)
+            if (dateString != Extensions.DefaultLabel)
             {
                 string[] dateComponents = dateString.Split(separator);
                 if (dateComponents.Length != 3)

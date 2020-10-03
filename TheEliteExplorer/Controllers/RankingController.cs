@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using TheEliteExplorer.Domain;
-using TheEliteExplorer.Infrastructure;
-using TheEliteExplorer.Infrastructure.Dtos;
+using TheEliteExplorerCommon;
+using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerInfrastructure;
 
 namespace TheEliteExplorer.Controllers
 {
@@ -16,20 +17,15 @@ namespace TheEliteExplorer.Controllers
     public class RankingController : Controller
     {
         private readonly ISqlContext _sqlContext;
-        private readonly IClockProvider _clockProvider;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="sqlContext">Instance of <see cref="ISqlContext"/>.</param>
-        /// <param name="clockProvider">Instance of <see cref="IClockProvider"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="clockProvider"/> is <c>Null</c>.</exception>
-        public RankingController(ISqlContext sqlContext,
-            IClockProvider clockProvider)
+        public RankingController(ISqlContext sqlContext)
         {
             _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
-            _clockProvider = clockProvider ?? throw new ArgumentNullException(nameof(clockProvider));
         }
 
         /// <summary>
@@ -58,7 +54,7 @@ namespace TheEliteExplorer.Controllers
         {
             if (!DateTime.TryParse(date, out DateTime realDate))
             {
-                realDate = _clockProvider.Now;
+                realDate = ServiceProviderAccessor.ClockProvider.Now;
             }
             realDate = realDate.AddDays(1).Date;
             return realDate;
@@ -68,7 +64,7 @@ namespace TheEliteExplorer.Controllers
         {
             var entries = new List<EntryDto>();
 
-            foreach (Level level in TypeExtensions.Enumerate<Level>())
+            foreach (Level level in SystemExtensions.Enumerate<Level>())
             {
                 foreach (Stage stage in Stage.Get(game))
                 {

@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TheEliteExplorer.Infrastructure;
-using TheEliteExplorer.Infrastructure.Configuration;
+using TheEliteExplorerCommon;
+using TheEliteExplorerInfrastructure;
+using TheEliteExplorerInfrastructure.Configuration;
 
 namespace TheEliteExplorer
 {
@@ -61,7 +62,7 @@ namespace TheEliteExplorer
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            ServiceProviderAccessor.SetProvider(app.ApplicationServices);
             app.UseMvc();
         }
     }
