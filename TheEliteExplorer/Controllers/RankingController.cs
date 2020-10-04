@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Configuration;
-using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerInfrastructure;
 
 namespace TheEliteExplorer.Controllers
@@ -48,7 +47,7 @@ namespace TheEliteExplorer.Controllers
             DateTime realDate = ValidateDateParameter(date);
 
             var builder = new RankingBuilder(
-                await GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false),
+                await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false),
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
                 _configuration,
                 realDate
@@ -66,25 +65,6 @@ namespace TheEliteExplorer.Controllers
                 realDate = ServiceProviderAccessor.ClockProvider.Now;
             }
             return realDate.AddDays(1).Date;
-        }
-
-        private async Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(Game game)
-        {
-            var entries = new List<EntryDto>();
-
-            foreach (Level level in SystemExtensions.Enumerate<Level>())
-            {
-                foreach (Stage stage in Stage.Get(game))
-                {
-                    entries.AddRange(
-                        await _sqlContext
-                            .GetEntriesAsync(stage.Position, (long)level, null, null)
-                            .ConfigureAwait(false)
-                    );
-                }
-            }
-
-            return entries;
         }
     }
 }

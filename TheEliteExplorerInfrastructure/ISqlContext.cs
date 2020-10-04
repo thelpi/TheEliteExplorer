@@ -57,5 +57,12 @@ namespace TheEliteExplorerInfrastructure
         /// </summary>
         /// <returns>Most recent entry date</returns>
         Task<DateTime> GetLatestEntryDateAsync();
+
+        /// <summary>
+        /// Gets time entries for every stage and level of the specified game.
+        /// </summary>
+        /// <param name="game">The game.</param>
+        /// <returns>Collection of <see cref="EntryDto"/>.</returns>
+        Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(TheEliteExplorerDomain.Game game);
     }
 }
