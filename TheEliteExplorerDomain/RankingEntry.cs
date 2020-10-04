@@ -20,6 +20,7 @@ namespace TheEliteExplorerDomain
         private readonly Dictionary<Level, int> _levelUntiedRecordsCount;
         private readonly Dictionary<Level, int> _levelRecordsCount;
         private readonly Dictionary<Level, long> _levelCumuledTime;
+        private readonly Dictionary<Stage, Dictionary<Level, (int, int, long?)>> _details;
 
         /// <summary>
         /// Game.
@@ -65,6 +66,16 @@ namespace TheEliteExplorerDomain
         /// Time cumuled on every stage, by level.
         /// </summary>
         public IReadOnlyDictionary<Level, long> LevelCumuledTime { get { return _levelCumuledTime; } }
+        /// <summary>
+        /// Detail of [ranking/points/time] for each level of each stage.
+        /// </summary>
+        public IReadOnlyDictionary<Stage, IReadOnlyDictionary<Level, (int, int, long?)>> Details
+        {
+            get
+            {
+                return _details.ToDictionary(d => d.Key, d => (IReadOnlyDictionary<Level, (int, int, long?)>)d.Value);
+            }
+        }
 
         /// <summary>
         /// Constructor.
@@ -85,6 +96,7 @@ namespace TheEliteExplorerDomain
             Game = game;
             PlayerId = playerId;
             PlayerName = playerName ?? throw new ArgumentNullException(nameof(playerName));
+            _details = new Dictionary<Stage, Dictionary<Level, (int, int, long?)>>();
 
             Points = 0;
             UntiedRecordsCount = 0;
@@ -129,7 +141,8 @@ namespace TheEliteExplorerDomain
                 throw new ArgumentException($"{entry} is not related to the player {PlayerId}.", nameof(entry));
             }
 
-            if (!Stage.Get(Game).Any(s => s.Id == entry.StageId))
+            Stage stage = Stage.Get(Game).FirstOrDefault(s => s.Id == entry.StageId);
+            if (stage == null)
             {
                 throw new ArgumentException($"{entry} is not related to the game {Game}.", nameof(entry));
             }
@@ -141,8 +154,10 @@ namespace TheEliteExplorerDomain
 
             Level level = (Level)entry.LevelId;
 
+            int points = (100 - position) - 2;
             if (position == 1)
             {
+                points = 100;
                 RecordsCount++;
                 _levelRecordsCount[level]++;
                 if (untied)
@@ -150,25 +165,38 @@ namespace TheEliteExplorerDomain
                     UntiedRecordsCount++;
                     _levelUntiedRecordsCount[level]++;
                 }
-                Points += 100;
-                _levelPoints[level] += 100;
             }
             else if (position == 2)
             {
-                Points += 97;
-                _levelPoints[level] += 97;
+                points = 97;
             }
-            else
-            {
-                Points += (100 - position) - 2;
-                _levelPoints[level] += (100 - position) - 2;
-            }
+
+            Points += points;
+            _levelPoints[level] += points;
+            
+            GetDetailsByLevel(stage).Add(level, (position, points, entry.Time));
 
             if (entry.Time < UnsetTimeValueSeconds)
             {
                 CumuledTime -= UnsetTimeValueSeconds - entry.Time.Value;
                 _levelCumuledTime[level] -= UnsetTimeValueSeconds - entry.Time.Value;
             }
+        }
+
+        private Dictionary<Level, (int, int, long?)> GetDetailsByLevel(Stage stage)
+        {
+            Dictionary<Level, (int, int, long?)> detailsByLevel;
+            if (!_details.ContainsKey(stage))
+            {
+                detailsByLevel = new Dictionary<Level, (int, int, long?)>();
+                _details.Add(stage, detailsByLevel);
+            }
+            else
+            {
+                detailsByLevel = _details[stage];
+            }
+
+            return detailsByLevel;
         }
 
         private static Dictionary<Level, T> ToLevelDictionary<T>(T value)
