@@ -16,5 +16,9 @@
         /// Use <see cref="System.String.Format(string, object, object)"/>: {0} for year and {1} for month
         /// </remarks>
         public string HistoryPage { get; set; }
+        /// <summary>
+        /// Ajax URL key.
+        /// </summary>
+        public string AjaxKey { get; set; }
     }
 }

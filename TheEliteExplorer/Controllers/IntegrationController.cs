@@ -49,7 +49,7 @@ namespace TheEliteExplorer.Controllers
             {
                 (IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>) resultsAndLogs =
                     await _siteParser
-                        .ExtractTimeEntryAsync(
+                        .ExtractTimeEntriesAsync(
                             game,
                             monthAndYear.Item2,
                             monthAndYear.Item1,
@@ -70,6 +70,56 @@ namespace TheEliteExplorer.Controllers
             }
 
             return logs;
+        }
+
+        /// <summary>
+        /// Scan the site to get every time for a single stage.
+        /// </summary>
+        /// <param name="stageId">Stage identifier.</param>
+        /// <returns>A list of logs.</returns>
+        [HttpPost("times/stages/{stageId}")]
+        public async Task<IReadOnlyCollection<string>> ScanStageTimesAsync([FromRoute] long stageId)
+        {
+            bool haveEntries = await CheckForExistingEntries(stageId).ConfigureAwait(false);
+            if (haveEntries)
+            {
+                return new List<string>
+                {
+                    "Unables to scan a stage already scanned."
+                };
+            }
+
+            (IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>) entriesAngLogs =
+                await _siteParser.ExtractStageAllTimeEntriesAsync(stageId).ConfigureAwait(false);
+
+            var logs = new List<string>(entriesAngLogs.Item2);
+
+            foreach (EntryRequest entry in entriesAngLogs.Item1)
+            {
+                string log = await CreateEntryAsync(entry).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(log))
+                {
+                    logs.Add(log);
+                }
+            }
+
+            return logs;
+        }
+
+        private async Task<bool> CheckForExistingEntries(long stageId)
+        {
+            foreach (Level level in SystemExtensions.Enumerate<Level>())
+            {
+                IReadOnlyCollection<TheEliteExplorerDomain.Dtos.EntryDto> levelEntries = await _sqlContext
+                    .GetEntriesAsync(stageId, (long)level, null, null)
+                    .ConfigureAwait(false);
+                if (levelEntries.Count > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private async Task<string> CreateEntryAsync(EntryRequest entry)

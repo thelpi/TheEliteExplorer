@@ -30,7 +30,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<(IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>)> ExtractTimeEntryAsync(Game game, int year, int month, DateTime? minimalDateToScan)
+        public async Task<(IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>)> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan)
         {
             var linksValues = new List<EntryRequest>();
             var logs = new List<string>();
@@ -81,6 +81,229 @@ namespace TheEliteExplorerInfrastructure
             }
 
             return (linksValues, logs);
+        }
+
+        /// <inheritdoc />
+        public async Task<(IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>)> ExtractStageAllTimeEntriesAsync(long stageId)
+        {
+            var entries = new List<EntryRequest>();
+            var logs = new List<string>();
+
+            Stage stage = Stage.Get().FirstOrDefault(s => s.Id == stageId);
+            if (stage == null)
+            {
+                logs.Add($"Invalid stage identifier - {stageId}");
+                return (entries, logs);
+            }
+
+            string pageContent = await GetPageStringContentAsync($"/ajax/stage/{stageId}/{_configuration.AjaxKey}", logs).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(pageContent))
+            {
+                logs.Add($"Unables to load the page content for stage {stageId}.");
+                return (entries, logs);
+            }
+
+            IReadOnlyCollection<IReadOnlyCollection<object>> jsonContent = null;
+            try
+            {
+                jsonContent = Newtonsoft.Json.JsonConvert.DeserializeObject<IReadOnlyCollection<IReadOnlyCollection<object>>>(pageContent);
+            }
+            catch (Exception ex)
+            {
+                logs.Add($"An error occured while parsing the content - {ex.Message}.");
+                return (entries, logs);
+            }
+
+            if (jsonContent == null || jsonContent.Count != SystemExtensions.Count<Level>())
+            {
+                logs.Add($"The list of entries by level is invalid.");
+                return (entries, logs);
+            }
+
+            Dictionary<Level, List<long>> links = ExtractEntryIdListFromJsonContent(jsonContent, logs);
+
+            foreach (Level levelKey in links.Keys)
+            {
+                foreach (long entryId in links[levelKey])
+                {
+                    try
+                    {
+                        List<EntryRequest> entryDetails = await ExtractEntryDetailsAsync(entryId, stage, levelKey, logs).ConfigureAwait(false);
+                        entries.AddRange(entryDetails);
+                    }
+                    catch (Exception ex)
+                    {
+                        logs.Add($"General exception occured while retrieving entry details - {ex.Message}");
+                    }
+                }
+            }
+
+            return (entries, logs);
+        }
+
+        private async Task<List<EntryRequest>> ExtractEntryDetailsAsync(long entryId, Stage stage, Level levelKey, List<string> logs)
+        {
+            List<EntryRequest> finalEntries = new List<EntryRequest>();
+
+            // /!\/!\/!\ Any name can go in the URL
+            string linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}", logs).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(linkData))
+            {
+                // This case occurs, for the most part, because of a temporary security issue
+                // So we wait one second and retry
+                System.Threading.Thread.Sleep(1000);
+                linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}", logs).ConfigureAwait(false);
+            }
+
+            if (string.IsNullOrWhiteSpace(linkData))
+            {
+                return finalEntries;
+            }
+
+            var htmlDocHead = new HtmlDocument();
+            htmlDocHead.LoadHtml(linkData);
+            
+            string playerUrlName = htmlDocHead
+                .DocumentNode.SelectNodes("//h1/a").First()
+                .Attributes.AttributesWithName("href").First().Value;
+
+            const string playerUrlPrefix = "/~";
+            const string N_A = "N/A";
+
+            playerUrlName = playerUrlName.Replace(playerUrlPrefix, string.Empty).Split('/').First().Replace("+", " ");
+
+            string[] htmlParts = linkData.Split(new string[] { "<table>", "</table>" }, StringSplitOptions.RemoveEmptyEntries);
+            if (htmlParts.Length != 3)
+            {
+                HtmlNodeCollection headTitle = htmlDocHead.DocumentNode.SelectNodes("//h1");
+                string headTitleText = (headTitle.Count > 1 ? headTitle[1] : headTitle.First()).InnerText;
+                var indexOfDoubleDot = headTitleText.IndexOf(":");
+
+                string timeFromHead = indexOfDoubleDot < 0 ? N_A : string.Join(string.Empty,
+                    Enumerable.Range(-2, 5).Select(i => headTitleText[indexOfDoubleDot + i]));
+
+                EntryRequest entryRequest = ExtractEntryFromHead(stage, levelKey, timeFromHead, playerUrlName, htmlParts[0], logs);
+                if (entryRequest != null)
+                {
+                    finalEntries.Add(entryRequest);
+                }
+            }
+            else
+            {
+                finalEntries.AddRange(ExtractEntriesFromTable(stage, levelKey, playerUrlName, htmlParts[1], logs));
+            }
+
+            return finalEntries;
+        }
+
+        private EntryRequest ExtractEntryFromHead(Stage stage, Level levelKey, string timeFromhead, string playerUrlName, string content, List<string> logs)
+        {
+            var versionFromHead = "Unknown";
+            var dateFromHead = "Unknown";
+            const string achievedPart = "<strong>Achieved:</strong>";
+            const string systemPart = "<strong>System:</strong>";
+
+            var i1 = content.IndexOf(achievedPart);
+            if (i1 >= 0)
+            {
+                var subpart = content.Substring(i1 + achievedPart.Length).Split(new string[] { "</li>" }, StringSplitOptions.RemoveEmptyEntries);
+                if (subpart.Length > 0)
+                {
+                    dateFromHead = subpart[0];
+                }
+            }
+
+            var i2 = content.IndexOf(systemPart);
+            if (i2 >= 0)
+            {
+                var subpart = content.Substring(i2 + systemPart.Length).Split(new string[] { "</li>" }, StringSplitOptions.RemoveEmptyEntries);
+                if (subpart.Length > 0)
+                {
+                    versionFromHead = subpart[0];
+                }
+            }
+
+            long? time = ExtractTime(timeFromhead, logs, out bool failToExtract);
+            if (failToExtract)
+            {
+                return null;
+            }
+
+            DateTime? date = ParseDateFromString(dateFromHead, logs, out failToExtract);
+            if (failToExtract)
+            {
+                return null;
+            }
+
+            return new EntryRequest(stage, levelKey, playerUrlName, time, date, ToEngine(versionFromHead));
+        }
+
+        private IEnumerable<EntryRequest> ExtractEntriesFromTable(Stage stage, Level levelKey, string playerUrlName, string content, List<string> logs)
+        {
+            string tableContent = string.Concat("<table>", content, "</table>");
+
+            var doc = new HtmlDocument();
+            doc.LoadHtml(tableContent);
+            
+            foreach (HtmlNode row in doc.DocumentNode.SelectNodes("//tr[td]"))
+            {
+                var rowDatas = row.SelectNodes("td").Select(td => td.InnerText).ToArray();
+
+                long? time = ExtractTime(rowDatas[1], logs, out bool failToExtract);
+                if (!failToExtract)
+                {
+                    DateTime? date = ParseDateFromString(rowDatas[0], logs, out failToExtract);
+                    if (!failToExtract)
+                    {
+                        yield return new EntryRequest(stage, levelKey, playerUrlName, time, date, ToEngine(rowDatas[3]));
+                    }
+                }
+            }
+        }
+
+        private Dictionary<Level, List<long>> ExtractEntryIdListFromJsonContent(IReadOnlyCollection<IReadOnlyCollection<object>> stageJsonContent, List<string> logs)
+        {
+            var entryIdListByLevel = new Dictionary<Level, List<long>>();
+
+            const int positionOfId = 7;
+            const int positionOfStart = 4;
+
+            int m = 0;
+            foreach (IReadOnlyCollection<object> jsonLevelEntries in stageJsonContent)
+            {
+                var entryIdList = new List<long>();
+                entryIdListByLevel.Add(SystemExtensions.Enumerate<Level>().ElementAt(m), entryIdList);
+                try
+                {
+                    int j = positionOfStart;
+                    foreach (object jsonEntry in jsonLevelEntries)
+                    {
+                        if (j % positionOfId == 0)
+                        {
+                            if (jsonEntry == null)
+                            {
+                                logs.Add("The JSON entry was null.");
+                            }
+                            else if (!long.TryParse(jsonEntry.ToString(), out long entryId))
+                            {
+                                logs.Add($"The JSON entry was not a long - value: {jsonEntry}");
+                            }
+                            else
+                            {
+                                entryIdList.Add(entryId);
+                            }
+                        }
+                        j++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logs.Add($"Error while parsing JSON entry - {ex.Message}");
+                }
+                m++;
+            }
+
+            return entryIdListByLevel;
         }
 
         private async Task<EntryRequest> ExtractTimeLinkDetailsAsync(Game game, HtmlNode link, List<string> logs, DateTime? minimalDateToScan)
@@ -202,15 +425,20 @@ namespace TheEliteExplorerInfrastructure
                     {
                         string engineString = pageContentAtBeginPos.Substring(0, engineStringEndPos + 1);
 
-                        return SystemExtensions
-                            .Enumerate<Engine>()
-                            .Select(e => (Engine?)e)
-                            .FirstOrDefault(e => e.ToString().Equals(engineString.Trim().Replace("-", "_"), StringComparison.InvariantCultureIgnoreCase));
+                        return ToEngine(engineString);
                     }
                 }
             }
 
             return null;
+        }
+
+        private static Engine? ToEngine(string engineString)
+        {
+            return SystemExtensions
+                .Enumerate<Engine>()
+                .Select(e => (Engine?)e)
+                .FirstOrDefault(e => e.ToString().Equals(engineString.Trim().Replace("-", "_"), StringComparison.InvariantCultureIgnoreCase));
         }
 
         private async Task<string> GetPageStringContentAsync(string partUri, List<string> logs)
@@ -313,6 +541,8 @@ namespace TheEliteExplorerInfrastructure
             };
 
             failToExtractDate = false;
+
+            dateString = dateString?.Trim();
 
             if (dateString != Extensions.DefaultLabel)
             {
