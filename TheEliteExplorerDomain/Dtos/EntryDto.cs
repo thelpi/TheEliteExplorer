@@ -47,7 +47,7 @@ namespace TheEliteExplorerDomain.Dtos
         /// <returns><c>True</c> if valid; <c>False</c> otherwise.</returns>
         public bool IsValid()
         {
-            if (Id <= 0 || PlayerId <= 0 || Time.Value <= 0)
+            if (Id <= 0 || PlayerId <= 0 || Time <= 0)
             {
                 return false;
             }
@@ -57,7 +57,7 @@ namespace TheEliteExplorerDomain.Dtos
                 return false;
             }
 
-            if (SystemId.HasValue && !SystemExtensions.Enumerate<Engine>().Any(e => (int)e == SystemId.Value))
+            if (SystemId.HasValue && !SystemExtensions.Enumerate<Engine>().Contains((Engine)SystemId))
             {
                 return false;
             }

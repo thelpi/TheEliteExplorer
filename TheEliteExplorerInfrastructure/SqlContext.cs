@@ -86,8 +86,8 @@ namespace TheEliteExplorerInfrastructure
             }
 
             IReadOnlyCollection<EntryDto> entries = await GetEntriesAsync(requestEntry.StageId, requestEntry.LevelId,
-                requestEntry.Date.HasValue ? requestEntry.Date.Value.Date : default(DateTime?),
-                requestEntry.Date.HasValue ? requestEntry.Date.Value.Date.AddDays(1) : default(DateTime?));
+                requestEntry.Date?.Date,
+                requestEntry.Date?.Date.AddDays(1));
 
             EntryDto match = entries.FirstOrDefault(e => e.PlayerId == requestEntry.PlayerId
                 && e.Time == requestEntry.Time
@@ -178,11 +178,6 @@ namespace TheEliteExplorerInfrastructure
 
         private async Task<long> InsertOrRetrievePlayerInternalAsync(string urlName, string realName, string surname, string color, string controlStyle, bool isDirty, DateTime? joinDate)
         {
-            if (joinDate.HasValue)
-            {
-                joinDate = joinDate.Value.Date;
-            }
-
             IReadOnlyCollection<PlayerDto> players = await GetPlayersAsync().ConfigureAwait(false);
 
             PlayerDto match = players.FirstOrDefault(p => p.UrlName.Equals(urlName, StringComparison.InvariantCultureIgnoreCase));
@@ -201,7 +196,7 @@ namespace TheEliteExplorerInfrastructure
                     color,
                     control_style = controlStyle,
                     is_dirty = (isDirty ? 1 : 0),
-                    join_date = joinDate
+                    join_date = joinDate?.Date
                 }).ConfigureAwait(false);
 
             // invalidates cache

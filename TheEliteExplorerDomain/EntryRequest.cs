@@ -67,7 +67,7 @@ namespace TheEliteExplorerDomain
                 throw new ArgumentException(nameof(date));
             }
 
-            if (time.HasValue && time.Value <= 0)
+            if (time <= 0)
             {
                 throw new ArgumentException(nameof(time));
             }

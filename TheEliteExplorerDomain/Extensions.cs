@@ -77,8 +77,8 @@ namespace TheEliteExplorerDomain
         public static bool InGameLifeSpan(this Game game, DateTime? date)
         {
             return !date.HasValue || (
-                date.Value.Date <= ServiceProviderAccessor.ClockProvider.Now.Date
-                && date.Value.Year >= game.GetReleaseYear()
+                date?.Date <= ServiceProviderAccessor.ClockProvider.Now.Date
+                && date?.Year >= game.GetReleaseYear()
             );
         }
     }

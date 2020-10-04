@@ -164,7 +164,7 @@ namespace TheEliteExplorerDomain
                 _levelPoints[level] += (100 - position) - 2;
             }
 
-            if (entry.Time.HasValue && entry.Time < UnsetTimeValueSeconds)
+            if (entry.Time < UnsetTimeValueSeconds)
             {
                 CumuledTime -= UnsetTimeValueSeconds - entry.Time.Value;
                 _levelCumuledTime[level] -= UnsetTimeValueSeconds - entry.Time.Value;

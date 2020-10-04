@@ -79,7 +79,7 @@ namespace TheEliteExplorerDomain
             foreach (var entry in entriesByStageAndLevel)
             {
                 int i = 0;
-                foreach (var timesGroup in entry.GroupBy(l => l.Time.Value).OrderBy(l => l.Key))
+                foreach (var timesGroup in entry.GroupBy(l => l.Time).OrderBy(l => l.Key))
                 {
                     if (i >= 100)
                     {
@@ -148,12 +148,10 @@ namespace TheEliteExplorerDomain
             // Entry date must be prior or equal to the ranking date
             // or unknown, but the player doesn't have submit entry past the ranking date with a worst time
             return entries.Where(e =>
-                (
-                    e.Date.HasValue
-                    && e.Date.Value.Date <= _rankingDate
-                ) || (
+                e.Date?.Date <= _rankingDate
+                || (
                     !e.Date.HasValue
-                    && entries.Any(eBis => eBis.Time > e.Time && eBis.Date.HasValue && eBis.Date.Value.Date > _rankingDate)
+                    && entries.Any(eBis => eBis.Time > e.Time && eBis.Date?.Date > _rankingDate)
                 )
             );
         }
@@ -161,7 +159,7 @@ namespace TheEliteExplorerDomain
         private EntryDto GetBestTimeFromEntries(IEnumerable<EntryDto> entries)
         {
             return entries
-                .OrderBy(e => e.Time.Value)
+                .OrderBy(e => e.Time)
                 .First();
         }
     }

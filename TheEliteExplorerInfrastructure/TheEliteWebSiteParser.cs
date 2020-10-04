@@ -175,7 +175,7 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            if (date.HasValue && minimalDateToScan.HasValue && date.Value < minimalDateToScan.Value)
+            if (date < minimalDateToScan)
             {
                 exit = true;
                 return null;
@@ -205,7 +205,7 @@ namespace TheEliteExplorerInfrastructure
                         return SystemExtensions
                             .Enumerate<Engine>()
                             .Select(e => (Engine?)e)
-                            .FirstOrDefault(e => e.Value.ToString().Equals(engineString.Trim().Replace("-", "_"), StringComparison.InvariantCultureIgnoreCase));
+                            .FirstOrDefault(e => e.ToString().Equals(engineString.Trim().Replace("-", "_"), StringComparison.InvariantCultureIgnoreCase));
                     }
                 }
             }
