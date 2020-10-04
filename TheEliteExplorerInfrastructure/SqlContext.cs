@@ -19,6 +19,7 @@ namespace TheEliteExplorerInfrastructure
     public class SqlContext : ISqlContext
     {
         private const string _getPlayersCacheKey = "players";
+        private const string _getEntriesCacheKeyFormat = "entries_{0}_{1}"; // stageId, levelId
 
         private const string _getEveryPlayersPsName = "select_player";
         private const string _getEntriesByCriteriaPsName = "select_entry";
@@ -51,28 +52,15 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate)
         {
-            var entries = new List<EntryDto>();
-
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            if (!_cacheConfiguration.Enabled || startDate.HasValue || endDate.HasValue)
             {
-                var results = await connection.QueryAsync<EntryDto>(
-                   ToPsName(_getEntriesByCriteriaPsName),
-                   new
-                   {
-                       stage_id = stageId,
-                       level_id = levelId,
-                       start_date = startDate,
-                       end_date = endDate
-                   },
-                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
-
-                if (results != null)
-                {
-                    entries.AddRange(results);
-                }
+                return await GetEntriesWithoutCacheAsync(stageId, levelId, startDate, endDate).ConfigureAwait(false);
             }
 
-            return entries;
+            return await _cache.GetOrSetFromCacheAsync(
+                string.Format(_getEntriesCacheKeyFormat, stageId, levelId),
+                GetCacheOptions(),
+                () => GetEntriesWithoutCacheAsync(stageId, levelId, null, null));
         }
 
         /// <inheritdoc />
@@ -109,7 +97,7 @@ namespace TheEliteExplorerInfrastructure
                 return match.Id;
             }
 
-            return await InsertAndGetIdAsync(
+            long entryid = await InsertAndGetIdAsync(
                 _insertEntryPsName,
                 new
                 {
@@ -120,6 +108,13 @@ namespace TheEliteExplorerInfrastructure
                     requestEntry.Time,
                     system_id = requestEntry.SystemId
                 }).ConfigureAwait(false);
+
+            // invalidates cache
+            await _cache
+                .RemoveAsync(string.Format(_getEntriesCacheKeyFormat, requestEntry.StageId, requestEntry.LevelId))
+                .ConfigureAwait(false);
+
+            return entryid;
         }
 
         /// <inheritdoc />
@@ -225,6 +220,32 @@ namespace TheEliteExplorerInfrastructure
 
                 return dynamicParameters.Get<long>("@id");
             }
+        }
+
+        private async Task<List<EntryDto>> GetEntriesWithoutCacheAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate)
+        {
+            var entries = new List<EntryDto>();
+
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                var results = await connection.QueryAsync<EntryDto>(
+                   ToPsName(_getEntriesByCriteriaPsName),
+                   new
+                   {
+                       stage_id = stageId,
+                       level_id = levelId,
+                       start_date = startDate,
+                       end_date = endDate
+                   },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+
+                if (results != null)
+                {
+                    entries.AddRange(results);
+                }
+            }
+
+            return entries;
         }
     }
 }
