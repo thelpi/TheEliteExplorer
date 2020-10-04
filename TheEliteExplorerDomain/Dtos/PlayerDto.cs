@@ -1,4 +1,6 @@
-﻿namespace TheEliteExplorerDomain.Dtos
+﻿using System;
+
+namespace TheEliteExplorerDomain.Dtos
 {
     /// <summary>
     /// Represents a row in the "player" table.
@@ -30,5 +32,9 @@
         /// "color" column value.
         /// </summary>
         public string Color { get; set; }
+        /// <summary>
+        /// Date of joining the elite.
+        /// </summary>
+        public DateTime? JoinDate { get; set; }
     }
 }

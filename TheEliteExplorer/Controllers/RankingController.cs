@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerInfrastructure;
 
@@ -17,15 +19,19 @@ namespace TheEliteExplorer.Controllers
     public class RankingController : Controller
     {
         private readonly ISqlContext _sqlContext;
+        private readonly RankingConfiguration _configuration;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="sqlContext">Instance of <see cref="ISqlContext"/>.</param>
+        /// <param name="configuration">Instance of <see cref="RankingConfiguration"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
-        public RankingController(ISqlContext sqlContext)
+        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
+        public RankingController(ISqlContext sqlContext, IOptions<RankingConfiguration> configuration)
         {
             _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
+            _configuration = configuration?.Value ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -56,8 +62,7 @@ namespace TheEliteExplorer.Controllers
             {
                 realDate = ServiceProviderAccessor.ClockProvider.Now;
             }
-            realDate = realDate.AddDays(1).Date;
-            return realDate;
+            return realDate.AddDays(1).Date;
         }
 
         private async Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(DateTime dateTime, Game game)
@@ -70,7 +75,7 @@ namespace TheEliteExplorer.Controllers
                 {
                     entries.AddRange(
                         await _sqlContext
-                            .GetEntriesAsync(stage.Position, (long)level, null, dateTime)
+                            .GetEntriesAsync(stage.Position, (long)level, null, dateTime, _configuration.IncludeUnknownDate)
                             .ConfigureAwait(false)
                     );
                 }

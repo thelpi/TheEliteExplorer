@@ -77,11 +77,11 @@ namespace TheEliteExplorer.Controllers
             try
             {
                 long playerId = await _sqlContext
-                    .InsertOrRetrievePlayerDirtyAsync(entry.PlayerUrlName)
+                    .InsertOrRetrievePlayerDirtyAsync(entry.PlayerUrlName, entry.Date)
                     .ConfigureAwait(false);
 
                 await _sqlContext
-                    .InsertOrRetrieveTimeEntryAsync(playerId, entry.LevelId, entry.StageId, entry.Date, entry.Time, entry.EngineId)
+                    .InsertOrRetrieveTimeEntryAsync(new TheEliteExplorerDomain.Dtos.EntryDto(entry, playerId))
                     .ConfigureAwait(false);
 
                 return null;

@@ -49,7 +49,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate, bool includeUnknownDate)
         {
             var entries = new List<EntryDto>();
 
@@ -62,7 +62,8 @@ namespace TheEliteExplorerInfrastructure
                        stage_id = stageId,
                        level_id = levelId,
                        start_date = startDate,
-                       end_date = endDate
+                       end_date = endDate,
+                       include_unknown_date = (includeUnknownDate ? 1 : 0)
                    },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
 
@@ -90,13 +91,21 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertOrRetrieveTimeEntryAsync(long playerId, long levelId, long stageId, DateTime? date, long? time, long? systemId)
+        public async Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry)
         {
-            IReadOnlyCollection<EntryDto> entries = await GetEntriesAsync(stageId, levelId,
-                date.HasValue ? date.Value.Date : default(DateTime?),
-                date.HasValue ? date.Value.Date.AddDays(1) : default(DateTime?));
+            if (requestEntry == null)
+            {
+                throw new ArgumentNullException(nameof(requestEntry));
+            }
 
-            EntryDto match = entries.FirstOrDefault(e => e.PlayerId == playerId && e.Time == time && e.SystemId == systemId);
+            IReadOnlyCollection<EntryDto> entries = await GetEntriesAsync(requestEntry.StageId, requestEntry.LevelId,
+                requestEntry.Date.HasValue ? requestEntry.Date.Value.Date : default(DateTime?),
+                requestEntry.Date.HasValue ? requestEntry.Date.Value.Date.AddDays(1) : default(DateTime?),
+                false);
+
+            EntryDto match = entries.FirstOrDefault(e => e.PlayerId == requestEntry.PlayerId
+                && e.Time == requestEntry.Time
+                && e.SystemId == requestEntry.SystemId);
             if (match != null)
             {
                 return match.Id;
@@ -106,25 +115,30 @@ namespace TheEliteExplorerInfrastructure
                 _insertEntryPsName,
                 new
                 {
-                    player_id = playerId,
-                    level_id = levelId,
-                    stage_id = stageId,
-                    date,
-                    time,
-                    system_id = systemId
+                    player_id = requestEntry.PlayerId,
+                    level_id = requestEntry.LevelId,
+                    stage_id = requestEntry.StageId,
+                    requestEntry.Date,
+                    requestEntry.Time,
+                    system_id = requestEntry.SystemId
                 }).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertOrRetrievePlayerAsync(string urlName, string realName, string surname, string color, string controlStyle)
+        public async Task<long> InsertOrRetrievePlayerAsync(PlayerDto dto)
         {
-            return await InsertOrRetrievePlayerInternalAsync(urlName, realName, surname, color, controlStyle, false).ConfigureAwait(false);
+            if (dto == null)
+            {
+                throw new ArgumentNullException(nameof(dto));
+            }
+
+            return await InsertOrRetrievePlayerInternalAsync(dto.UrlName, dto.RealName, dto.SurName, dto.Color, dto.ControlStyle, false, dto.JoinDate).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName)
+        public async Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName, DateTime? joinDate)
         {
-            return await InsertOrRetrievePlayerInternalAsync(urlName, urlName, urlName, Player.DefaultPlayerHexColor, null, true).ConfigureAwait(false);
+            return await InsertOrRetrievePlayerInternalAsync(urlName, urlName, urlName, Player.DefaultPlayerHexColor, null, true, joinDate).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -169,7 +183,7 @@ namespace TheEliteExplorerInfrastructure
             return players;
         }
 
-        private async Task<long> InsertOrRetrievePlayerInternalAsync(string urlName, string realName, string surname, string color, string controlStyle, bool isDirty)
+        private async Task<long> InsertOrRetrievePlayerInternalAsync(string urlName, string realName, string surname, string color, string controlStyle, bool isDirty, DateTime? joinDate)
         {
             IReadOnlyCollection<PlayerDto> players = await GetPlayersAsync().ConfigureAwait(false);
 
@@ -188,7 +202,8 @@ namespace TheEliteExplorerInfrastructure
                     surname,
                     color,
                     control_style = controlStyle,
-                    is_dirty = (isDirty ? 1 : 0)
+                    is_dirty = (isDirty ? 1 : 0),
+                    join_date = joinDate
                 }).ConfigureAwait(false);
 
             // invalidates cache

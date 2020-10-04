@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
 namespace TheEliteExplorer
@@ -6,6 +7,7 @@ namespace TheEliteExplorer
     /// <summary>
     /// Program.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class Program
     {
         /// <summary>

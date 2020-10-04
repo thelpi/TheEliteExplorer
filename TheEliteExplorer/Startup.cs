@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TheEliteExplorerCommon;
+using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerInfrastructure;
 using TheEliteExplorerInfrastructure.Configuration;
 
@@ -12,11 +14,13 @@ namespace TheEliteExplorer
     /// <summary>
     /// Startup.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class Startup
     {
         private readonly IConfiguration _configuration;
 
         private const string _cacheSection = "Cache";
+        private const string _rankingSection = "Ranking";
         private const string _theEliteWebsiteSection = "TheEliteWebsite";
 
         /// <summary>
@@ -44,6 +48,7 @@ namespace TheEliteExplorer
                 .AddSingleton<IClockProvider, ClockProvider>()
                 .AddSingleton<IConnectionProvider>(new ConnectionProvider(_configuration))
                 .Configure<CacheConfiguration>(_configuration.GetSection(_cacheSection))
+                .Configure<RankingConfiguration>(_configuration.GetSection(_rankingSection))
                 .Configure<TheEliteWebsiteConfiguration>(_configuration.GetSection(_theEliteWebsiteSection))
                 .AddSingleton<ISqlContext, SqlContext>()
                 .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()

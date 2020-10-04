@@ -57,7 +57,7 @@ namespace TheEliteExplorerDomain.Dtos
                 return false;
             }
 
-            if (SystemId.HasValue && !SystemExtensions.Enumerate<Level>().Any(e => (int)e == SystemId.Value))
+            if (SystemId.HasValue && !SystemExtensions.Enumerate<Engine>().Any(e => (int)e == SystemId.Value))
             {
                 return false;
             }
@@ -74,6 +74,38 @@ namespace TheEliteExplorerDomain.Dtos
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public EntryDto() { }
+
+        /// <summary>
+        /// Constructor from a <see cref="EntryRequest"/> instance and a player identifier.
+        /// </summary>
+        /// <param name="request">Instance of <see cref="EntryRequest"/>.</param>
+        /// <param name="playerId">Player identifier</param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="playerId"/> is below <c>1</c>.</exception>
+        public EntryDto(EntryRequest request, long playerId)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (playerId < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(playerId), playerId, $"{nameof(playerId)} is below 1");
+            }
+
+            PlayerId = playerId;
+            StageId = request.StageId;
+            LevelId = request.LevelId;
+            Date = request.Date;
+            Time = request.Time;
+            SystemId = request.EngineId;
         }
     }
 }

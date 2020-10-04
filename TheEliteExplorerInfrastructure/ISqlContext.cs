@@ -23,38 +23,33 @@ namespace TheEliteExplorerInfrastructure
         /// <param name="levelId">Level identifier.</param>
         /// <param name="startDate">Start date (inclusive).</param>
         /// <param name="endDate">End date (exclusive).</param>
+        /// <param name="includeUnknownDate"><c>True</c> to include entries without date, regardless of <paramref name="startDate"/> and <paramref name="endDate"/>.</param>
         /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
-        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate);
+        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate, bool includeUnknownDate);
 
         /// <summary>
         /// Insert a time entry, or retrieves it if the tuple [playerId / levelId / stageId / time / systemId] already exists.
         /// </summary>
-        /// <param name="playerId">Player identifier.</param>
-        /// <param name="levelId">Level identifier.</param>
-        /// <param name="stageId">Stage identifier.</param>
-        /// <param name="date">Date.</param>
-        /// <param name="time">Time.</param>
-        /// <param name="systemId">System (engine) identifier.</param>
+        /// <param name="requestEntry">Entry to insert.</param>
         /// <returns>Time entry identifier.</returns>
-        Task<long> InsertOrRetrieveTimeEntryAsync(long playerId, long levelId, long stageId, DateTime? date, long? time, long? systemId);
+        /// <exception cref="ArgumentNullException"><paramref name="requestEntry"/> is <c>Null</c>.</exception>
+        Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry);
+
+        /// <summary>
+        /// Inserts a player, or retrieves him if <see cref="PlayerDto.UrlName"/> already exists.
+        /// </summary>
+        /// <param name="dto">The player DTO.</param>
+        /// <returns>Player identifier.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dto"/> is <c>Null</c>.</exception>
+        Task<long> InsertOrRetrievePlayerAsync(PlayerDto dto);
 
         /// <summary>
         /// Inserts a player, or retrieves him if <paramref name="urlName"/> already exists.
         /// </summary>
         /// <param name="urlName">Player URL name.</param>
-        /// <param name="realName">Player real name.</param>
-        /// <param name="surname">Player surname.</param>
-        /// <param name="color">Player color.</param>
-        /// <param name="controlStyle">Player control style.</param>
+        /// <param name="joinDate">Date of joining the elite.</param>
         /// <returns>Player identifier.</returns>
-        Task<long> InsertOrRetrievePlayerAsync(string urlName, string realName, string surname, string color, string controlStyle);
-
-        /// <summary>
-        /// Inserts a player, or retrieves him if <paramref name="urlName"/> already exists.
-        /// </summary>
-        /// <param name="urlName">Player URL name.</param>
-        /// <returns>Player identifier.</returns>
-        Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName);
+        Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName, DateTime? joinDate);
 
         /// <summary>
         /// Gets the most recent entry date.

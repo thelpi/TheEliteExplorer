@@ -26,6 +26,10 @@ namespace TheEliteExplorerDomain
         /// <summary>
         /// Date.
         /// </summary>
+        /// <remarks>
+        /// If the player needs to be created, this date is also used to set the joining the elite date.
+        /// It's not great, but the player has a "dirty" flag so he needs to be fixed anyway.
+        /// </remarks>
         public DateTime? Date { get; set; }
         /// <summary>
         /// Engine identifier.
