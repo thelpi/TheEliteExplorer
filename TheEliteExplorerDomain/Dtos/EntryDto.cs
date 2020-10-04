@@ -107,5 +107,17 @@ namespace TheEliteExplorerDomain.Dtos
             Time = request.Time;
             SystemId = request.EngineId;
         }
+
+        /// <summary>
+        /// Inferred; gets the game related to the entry, if any.
+        /// </summary>
+        /// <returns>The game, or <c>Null</c>.</returns>
+        public Game? Game
+        {
+            get
+            {
+                return Stage.Get().FirstOrDefault(s => s.Id == StageId)?.Game;
+            }
+        }
     }
 }

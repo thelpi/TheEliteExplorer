@@ -23,9 +23,8 @@ namespace TheEliteExplorerInfrastructure
         /// <param name="levelId">Level identifier.</param>
         /// <param name="startDate">Start date (inclusive).</param>
         /// <param name="endDate">End date (exclusive).</param>
-        /// <param name="includeUnknownDate"><c>True</c> to include entries without date, regardless of <paramref name="startDate"/> and <paramref name="endDate"/>.</param>
         /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
-        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate, bool includeUnknownDate);
+        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate);
 
         /// <summary>
         /// Insert a time entry, or retrieves it if the tuple [playerId / levelId / stageId / time / systemId] already exists.

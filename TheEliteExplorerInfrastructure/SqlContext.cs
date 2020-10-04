@@ -49,7 +49,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate, bool includeUnknownDate)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate)
         {
             var entries = new List<EntryDto>();
 
@@ -62,8 +62,7 @@ namespace TheEliteExplorerInfrastructure
                        stage_id = stageId,
                        level_id = levelId,
                        start_date = startDate,
-                       end_date = endDate,
-                       include_unknown_date = (includeUnknownDate ? 1 : 0)
+                       end_date = endDate
                    },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
 
@@ -100,8 +99,7 @@ namespace TheEliteExplorerInfrastructure
 
             IReadOnlyCollection<EntryDto> entries = await GetEntriesAsync(requestEntry.StageId, requestEntry.LevelId,
                 requestEntry.Date.HasValue ? requestEntry.Date.Value.Date : default(DateTime?),
-                requestEntry.Date.HasValue ? requestEntry.Date.Value.Date.AddDays(1) : default(DateTime?),
-                false);
+                requestEntry.Date.HasValue ? requestEntry.Date.Value.Date.AddDays(1) : default(DateTime?));
 
             EntryDto match = entries.FirstOrDefault(e => e.PlayerId == requestEntry.PlayerId
                 && e.Time == requestEntry.Time

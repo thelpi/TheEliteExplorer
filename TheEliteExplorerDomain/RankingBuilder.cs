@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Dtos;
 
 namespace TheEliteExplorerDomain
@@ -13,30 +14,44 @@ namespace TheEliteExplorerDomain
         private readonly Game _game;
         private readonly List<EntryDto> _entries;
         private readonly IReadOnlyCollection<PlayerDto> _players;
+        private readonly RankingConfiguration _configuration;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="game">The game.</param>
         /// <param name="entries">Collection of <see cref="EntryDto"/>.</param>
         /// <param name="players">Collection of <see cref="PlayerDto"/>.</param>
+        /// <param name="configuration">Ranking configuration.</param>
         /// <exception cref="ArgumentNullException"><paramref name="entries"/> is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="players"/> is <c>Null</c>.</exception>
-        public RankingBuilder(Game game, IReadOnlyCollection<EntryDto> entries, IReadOnlyCollection<PlayerDto> players)
+        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="entries"/> is empty.</exception>
+        /// <exception cref="ArgumentException">Unables to retrieve the game from <paramref name="entries"/>.</exception>
+        public RankingBuilder(IReadOnlyCollection<EntryDto> entries,
+            IReadOnlyCollection<PlayerDto> players,
+            RankingConfiguration configuration)
         {
-            // TODO: check the consistency of entries with game
-            // or stop passing the game and infers it from entries
-            _game = game;
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _players = players ?? throw new ArgumentNullException(nameof(players));
 
-            var baseEntries = new List<EntryDto>(entries ?? throw new ArgumentNullException(nameof(entries)));
+            if (entries == null)
+            {
+                throw new ArgumentNullException(nameof(entries));
+            }
+
+            if (entries.Count == 0)
+            {
+                throw new ArgumentException($"{nameof(entries)} is empty.", nameof(entries));
+            }
+            
+            _game = GetGameFromEntries(entries);
 
             _entries = new List<EntryDto>();
-            foreach (var entryPlayerGroup in baseEntries.Where(e => e.Time.HasValue).GroupBy(p => p.PlayerId))
+            foreach (var entryPlayerGroup in entries.Where(e => e.Time.HasValue).GroupBy(p => p.PlayerId))
             {
                 if (!_players.Any(p => p.Id == entryPlayerGroup.Key))
                 {
-                    // ignore the entry if the related player is not known
+                    // ignore the entry if the related player is unknown.
                     continue;
                 }
 
@@ -47,6 +62,18 @@ namespace TheEliteExplorerDomain
                         .First());
                 }
             }
+        }
+
+        private Game GetGameFromEntries(IEnumerable<EntryDto> entries)
+        {
+            Game? game = entries.First().Game;
+
+            if (entries.Any(e => e.Game != game))
+            {
+                game = null;
+            }
+
+            return game ?? throw new ArgumentException($"Unables to retrieve the game from {nameof(entries)}.", nameof(entries));
         }
 
         /// <summary>

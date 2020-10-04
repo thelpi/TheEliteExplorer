@@ -47,9 +47,10 @@ namespace TheEliteExplorer.Controllers
         {
             DateTime realDate = ValidateDateParameter(date);
 
-            var builder = new RankingBuilder(game,
+            var builder = new RankingBuilder(
                 await GetEntriesForEachStageAndLevelAsync(realDate, game).ConfigureAwait(false),
-                await _sqlContext.GetPlayersAsync().ConfigureAwait(false)
+                await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
+                _configuration
             );
 
             return PaginatedCollection<RankingEntry>.CreateInstance(
@@ -75,7 +76,7 @@ namespace TheEliteExplorer.Controllers
                 {
                     entries.AddRange(
                         await _sqlContext
-                            .GetEntriesAsync(stage.Position, (long)level, null, dateTime, _configuration.IncludeUnknownDate)
+                            .GetEntriesAsync(stage.Position, (long)level, null, dateTime)
                             .ConfigureAwait(false)
                     );
                 }
