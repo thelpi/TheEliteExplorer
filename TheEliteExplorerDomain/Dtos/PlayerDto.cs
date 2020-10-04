@@ -35,6 +35,7 @@ namespace TheEliteExplorerDomain.Dtos
         /// <summary>
         /// Date of joining the elite.
         /// </summary>
+        /// <remarks>No time part.</remarks>
         public DateTime? JoinDate { get; set; }
     }
 }

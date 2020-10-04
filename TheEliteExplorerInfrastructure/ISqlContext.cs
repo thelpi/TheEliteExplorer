@@ -37,6 +37,7 @@ namespace TheEliteExplorerInfrastructure
         /// <summary>
         /// Inserts a player, or retrieves him if <see cref="PlayerDto.UrlName"/> already exists.
         /// </summary>
+        /// <remarks>If <see cref="PlayerDto.JoinDate"/> is specified, it will be rounded without the time part.</remarks>
         /// <param name="dto">The player DTO.</param>
         /// <returns>Player identifier.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="dto"/> is <c>Null</c>.</exception>
@@ -45,6 +46,7 @@ namespace TheEliteExplorerInfrastructure
         /// <summary>
         /// Inserts a player, or retrieves him if <paramref name="urlName"/> already exists.
         /// </summary>
+        /// <remarks>If <paramref name="joinDate"/> is specified, it will be rounded without the time part.</remarks>
         /// <param name="urlName">Player URL name.</param>
         /// <param name="joinDate">Date of joining the elite.</param>
         /// <returns>Player identifier.</returns>

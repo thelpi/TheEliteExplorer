@@ -11,6 +11,7 @@ namespace TheEliteExplorerDomain
     /// </summary>
     public class RankingBuilder
     {
+        private readonly DateTime _rankingDate;
         private readonly Game _game;
         private readonly List<EntryDto> _entries;
         private readonly IReadOnlyCollection<PlayerDto> _players;
@@ -35,6 +36,7 @@ namespace TheEliteExplorerDomain
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _players = players ?? throw new ArgumentNullException(nameof(players));
+            _rankingDate = rankingDate.Date;
 
             if (entries == null)
             {
@@ -49,9 +51,9 @@ namespace TheEliteExplorerDomain
             _game = GetGameFromEntries(entries);
 
             _entries = new List<EntryDto>();
-            foreach (IGrouping<long, EntryDto> entryGroup in LoopByPlayerStageAndLevel(entries, rankingDate))
+            foreach (IGrouping<long, EntryDto> entryGroup in LoopByPlayerStageAndLevel(entries))
             {
-                IEnumerable<EntryDto> dateableEntries = GetDateableEntries(entryGroup, rankingDate);
+                IEnumerable<EntryDto> dateableEntries = GetDateableEntries(entryGroup);
                 if (dateableEntries.Any())
                 {
                     _entries.Add(GetBestTimeFromEntries(dateableEntries));
@@ -114,9 +116,9 @@ namespace TheEliteExplorerDomain
             return game ?? throw new ArgumentException($"Unables to retrieve the game from {nameof(entries)}.", nameof(entries));
         }
 
-        private IEnumerable<IGrouping<long, EntryDto>> LoopByPlayerStageAndLevel(IReadOnlyCollection<EntryDto> entries, DateTime rankingDate)
+        private IEnumerable<IGrouping<long, EntryDto>> LoopByPlayerStageAndLevel(IReadOnlyCollection<EntryDto> entries)
         {
-            foreach (IGrouping<long, EntryDto> entryPlayerGroup in GetConsistentEntriesByPlayer(entries, rankingDate))
+            foreach (IGrouping<long, EntryDto> entryPlayerGroup in GetConsistentEntriesByPlayer(entries))
             {
                 foreach (IGrouping<long, EntryDto> entryStageGroup in entryPlayerGroup.GroupBy(e => e.StageId))
                 {
@@ -128,7 +130,7 @@ namespace TheEliteExplorerDomain
             }
         }
 
-        private IEnumerable<IGrouping<long, EntryDto>> GetConsistentEntriesByPlayer(IReadOnlyCollection<EntryDto> entries, DateTime rankingDate)
+        private IEnumerable<IGrouping<long, EntryDto>> GetConsistentEntriesByPlayer(IReadOnlyCollection<EntryDto> entries)
         {
             // Entry must have a time
             // and a known player
@@ -137,17 +139,21 @@ namespace TheEliteExplorerDomain
                 .Where(e =>
                     e.Time.HasValue
                     && _players.Any(p => p.Id == e.PlayerId)
-                    && _players.First(p => p.Id == e.PlayerId).JoinDate.GetValueOrDefault(rankingDate).Date <= rankingDate.Date)
+                    && _players.First(p => p.Id == e.PlayerId).JoinDate.GetValueOrDefault(_rankingDate) <= _rankingDate)
                 .GroupBy(p => p.PlayerId);
         }
 
-        private IEnumerable<EntryDto> GetDateableEntries(IEnumerable<EntryDto> entries, DateTime rankingDate)
+        private IEnumerable<EntryDto> GetDateableEntries(IEnumerable<EntryDto> entries)
         {
+            // Entry date must be prior or equal to the ranking date
+            // or unknown, but the player doesn't have submit entry past the ranking date with a worst time
             return entries.Where(e =>
-                e.Date.HasValue
-                && e.Date <= rankingDate
-                || (
-                    !e.Date.HasValue && false
+                (
+                    e.Date.HasValue
+                    && e.Date.Value.Date <= _rankingDate
+                ) || (
+                    !e.Date.HasValue
+                    && entries.Any(eBis => eBis.Time > e.Time && eBis.Date.HasValue && eBis.Date.Value.Date > _rankingDate)
                 )
             );
         }

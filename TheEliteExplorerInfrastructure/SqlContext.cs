@@ -178,6 +178,11 @@ namespace TheEliteExplorerInfrastructure
 
         private async Task<long> InsertOrRetrievePlayerInternalAsync(string urlName, string realName, string surname, string color, string controlStyle, bool isDirty, DateTime? joinDate)
         {
+            if (joinDate.HasValue)
+            {
+                joinDate = joinDate.Value.Date;
+            }
+
             IReadOnlyCollection<PlayerDto> players = await GetPlayersAsync().ConfigureAwait(false);
 
             PlayerDto match = players.FirstOrDefault(p => p.UrlName.Equals(urlName, StringComparison.InvariantCultureIgnoreCase));
