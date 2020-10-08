@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -40,9 +41,7 @@ namespace TheEliteExplorer.Controllers
         {
             IReadOnlyCollection<EntryDto> entries = await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false);
 
-            // DO STUFF HERE
-
-            return new List<Sweep>();
+            return new SweepProvider(entries).GetSweeps();
         }
 
         private DateTime ValidateDateParameter(string date)
@@ -52,6 +51,14 @@ namespace TheEliteExplorer.Controllers
                 realDate = ServiceProviderAccessor.ClockProvider.Now;
             }
             return realDate.AddDays(1).Date;
+        }
+
+        private IEnumerable<DateTime> AllDatesBetween(DateTime start, DateTime end)
+        {
+            for (DateTime day = start.Date; day <= end.Date; day = day.AddDays(1))
+            {
+                yield return day;
+            }
         }
     }
 }

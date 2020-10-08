@@ -89,9 +89,10 @@ namespace TheEliteExplorerDomain
             Player = player ?? throw new ArgumentNullException(nameof(player));
             Stage = stage ?? throw new ArgumentNullException(nameof(stage));
             StartDate = startDate;
-            _untiedCountChanges = new Dictionary<DateTime, int>();
-
-            _untiedCountChanges.Add(StartDate, untiedCount);
+            _untiedCountChanges = new Dictionary<DateTime, int>
+            {
+                { StartDate, untiedCount }
+            };
         }
 
         /// <summary>
