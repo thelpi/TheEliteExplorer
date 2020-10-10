@@ -68,7 +68,7 @@ namespace TheEliteExplorerCommon
                     yield return (month, year);
                     month = month == 12 ? 1 : month + 1;
                 }
-                while (year != endDate.Year && month != endDate.Month);
+                while (year != endDate.Year || month != endDate.Month);
             }
         }
     }
