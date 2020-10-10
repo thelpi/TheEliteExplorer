@@ -187,7 +187,7 @@ namespace TheEliteExplorerDomain
                 || (
                     !e.Date.HasValue
                     && _configuration.IncludeUnknownDate
-                    && entries.Any(eBis => eBis.Time > e.Time && eBis.Date?.Date > _rankingDate)
+                    && !entries.Any(eBis => eBis.Time > e.Time && eBis.Date?.Date > _rankingDate)
                 )
             );
         }
