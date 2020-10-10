@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Configuration;
+using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerInfrastructure;
 
 namespace TheEliteExplorer.Controllers
@@ -50,12 +52,41 @@ namespace TheEliteExplorer.Controllers
                 await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false),
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
                 _configuration,
-                realDate
+                realDate,
+                null
             );
 
             IReadOnlyCollection<RankingEntry> rankingEntries = builder.GetRankingEntries();
 
             return PaginatedCollection<RankingEntry>.CreateInstance(rankingEntries, page, count);
+        }
+
+        /// <summary>
+        /// Generates ranking for the specified game.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <returns>Nothing.</returns>
+        [HttpPost("games/{game}")]
+        public async Task CreatesRanking([FromRoute] Game game)
+        {
+            IReadOnlyCollection<EntryDto> entries = await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false);
+            DateTime? startDate = await _sqlContext.GetLatestRankingDateAsync((int)game).ConfigureAwait(false);
+            DateTime realStartDate = GetRealStartDate(startDate, entries);
+            IReadOnlyCollection<PlayerDto> players = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
+
+            for (DateTime date = realStartDate; date < ServiceProviderAccessor.ClockProvider.Now; date = date.AddDays(1))
+            {
+                var builder = new RankingBuilder(entries, players, _configuration, date, game);
+
+                await builder
+                    .GenerateRankings((r) => _sqlContext.InsertRankingAsync(r))
+                    .ConfigureAwait(false);
+            }
+        }
+
+        private DateTime GetRealStartDate(DateTime? startDate, IReadOnlyCollection<EntryDto> entries)
+        {
+            return startDate ?? entries.Where(e => e.Date.HasValue).Min(e => e.Date.Value);
         }
 
         private DateTime ValidateDateParameter(string date)

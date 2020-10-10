@@ -31,7 +31,6 @@ namespace TheEliteExplorerInfrastructure
         /// </summary>
         /// <param name="requestEntry">Entry to insert.</param>
         /// <returns>Time entry identifier.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="requestEntry"/> is <c>Null</c>.</exception>
         Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry);
 
         /// <summary>
@@ -40,7 +39,6 @@ namespace TheEliteExplorerInfrastructure
         /// <remarks>If <see cref="PlayerDto.JoinDate"/> is specified, it will be rounded without the time part.</remarks>
         /// <param name="dto">The player DTO.</param>
         /// <returns>Player identifier.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="dto"/> is <c>Null</c>.</exception>
         Task<long> InsertOrRetrievePlayerAsync(PlayerDto dto);
 
         /// <summary>
@@ -64,5 +62,19 @@ namespace TheEliteExplorerInfrastructure
         /// <param name="game">The game.</param>
         /// <returns>Collection of <see cref="EntryDto"/>.</returns>
         Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(TheEliteExplorerDomain.Game game);
+
+        /// <summary>
+        /// Inserts a ranking into the database.
+        /// </summary>
+        /// <param name="ranking">Ranking data.</param>
+        /// <returns>Nothing.</returns>
+        Task InsertRankingAsync(RankingDto ranking);
+
+        /// <summary>
+        /// Gets the date of the latest ranking.
+        /// </summary>
+        /// <param name="gameId">Game identifier.</param>
+        /// <returns>Date of the latest ranking; <c>Null</c> if no ranking.</returns>
+        Task<DateTime?> GetLatestRankingDateAsync(long gameId);
     }
 }

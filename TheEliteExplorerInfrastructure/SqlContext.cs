@@ -26,7 +26,9 @@ namespace TheEliteExplorerInfrastructure
         private const string _getEntriesByCriteriaPsName = "select_entry";
         private const string _insertPlayerPsName = "insert_player";
         private const string _insertEntryPsName = "insert_entry";
-        private const string _getLatestDateName = "select_latest_entry_date";
+        private const string _getLatestEntryDateName = "select_latest_entry_date";
+        private const string _insertRankingPsName = "insert_ranking";
+        private const string _getLatestRankingDateName = "select_latest_ranking_date";
 
         private readonly IConnectionProvider _connectionProvider;
         private readonly CacheConfiguration _cacheConfiguration;
@@ -81,11 +83,6 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry)
         {
-            if (requestEntry == null)
-            {
-                throw new ArgumentNullException(nameof(requestEntry));
-            }
-
             IReadOnlyCollection<EntryDto> entries = await GetEntriesAsync(requestEntry.StageId, requestEntry.LevelId,
                 requestEntry.Date?.Date,
                 requestEntry.Date?.Date.AddDays(1));
@@ -121,11 +118,6 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task<long> InsertOrRetrievePlayerAsync(PlayerDto dto)
         {
-            if (dto == null)
-            {
-                throw new ArgumentNullException(nameof(dto));
-            }
-
             return await InsertOrRetrievePlayerInternalAsync(dto.UrlName, dto.RealName, dto.SurName, dto.Color, dto.ControlStyle, false, dto.JoinDate).ConfigureAwait(false);
         }
 
@@ -141,7 +133,7 @@ namespace TheEliteExplorerInfrastructure
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 IEnumerable<DateTime> data = await connection.QueryAsync<DateTime>(
-                    ToPsName(_getLatestDateName),
+                    ToPsName(_getLatestEntryDateName),
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
                 return data.First();
             }
@@ -163,6 +155,38 @@ namespace TheEliteExplorerInfrastructure
             }
 
             return entries;
+        }
+
+        /// <inheritdoc />
+        public async Task InsertRankingAsync(RankingDto ranking)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection.QueryAsync(
+                   ToPsName(_insertRankingPsName),
+                   new
+                   {
+                       date = ranking.Date,
+                       level_id = ranking.LevelId,
+                       player_id = ranking.PlayerId,
+                       rank = ranking.Rank,
+                       stage_id = ranking.StageId,
+                       time = ranking.Time
+                   },
+                   commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<DateTime?> GetLatestRankingDateAsync(long gameId)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                DateTime? data = await connection.QuerySingleAsync<DateTime?>(
+                    ToPsName(_getLatestRankingDateName), new { game_id = gameId },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+                return data;
+            }
         }
 
         private string ToPsName(string baseName)
