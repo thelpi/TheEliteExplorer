@@ -36,15 +36,15 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
-        /// Gets ranking
+        /// Gets rankings for the current date or a specified date.
         /// </summary>
-        /// <param name="date">Ranking date.</param>
         /// <param name="game">The requested game.</param>
         /// <param name="page">page index (starts at <c>1</c>).</param>
         /// <param name="count">Items count by page.</param>
+        /// <param name="date">String representation of date; <c>Null</c> for current date.</param>
         /// <returns>Paginated collection of <see cref="RankingEntry"/>.</returns>
-        [HttpGet("{date}/games/{game}")]
-        public async Task<PaginatedCollection<RankingEntry>> GetRankingAsync([FromRoute] string date, [FromRoute] Game game, [FromQuery] int page, [FromQuery] int count)
+        [HttpGet("games/{game}")]
+        public async Task<PaginatedCollection<RankingEntry>> GetRankingAsync([FromRoute] Game game, [FromQuery] int page, [FromQuery] int count, [FromQuery] string date)
         {
             DateTime realDate = ValidateDateParameter(date);
 
@@ -95,7 +95,7 @@ namespace TheEliteExplorer.Controllers
             {
                 realDate = ServiceProviderAccessor.ClockProvider.Now;
             }
-            return realDate.AddDays(1).Date;
+            return realDate.Date;
         }
     }
 }

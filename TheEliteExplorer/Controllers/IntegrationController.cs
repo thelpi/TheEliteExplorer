@@ -37,7 +37,7 @@ namespace TheEliteExplorer.Controllers
         /// </summary>
         /// <param name="game">The game.</param>
         /// <returns>A list of logs.</returns>
-        [HttpPost("new-times/games/{game}")]
+        [HttpPost("games/{game}/new-times")]
         public async Task<IReadOnlyCollection<string>> ScanTimePageAsync([FromRoute] Game game)
         {
             DateTime currentDate = await _sqlContext.GetLatestEntryDateAsync().ConfigureAwait(false);
@@ -73,11 +73,11 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
-        /// Scan the site to get every time for a single stage.
+        /// Scans the site to get every time for a single stage.
         /// </summary>
         /// <param name="stageId">Stage identifier.</param>
         /// <returns>A list of logs.</returns>
-        [HttpPost("times/stages/{stageId}")]
+        [HttpPost("stages/{stageId}/times")]
         public async Task<IReadOnlyCollection<string>> ScanStageTimesAsync([FromRoute] long stageId)
         {
             bool haveEntries = await CheckForExistingEntries(stageId).ConfigureAwait(false);

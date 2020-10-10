@@ -77,6 +77,28 @@ namespace TheEliteExplorerDomain
             }
         }
 
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return string.Join('\t', new object[]
+            {
+                PlayerName,
+                LevelPoints[Level.Easy],
+                LevelPoints[Level.Medium],
+                LevelPoints[Level.Hard],
+                Points,
+                string.Join("§", _details.ToList().SelectMany(kvp =>
+                    kvp.Value.Select(k2 => string.Join("¤", new object[]
+                    {
+                        kvp.Key.Name,
+                        k2.Key,
+                        k2.Value.Item1,
+                        k2.Value.Item2,
+                        k2.Value.Item3
+                    })).ToList()))
+            });
+        }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -155,6 +177,10 @@ namespace TheEliteExplorerDomain
             Level level = (Level)entry.LevelId;
 
             int points = (100 - position) - 2;
+            if (points < 0)
+            {
+                points = 0;
+            }
             if (position == 1)
             {
                 points = 100;
