@@ -17,40 +17,46 @@ namespace TheEliteExplorerDomain
         private readonly Game _game;
 
         /// <summary>
+        /// Collection of every time entry.
+        /// </summary>
+        public IReadOnlyCollection<EntryDto> Entries { get; }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Ranking configuration.</param>
         /// <param name="basePlayersList">Players base list.</param>
         /// <param name="game">Game.</param>
+        /// <param name="entries">Every time entries.</param>
         /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="basePlayersList"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="entries"/> is <c>Null</c>.</exception>
         public RankingBuilder(RankingConfiguration configuration,
             IReadOnlyCollection<PlayerDto> basePlayersList,
-            Game game)
+            Game game,
+            IReadOnlyCollection<EntryDto> entries)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _basePlayersList = basePlayersList ?? throw new ArgumentNullException(nameof(basePlayersList));
             _game = game;
+            Entries = entries ?? throw new ArgumentNullException(nameof(entries));
         }
 
         /// <summary>
         /// Computes and gets the full ranking at the specified date.
         /// </summary>
+        /// <param name="rankingDate">Ranking date.</param>
         /// <returns>
         /// Collection of <see cref="RankingEntry"/>;
         /// sorted by <see cref="RankingEntry.Points"/> descending.
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="entries"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentException"><paramref name="entries"/> is empty.</exception>
-        public IReadOnlyCollection<RankingEntry> GetRankingEntries(IReadOnlyCollection<EntryDto> entries, DateTime rankingDate)
+        public IReadOnlyCollection<RankingEntry> GetRankingEntries(DateTime rankingDate)
         {
-            CheckEntriesParameter(entries);
-
             rankingDate = rankingDate.Date;
 
             Dictionary<long, (string, DateTime)> playersDict = GetPlayersDictionary(rankingDate);
 
-            List<EntryDto> finalEntries = SetFinalEntriesList(entries, rankingDate, playersDict);
+            List<EntryDto> finalEntries = SetFinalEntriesList(rankingDate, playersDict);
 
             List<RankingEntry> rankingEntries = finalEntries
                 .GroupBy(e => e.PlayerId)
@@ -92,28 +98,22 @@ namespace TheEliteExplorerDomain
         /// Does not compute ranking for a day without any submited time.
         /// Does not compute ranking for (stage,level) tuples without any submited time for the day.
         /// </remarks>
-        /// <param name="entries">Base list of entries.</param>
         /// <param name="actionDelegateAsync">Delegate to process the output <see cref="RankingDto"/>.</param>
         /// <param name="rankingDate">Ranking date.</param>
         /// <returns>Nothing.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="entries"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentException"><paramref name="entries"/> is empty.</exception>
-        public async Task GenerateRankings(IReadOnlyCollection<EntryDto> entries,
-            DateTime rankingDate, Func<RankingDto, Task> actionDelegateAsync)
+        public async Task GenerateRankings(DateTime rankingDate, Func<RankingDto, Task> actionDelegateAsync)
         {
-            CheckEntriesParameter(entries);
-
             rankingDate = rankingDate.Date;
 
             // Do nothing for date without time entries.
-            if (!entries.Any(e => e.Date?.Date == rankingDate))
+            if (!Entries.Any(e => e.Date?.Date == rankingDate))
             {
                 return;
             }
 
             var playersDict = GetPlayersDictionary(rankingDate);
 
-            var finalEntries = SetFinalEntriesList(entries, rankingDate, playersDict);
+            var finalEntries = SetFinalEntriesList(rankingDate, playersDict);
 
             foreach ((long, long, IEnumerable<EntryDto>) entryGroup in LoopByStageAndLevel(finalEntries))
             {
@@ -153,10 +153,9 @@ namespace TheEliteExplorerDomain
             return entryGroup.GroupBy(l => l.Time).OrderBy(l => l.Key);
         }
 
-        private List<EntryDto> SetFinalEntriesList(IReadOnlyCollection<EntryDto> entries, DateTime rankingDate,
-            Dictionary<long, (string, DateTime)> playersDict)
+        private List<EntryDto> SetFinalEntriesList(DateTime rankingDate, Dictionary<long, (string, DateTime)> playersDict)
         {
-            var filteredEntries = entries
+            var filteredEntries = Entries
                 .Where(e => playersDict.ContainsKey(e.PlayerId))
                 .Where(e => playersDict[e.PlayerId].Item2 <= rankingDate);
 
@@ -171,19 +170,6 @@ namespace TheEliteExplorerDomain
             }
 
             return finalEntries;
-        }
-
-        private static void CheckEntriesParameter(IReadOnlyCollection<EntryDto> entries)
-        {
-            if (entries == null)
-            {
-                throw new ArgumentNullException(nameof(entries));
-            }
-
-            if (entries.Count == 0)
-            {
-                throw new ArgumentException($"{nameof(entries)} is empty.", nameof(entries));
-            }
         }
 
         private static IEnumerable<IEnumerable<EntryDto>> LoopByPlayerStageAndLevel(IEnumerable<EntryDto> entries)

@@ -51,13 +51,11 @@ namespace TheEliteExplorer.Controllers
             var builder = new RankingBuilder(
                 _configuration,
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
-                game
+                game,
+                await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false)
             );
 
-            IReadOnlyCollection<RankingEntry> rankingEntries = builder.GetRankingEntries(
-                await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false),
-                realDate
-            );
+            IReadOnlyCollection<RankingEntry> rankingEntries = builder.GetRankingEntries(realDate);
 
             return PaginatedCollection<RankingEntry>.CreateInstance(rankingEntries, page, count);
         }
@@ -70,19 +68,19 @@ namespace TheEliteExplorer.Controllers
         [HttpPost("games/{game}")]
         public async Task CreatesRanking([FromRoute] Game game)
         {
-            IReadOnlyCollection<EntryDto> entries = await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false);
             DateTime? startDate = await _sqlContext.GetLatestRankingDateAsync((int)game).ConfigureAwait(false);
 
             var builder = new RankingBuilder(
                 _configuration,
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
-                game
+                game,
+                await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false)
             );
 
-            foreach (DateTime date in GetRealStartDate(startDate, entries).LoopBetweenDates(DateStep.Day))
+            foreach (DateTime date in GetRealStartDate(startDate, builder.Entries).LoopBetweenDates(DateStep.Day))
             {
                 await builder
-                    .GenerateRankings(entries, date, (r) => _sqlContext.InsertRankingAsync(r))
+                    .GenerateRankings(date, (r) => _sqlContext.InsertRankingAsync(r))
                     .ConfigureAwait(false);
             }
         }
