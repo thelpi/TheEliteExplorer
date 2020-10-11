@@ -13,7 +13,7 @@ namespace TheEliteExplorerDomain
     public class RankingBuilder
     {
         private readonly RankingConfiguration _configuration;
-        private readonly IReadOnlyCollection<PlayerDto> _basePlayersList;
+        private readonly IReadOnlyDictionary<long, PlayerDto> _basePlayersList;
         private readonly Game _game;
 
         /// <summary>
@@ -36,10 +36,13 @@ namespace TheEliteExplorerDomain
             Game game,
             IReadOnlyCollection<EntryDto> entries)
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _basePlayersList = basePlayersList ?? throw new ArgumentNullException(nameof(basePlayersList));
+            _configuration = configuration ??
+                throw new ArgumentNullException(nameof(configuration));
+            Entries = entries ??
+                throw new ArgumentNullException(nameof(entries));
+            _basePlayersList = basePlayersList?.ToDictionary(p => p.Id, p => p) ??
+                throw new ArgumentNullException(nameof(basePlayersList));
             _game = game;
-            Entries = entries ?? throw new ArgumentNullException(nameof(entries));
         }
 
         /// <summary>
@@ -54,13 +57,11 @@ namespace TheEliteExplorerDomain
         {
             rankingDate = rankingDate.Date;
 
-            Dictionary<long, (string, DateTime)> playersDict = GetPlayersDictionary(rankingDate);
-
-            List<EntryDto> finalEntries = SetFinalEntriesList(rankingDate, playersDict);
+            List<EntryDto> finalEntries = SetFinalEntriesList(rankingDate);
 
             List<RankingEntry> rankingEntries = finalEntries
                 .GroupBy(e => e.PlayerId)
-                .Select(e => new RankingEntry(_game, e.Key, playersDict[e.Key].Item1))
+                .Select(e => new RankingEntry(_game, e.Key, _basePlayersList[e.Key].RealName))
                 .ToList();
 
             foreach ((long, long, IEnumerable<EntryDto>) entryGroup in LoopByStageAndLevel(finalEntries))
@@ -111,9 +112,7 @@ namespace TheEliteExplorerDomain
                 return;
             }
 
-            var playersDict = GetPlayersDictionary(rankingDate);
-
-            var finalEntries = SetFinalEntriesList(rankingDate, playersDict);
+            var finalEntries = SetFinalEntriesList(rankingDate);
 
             foreach ((long, long, IEnumerable<EntryDto>) entryGroup in LoopByStageAndLevel(finalEntries))
             {
@@ -153,11 +152,11 @@ namespace TheEliteExplorerDomain
             return entryGroup.GroupBy(l => l.Time).OrderBy(l => l.Key);
         }
 
-        private List<EntryDto> SetFinalEntriesList(DateTime rankingDate, Dictionary<long, (string, DateTime)> playersDict)
+        private List<EntryDto> SetFinalEntriesList(DateTime rankingDate)
         {
             var filteredEntries = Entries
-                .Where(e => playersDict.ContainsKey(e.PlayerId))
-                .Where(e => playersDict[e.PlayerId].Item2 <= rankingDate);
+                .Where(e => _basePlayersList.ContainsKey(e.PlayerId))
+                .Where(e => _basePlayersList[e.PlayerId].JoinDate.GetValueOrDefault(rankingDate) <= rankingDate);
 
             var finalEntries = new List<EntryDto>();
             foreach (var entryGroup in LoopByPlayerStageAndLevel(filteredEntries))
@@ -212,12 +211,6 @@ namespace TheEliteExplorerDomain
             return entries
                 .OrderBy(e => e.Time)
                 .First();
-        }
-
-        private Dictionary<long, (string RealName, DateTime)> GetPlayersDictionary(DateTime rankingDate)
-        {
-            return _basePlayersList.ToDictionary(p => p.Id, p =>
-                (p.RealName, p.JoinDate.GetValueOrDefault(rankingDate)));
         }
     }
 }
