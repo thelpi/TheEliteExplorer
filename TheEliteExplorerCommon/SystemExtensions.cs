@@ -53,23 +53,53 @@ namespace TheEliteExplorerCommon
         }
 
         /// <summary>
-        /// Enumerates every month of every year between two dates.
+        /// Loops between a date and now with the step type and a step value of <c>1</c>.
         /// </summary>
-        /// <param name="startDate">The start date.</param>
-        /// <param name="endDate">The end date.</param>
-        /// <returns>A list of (month / year) tuples, from the beginning to the end.</returns>
-        public static IEnumerable<(int, int)> LoopMonthAndYear(this DateTime startDate, DateTime endDate)
+        /// <param name="startDate">Start date.</param>
+        /// <param name="stepType">Step type.</param>
+        /// <returns>Collection of dates.</returns>
+        public static IEnumerable<DateTime> LoopBetweenDates(this DateTime startDate, DateStep stepType)
         {
-            for (int year = startDate.Year; year <= endDate.Year; year++)
+            return LoopBetweenDates(startDate, ServiceProviderAccessor.ClockProvider.Now, stepType, 1);
+        }
+
+        /// <summary>
+        /// Loops between two dates with the step type and a step value of <c>1</c>.
+        /// </summary>
+        /// <param name="startDate">Start date.</param>
+        /// <param name="endDate">End date.</param>
+        /// <param name="stepType">Step type.</param>
+        /// <returns>Collection of dates.</returns>
+        public static IEnumerable<DateTime> LoopBetweenDates(this DateTime startDate, DateTime endDate, DateStep stepType)
+        {
+            return LoopBetweenDates(startDate, endDate, stepType, 1);
+        }
+
+        /// <summary>
+        /// Loops between two dates with the specified step.
+        /// </summary>
+        /// <param name="startDate">Start date.</param>
+        /// <param name="endDate">End date.</param>
+        /// <param name="stepType">Step type.</param>
+        /// <param name="stepValue">Increment value between steps.</param>
+        /// <returns>Collection of dates.</returns>
+        public static IEnumerable<DateTime> LoopBetweenDates(this DateTime startDate, DateTime endDate, DateStep stepType, int stepValue)
+        {
+            for (DateTime date = startDate; date <= endDate; date = _dateStepDelegates[stepType](date, stepValue))
             {
-                int month = startDate.Month;
-                do
-                {
-                    yield return (month, year);
-                    month = month == 12 ? 1 : month + 1;
-                }
-                while (year != endDate.Year || month != endDate.Month);
+                yield return date;
             }
         }
+
+        private static readonly IReadOnlyDictionary<DateStep, Func<DateTime, int, DateTime>> _dateStepDelegates =
+            new Dictionary<DateStep, Func<DateTime, int, DateTime>>
+            {
+                { DateStep.Second, (d, i) => d.AddSeconds(i) },
+                { DateStep.Minute, (d, i) => d.AddMinutes(i) },
+                { DateStep.Hour, (d, i) => d.AddHours(i) },
+                { DateStep.Day, (d, i) => d.AddDays(i) },
+                { DateStep.Month, (d, i) => d.AddMonths(i) },
+                { DateStep.Year, (d, i) => d.AddYears(i) }
+            };
     }
 }

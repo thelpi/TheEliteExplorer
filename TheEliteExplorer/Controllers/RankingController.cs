@@ -49,14 +49,15 @@ namespace TheEliteExplorer.Controllers
             DateTime realDate = ValidateDateParameter(date);
 
             var builder = new RankingBuilder(
-                await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false),
-                await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
                 _configuration,
-                realDate,
-                null
+                await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
+                game
             );
 
-            IReadOnlyCollection<RankingEntry> rankingEntries = builder.GetRankingEntries();
+            IReadOnlyCollection<RankingEntry> rankingEntries = await builder.GetRankingEntriesAsync(
+                await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false),
+                realDate
+            ).ConfigureAwait(false);
 
             return PaginatedCollection<RankingEntry>.CreateInstance(rankingEntries, page, count);
         }
@@ -71,15 +72,17 @@ namespace TheEliteExplorer.Controllers
         {
             IReadOnlyCollection<EntryDto> entries = await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false);
             DateTime? startDate = await _sqlContext.GetLatestRankingDateAsync((int)game).ConfigureAwait(false);
-            DateTime realStartDate = GetRealStartDate(startDate, entries);
-            IReadOnlyCollection<PlayerDto> players = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
 
-            for (DateTime date = realStartDate; date < ServiceProviderAccessor.ClockProvider.Now; date = date.AddDays(1))
+            var builder = new RankingBuilder(
+                _configuration,
+                await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
+                game
+            );
+
+            foreach (DateTime date in GetRealStartDate(startDate, entries).LoopBetweenDates(DateStep.Day))
             {
-                var builder = new RankingBuilder(entries, players, _configuration, date, game);
-
                 await builder
-                    .GenerateRankings((r) => _sqlContext.InsertRankingAsync(r))
+                    .GenerateRankings(entries, date, (r) => _sqlContext.InsertRankingAsync(r))
                     .ConfigureAwait(false);
             }
         }

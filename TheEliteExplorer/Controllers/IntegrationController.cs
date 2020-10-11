@@ -45,14 +45,14 @@ namespace TheEliteExplorer.Controllers
             var logs = new List<string>();
             var entries = new List<EntryRequest>();
 
-            foreach ((int, int) monthAndYear in currentDate.LoopMonthAndYear(ServiceProviderAccessor.ClockProvider.Now))
+            foreach (DateTime loopDate in currentDate.LoopBetweenDates(DateStep.Month))
             {
                 (IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>) resultsAndLogs =
                     await _siteParser
                         .ExtractTimeEntriesAsync(
                             game,
-                            monthAndYear.Item2,
-                            monthAndYear.Item1,
+                            loopDate.Year,
+                            loopDate.Month,
                             currentDate)
                         .ConfigureAwait(false);
 
