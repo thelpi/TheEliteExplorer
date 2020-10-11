@@ -54,10 +54,10 @@ namespace TheEliteExplorer.Controllers
                 game
             );
 
-            IReadOnlyCollection<RankingEntry> rankingEntries = await builder.GetRankingEntriesAsync(
+            IReadOnlyCollection<RankingEntry> rankingEntries = builder.GetRankingEntries(
                 await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false),
                 realDate
-            ).ConfigureAwait(false);
+            );
 
             return PaginatedCollection<RankingEntry>.CreateInstance(rankingEntries, page, count);
         }

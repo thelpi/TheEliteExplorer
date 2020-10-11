@@ -42,9 +42,7 @@ namespace TheEliteExplorerDomain
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="entries"/> is <c>Null</c>.</exception>
         /// <exception cref="ArgumentException"><paramref name="entries"/> is empty.</exception>
-        public async Task<IReadOnlyCollection<RankingEntry>> GetRankingEntriesAsync(
-            IReadOnlyCollection<EntryDto> entries,
-            DateTime rankingDate)
+        public IReadOnlyCollection<RankingEntry> GetRankingEntries(IReadOnlyCollection<EntryDto> entries, DateTime rankingDate)
         {
             CheckEntriesParameter(entries);
 
@@ -59,18 +57,27 @@ namespace TheEliteExplorerDomain
                 .Select(e => new RankingEntry(_game, e.Key, playersDict[e.Key].Item1))
                 .ToList();
 
-            await LoopTimesAndActAsync(finalEntries, rankingDate, 100,
-                async (ranking, stageId, levelId, time, timeEntry, timesCount) =>
+            foreach ((long, long, IEnumerable<EntryDto>) entryGroup in LoopByStageAndLevel(finalEntries))
+            {
+                int rank = 1;
+                foreach (IGrouping<long, EntryDto> timesGroup in GroupAndOrderByTime(entryGroup.Item3))
                 {
-                    // The task is overkill here but it prevents a compiler warning,
-                    // as the expected parameters is an asynchronous delegate
-                    await Task.Run(() =>
+                    if (rank > 100)
+                    {
+                        break;
+                    }
+                    int countAtRank = timesGroup.Count();
+                    bool isUntied = rank == 1 && countAtRank == 1;
+
+                    foreach (EntryDto timeEntry in timesGroup)
                     {
                         rankingEntries
                             .Single(e => e.PlayerId == timeEntry.PlayerId)
-                            .AddStageAndLevelDatas(timeEntry, ranking, timesCount == 1);
-                    }).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                            .AddStageAndLevelDatas(timeEntry, rank, isUntied);
+                    }
+                    rank += countAtRank;
+                }
+            }
 
             return rankingEntries
                 .OrderByDescending(r => r.Points)
@@ -81,7 +88,10 @@ namespace TheEliteExplorerDomain
         /// <summary>
         /// Computes the ranking for each stage and each level at the specified date.
         /// </summary>
-        /// <remarks>Does not compute ranking for a day without any submited time.</remarks>
+        /// <remarks>
+        /// Does not compute ranking for a day without any submited time.
+        /// Does not compute ranking for (stage,level) tuples without any submited time for the day.
+        /// </remarks>
         /// <param name="entries">Base list of entries.</param>
         /// <param name="actionDelegateAsync">Delegate to process the output <see cref="RankingDto"/>.</param>
         /// <param name="rankingDate">Ranking date.</param>
@@ -95,74 +105,66 @@ namespace TheEliteExplorerDomain
 
             rankingDate = rankingDate.Date;
 
-            // nothing to do
+            // Do nothing for date without time entries.
             if (!entries.Any(e => e.Date?.Date == rankingDate))
             {
                 return;
             }
 
-            Dictionary<long, (string, DateTime)> playersDict = GetPlayersDictionary(rankingDate);
+            var playersDict = GetPlayersDictionary(rankingDate);
 
-            List<EntryDto> finalEntries = SetFinalEntriesList(entries, rankingDate, playersDict);
+            var finalEntries = SetFinalEntriesList(entries, rankingDate, playersDict);
 
-            await LoopTimesAndActAsync(finalEntries, rankingDate, null,
-                async (ranking, stageId, levelId, time, timeEntry, timesCount) =>
-                {
-                    var rkDto = new RankingDto
-                    {
-                        Date = rankingDate,
-                        LevelId = levelId,
-                        PlayerId = timeEntry.PlayerId,
-                        Rank = ranking,
-                        StageId = stageId,
-                        Time = time
-                    };
-
-                    await actionDelegateAsync(rkDto).ConfigureAwait(false);
-                }).ConfigureAwait(false);
-        }
-
-        private async Task LoopTimesAndActAsync(IEnumerable<EntryDto> entries,
-            DateTime rankingDate,
-            int? breakAt,
-            Func<int, long, long, long, EntryDto, int, Task> actDelegateAsync)
-        {
-            foreach (var stageGroup in entries.GroupBy(e => e.StageId))
+            foreach ((long, long, IEnumerable<EntryDto>) entryGroup in LoopByStageAndLevel(finalEntries))
             {
-                foreach (var levelGroup in stageGroup.GroupBy(e => e.LevelId))
+                // Do nothing for date without time entries for (stage,level) tuple.
+                if (!finalEntries.Any(e =>
+                    e.Date?.Date == rankingDate
+                    && entryGroup.Item1 == e.StageId
+                    && entryGroup.Item2 == e.LevelId))
                 {
-                    int i = 0;
-                    foreach (var timesGroup in levelGroup.GroupBy(l => l.Time).OrderBy(l => l.Key))
-                    {
-                        if (breakAt.HasValue && i >= breakAt)
-                        {
-                            break;
-                        }
+                    continue;
+                }
 
-                        foreach (EntryDto timeEntry in timesGroup)
+                var rank = 1;
+                foreach (IGrouping<long, EntryDto> timesGroup in GroupAndOrderByTime(entryGroup.Item3))
+                {
+                    foreach (var timeEntry in timesGroup)
+                    {
+                        var rkDto = new RankingDto
                         {
-                            await actDelegateAsync(i + 1,
-                                stageGroup.Key, levelGroup.Key, timesGroup.Key.Value, timeEntry, timesGroup.Count()
-                            ).ConfigureAwait(false);
-                        }
-                        i += timesGroup.Count();
+                            Date = rankingDate,
+                            LevelId = entryGroup.Item2,
+                            PlayerId = timeEntry.PlayerId,
+                            Rank = rank,
+                            StageId = entryGroup.Item1,
+                            Time = timesGroup.Key
+                        };
+
+                        await actionDelegateAsync(rkDto).ConfigureAwait(false);
                     }
+                    rank += timesGroup.Count();
                 }
             }
+        }
+
+        private static IOrderedEnumerable<IGrouping<long, EntryDto>> GroupAndOrderByTime(IEnumerable<EntryDto> entryGroup)
+        {
+            return entryGroup.GroupBy(l => l.Time.Value).OrderBy(l => l.Key);
         }
 
         private List<EntryDto> SetFinalEntriesList(IReadOnlyCollection<EntryDto> entries, DateTime rankingDate,
             Dictionary<long, (string, DateTime)> playersDict)
         {
-            IEnumerable<EntryDto> filteredEntries = entries
+            var filteredEntries = entries
                 .Where(e => e.Time.HasValue)
                 .Where(e => playersDict.ContainsKey(e.PlayerId))
                 .Where(e => playersDict[e.PlayerId].Item2 <= rankingDate);
 
             var finalEntries = new List<EntryDto>();
-            foreach (IGrouping<long, EntryDto> entryGroup in LoopByPlayerStageAndLevel(filteredEntries))
+            foreach (var entryGroup in LoopByPlayerStageAndLevel(filteredEntries))
             {
-                IEnumerable<EntryDto> dateableEntries = GetDateableEntries(entryGroup, rankingDate);
+                var dateableEntries = GetDateableEntries(entryGroup, rankingDate);
                 if (dateableEntries.Any())
                 {
                     finalEntries.Add(GetBestTimeFromEntries(dateableEntries));
@@ -172,7 +174,7 @@ namespace TheEliteExplorerDomain
             return finalEntries;
         }
 
-        private void CheckEntriesParameter(IReadOnlyCollection<EntryDto> entries)
+        private static void CheckEntriesParameter(IReadOnlyCollection<EntryDto> entries)
         {
             if (entries == null)
             {
@@ -185,17 +187,19 @@ namespace TheEliteExplorerDomain
             }
         }
 
-        private IEnumerable<IGrouping<long, EntryDto>> LoopByPlayerStageAndLevel(IEnumerable<EntryDto> entries)
+        private static IEnumerable<IEnumerable<EntryDto>> LoopByPlayerStageAndLevel(IEnumerable<EntryDto> entries)
         {
-            foreach (IGrouping<long, EntryDto> entryPlayerGroup in entries.GroupBy(e => e.PlayerId))
+            foreach (var group in entries.GroupBy(e => new { e.PlayerId, e.StageId, e.LevelId }))
             {
-                foreach (IGrouping<long, EntryDto> entryStageGroup in entryPlayerGroup.GroupBy(e => e.StageId))
-                {
-                    foreach (IGrouping<long, EntryDto> entryLevelGroup in entryStageGroup.GroupBy(e => e.LevelId))
-                    {
-                        yield return entryLevelGroup;
-                    }
-                }
+                yield return group;
+            }
+        }
+
+        private static IEnumerable<(long, long, IEnumerable<EntryDto>)> LoopByStageAndLevel(IEnumerable<EntryDto> entries)
+        {
+            foreach (var group in entries.GroupBy(e => new { e.StageId, e.LevelId }))
+            {
+                yield return (group.Key.StageId, group.Key.LevelId, group);
             }
         }
 
@@ -208,12 +212,17 @@ namespace TheEliteExplorerDomain
                 || (
                     !e.Date.HasValue
                     && _configuration.IncludeUnknownDate
-                    && !entries.Any(eBis => eBis.Time > e.Time && eBis.Date?.Date > rankingDate)
+                    && !HasWorstTimeLater(entries, rankingDate, e)
                 )
             );
         }
 
-        private EntryDto GetBestTimeFromEntries(IEnumerable<EntryDto> entries)
+        private static bool HasWorstTimeLater(IEnumerable<EntryDto> entries, DateTime rankingDate, EntryDto entry)
+        {
+            return entries.Any(e => e.Time > entry.Time && e.Date?.Date > rankingDate);
+        }
+
+        private static EntryDto GetBestTimeFromEntries(IEnumerable<EntryDto> entries)
         {
             return entries
                 .OrderBy(e => e.Time)
