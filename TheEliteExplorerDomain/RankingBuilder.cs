@@ -150,14 +150,13 @@ namespace TheEliteExplorerDomain
 
         private static IOrderedEnumerable<IGrouping<long, EntryDto>> GroupAndOrderByTime(IEnumerable<EntryDto> entryGroup)
         {
-            return entryGroup.GroupBy(l => l.Time.Value).OrderBy(l => l.Key);
+            return entryGroup.GroupBy(l => l.Time).OrderBy(l => l.Key);
         }
 
         private List<EntryDto> SetFinalEntriesList(IReadOnlyCollection<EntryDto> entries, DateTime rankingDate,
             Dictionary<long, (string, DateTime)> playersDict)
         {
             var filteredEntries = entries
-                .Where(e => e.Time.HasValue)
                 .Where(e => playersDict.ContainsKey(e.PlayerId))
                 .Where(e => playersDict[e.PlayerId].Item2 <= rankingDate);
 

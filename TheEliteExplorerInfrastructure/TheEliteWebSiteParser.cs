@@ -224,7 +224,7 @@ namespace TheEliteExplorerInfrastructure
             }
 
             long? time = ExtractTime(timeFromhead, logs, out bool failToExtract);
-            if (failToExtract)
+            if (failToExtract || !time.HasValue)
             {
                 return null;
             }
@@ -235,7 +235,7 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            return new EntryRequest(stage, levelKey, playerUrlName, time, date, ToEngine(versionFromHead));
+            return new EntryRequest(stage, levelKey, playerUrlName, time.Value, date, ToEngine(versionFromHead));
         }
 
         private IEnumerable<EntryRequest> ExtractEntriesFromTable(Stage stage, Level levelKey, string playerUrlName, string content, List<string> logs)
@@ -250,12 +250,12 @@ namespace TheEliteExplorerInfrastructure
                 var rowDatas = row.SelectNodes("td").Select(td => td.InnerText).ToArray();
 
                 long? time = ExtractTime(rowDatas[1], logs, out bool failToExtract);
-                if (!failToExtract)
+                if (!failToExtract && time.HasValue)
                 {
                     DateTime? date = ParseDateFromString(rowDatas[0], logs, out failToExtract);
                     if (!failToExtract)
                     {
-                        yield return new EntryRequest(stage, levelKey, playerUrlName, time, date, ToEngine(rowDatas[3]));
+                        yield return new EntryRequest(stage, levelKey, playerUrlName, time.Value, date, ToEngine(rowDatas[3]));
                     }
                 }
             }
@@ -361,12 +361,12 @@ namespace TheEliteExplorerInfrastructure
             }
 
             long? time = ExtractTime(linkParts[2], logs, out bool failToExtractTime);
-            if (failToExtractTime)
+            if (failToExtractTime || !time.HasValue)
             {
                 return null;
             }
             
-            return new EntryRequest(stage, level.Value, playerUrl, time, date,
+            return new EntryRequest(stage, level.Value, playerUrl, time.Value, date,
                 await ExtractTimeEntryEngineAsync(link, logs).ConfigureAwait(false));
         }
 

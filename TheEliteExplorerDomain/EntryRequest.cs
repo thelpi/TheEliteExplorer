@@ -22,7 +22,7 @@ namespace TheEliteExplorerDomain
         /// <summary>
         /// Time.
         /// </summary>
-        public long? Time { get; set; }
+        public long Time { get; set; }
         /// <summary>
         /// Date.
         /// </summary>
@@ -50,7 +50,7 @@ namespace TheEliteExplorerDomain
         /// <exception cref="ArgumentException"><paramref name="date"/> is invalid.</exception>
         /// <exception cref="ArgumentException"><paramref name="time"/> is invalid.</exception>
         public EntryRequest(Stage stage, Level level, string playerUrlName,
-            long? time, DateTime? date, Engine? engine)
+            long time, DateTime? date, Engine? engine)
         {
             if (stage == null)
             {

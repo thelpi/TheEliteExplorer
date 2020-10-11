@@ -204,8 +204,8 @@ namespace TheEliteExplorerDomain
 
             if (entry.Time < UnsetTimeValueSeconds)
             {
-                CumuledTime -= UnsetTimeValueSeconds - entry.Time.Value;
-                _levelCumuledTime[level] -= UnsetTimeValueSeconds - entry.Time.Value;
+                CumuledTime -= UnsetTimeValueSeconds - entry.Time;
+                _levelCumuledTime[level] -= UnsetTimeValueSeconds - entry.Time;
             }
         }
 

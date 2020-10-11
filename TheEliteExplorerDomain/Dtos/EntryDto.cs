@@ -33,8 +33,7 @@ namespace TheEliteExplorerDomain.Dtos
         /// <summary>
         /// "time" column value.
         /// </summary>
-        /// <remarks>Nullable.</remarks>
-        public long? Time { get; set; }
+        public long Time { get; set; }
         /// <summary>
         /// "system_id" column value.
         /// </summary>
