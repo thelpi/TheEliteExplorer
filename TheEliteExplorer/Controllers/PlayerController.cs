@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerInfrastructure;
 
 namespace TheEliteExplorer.Controllers
@@ -37,6 +38,32 @@ namespace TheEliteExplorer.Controllers
             var dtos = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
 
             return PaginatedCollection<Player>.CreateInstance(dtos, dto => new Player(dto), page, count);
+        }
+
+        /// <summary>
+        /// Cleans duplicate players.
+        /// </summary>
+        /// <returns>Nothing.</returns>
+        [HttpPatch("duplicates")]
+        public async Task CleanDuplicatePlayerAsync()
+        {
+            var duplicatePlayers = await _sqlContext
+                .GetDuplicatePlayersAsync()
+                .ConfigureAwait(false);
+
+            DuplicatePlayerDto basePlayer = null;
+            foreach (var p in duplicatePlayers)
+            {
+                if (!p.UrlName.Equals(basePlayer?.UrlName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    basePlayer = p;
+                }
+                else
+                {
+                    await _sqlContext.UpdatePlayerEntriesAsync(p.Id, basePlayer.Id);
+                    await _sqlContext.DeletePlayerAsync(p.Id);
+                }
+            }
         }
     }
 }

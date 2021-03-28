@@ -26,9 +26,12 @@ namespace TheEliteExplorerInfrastructure
         private const string _getEntriesByCriteriaPsName = "select_entry";
         private const string _insertPlayerPsName = "insert_player";
         private const string _insertEntryPsName = "insert_entry";
-        private const string _getLatestEntryDateName = "select_latest_entry_date";
+        private const string _getLatestEntryDatePsName = "select_latest_entry_date";
         private const string _insertRankingPsName = "insert_ranking";
-        private const string _getLatestRankingDateName = "select_latest_ranking_date";
+        private const string _getLatestRankingDatePsName = "select_latest_ranking_date";
+        private const string _updateEntryPlayerPsName = "update_entry_player";
+        private const string _selectDuplicatePlayersPsName = "select_duplicate_players";
+        private const string _deletePlayerPsName = "delete_player";
 
         private readonly IConnectionProvider _connectionProvider;
         private readonly CacheConfiguration _cacheConfiguration;
@@ -133,7 +136,7 @@ namespace TheEliteExplorerInfrastructure
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 IEnumerable<DateTime> data = await connection.QueryAsync<DateTime>(
-                    ToPsName(_getLatestEntryDateName),
+                    ToPsName(_getLatestEntryDatePsName),
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
                 return data.First();
             }
@@ -183,9 +186,49 @@ namespace TheEliteExplorerInfrastructure
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 DateTime? data = await connection.QuerySingleAsync<DateTime?>(
-                    ToPsName(_getLatestRankingDateName), new { game_id = gameId },
+                    ToPsName(_getLatestRankingDatePsName), new { game_id = gameId },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
                 return data;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<DuplicatePlayerDto>> GetDuplicatePlayersAsync()
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                var duplicatePlayers = await connection.QueryAsync<DuplicatePlayerDto>(
+                    ToPsName(_selectDuplicatePlayersPsName),
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+                return duplicatePlayers.ToList();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task DeletePlayerAsync(long id)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection.QueryAsync(
+                    ToPsName(_deletePlayerPsName),
+                    new { id },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task UpdatePlayerEntriesAsync(long currentPlayerId, long newPlayerId)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection.QueryAsync(
+                    ToPsName(_updateEntryPlayerPsName),
+                    new
+                    {
+                        current_player_id = currentPlayerId,
+                        new_player_id = newPlayerId
+                    },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
             }
         }
 

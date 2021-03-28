@@ -76,5 +76,26 @@ namespace TheEliteExplorerInfrastructure
         /// <param name="gameId">Game identifier.</param>
         /// <returns>Date of the latest ranking; <c>Null</c> if no ranking.</returns>
         Task<DateTime?> GetLatestRankingDateAsync(long gameId);
+
+        /// <summary>
+        /// Gets duplicate players.
+        /// </summary>
+        /// <returns>A collection of <see cref="DuplicatePlayerDto"/>.</returns>
+        Task<IReadOnlyCollection<DuplicatePlayerDto>> GetDuplicatePlayersAsync();
+
+        /// <summary>
+        /// Deletes a player by its identifier.
+        /// </summary>
+        /// <param name="id">Player identifier.</param>
+        /// <returns>Nothing.</returns>
+        Task DeletePlayerAsync(long id);
+
+        /// <summary>
+        /// Updates the player entries.
+        /// </summary>
+        /// <param name="currentPlayerId">Current player identifier.</param>
+        /// <param name="newPlayerId">New player identifier.</param>
+        /// <returns>Nothing.</returns>
+        Task UpdatePlayerEntriesAsync(long currentPlayerId, long newPlayerId);
     }
 }
