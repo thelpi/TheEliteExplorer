@@ -85,6 +85,25 @@ namespace TheEliteExplorer.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets untied sweeps.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <returns>Collection of untied sweeps.</returns>
+        [HttpGet("untied-sweeps/{game}")]
+        public async Task<IReadOnlyCollection<UntiedSweep>> GetUntiedSweeps([FromRoute] Game game)
+        {
+            var entries = await _sqlContext
+                .GetEntriesForEachStageAndLevelAsync(Game.GoldenEye)
+                .ConfigureAwait(false);
+
+            var players = await _sqlContext
+                .GetPlayersAsync()
+                .ConfigureAwait(false);
+
+            return new UntiedSweepBuilder().GetUntiedSweeps(entries, players);
+        }
+
         private DateTime GetRealStartDate(DateTime? startDate, IReadOnlyCollection<EntryDto> entries)
         {
             return startDate ?? entries.Where(e => e.Date.HasValue).Min(e => e.Date.Value);
