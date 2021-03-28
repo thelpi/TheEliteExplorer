@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Dtos;
 
 namespace TheEliteExplorerInfrastructure
 {
@@ -29,5 +30,12 @@ namespace TheEliteExplorerInfrastructure
         /// <param name="stageId">Stage identifier.</param>
         /// <returns>A tuple with the list of <see cref="EntryRequest"/> and list of error logs.</returns>
         Task<(IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>)> ExtractStageAllTimeEntriesAsync(long stageId);
+
+        /// <summary>
+        /// Gets information about a player.
+        /// </summary>
+        /// <param name="urlName">Player URL name.</param>
+        /// <returns>Instance of <see cref="PlayerDto"/>; <c>Null</c> if not found; plus additional logs.</returns>
+        Task<(PlayerDto, IReadOnlyCollection<string>)> GetPlayerInformation(string urlName);
     }
 }

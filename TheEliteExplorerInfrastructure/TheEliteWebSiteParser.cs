@@ -7,6 +7,7 @@ using HtmlAgilityPack;
 using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerInfrastructure.Configuration;
 
 namespace TheEliteExplorerInfrastructure
@@ -139,6 +140,82 @@ namespace TheEliteExplorerInfrastructure
             }
 
             return (entries, logs);
+        }
+
+        /// <inheritdoc />
+        public async Task<(PlayerDto, IReadOnlyCollection<string>)> GetPlayerInformation(string urlName)
+        {
+            var logs = new List<string>();
+            string realName = null;
+            string surname = null;
+            string color = null;
+            string controlStyle = null;
+
+            var pageContent = await GetPageStringContentAsync($"/~{urlName.Replace(" ", "+")}", logs).ConfigureAwait(false);
+
+            if (string.IsNullOrWhiteSpace(pageContent))
+            {
+                return (null, logs);
+            }
+
+            var htmlDoc = new HtmlDocument();
+            try
+            {
+                htmlDoc.LoadHtml(pageContent);
+            }
+            catch (Exception ex)
+            {
+                logs.Add($"Error while parsing into HTML document the page string content - {ex.Message}");
+                return (null, logs);
+            }
+
+            var headFull = htmlDoc.DocumentNode.SelectNodes("//h1");
+            var h1Node = headFull.Count > 1 ? headFull[1] : headFull.First();
+
+            surname = h1Node.InnerText.Trim().Replace("\r", "").Replace("\n", "").Replace("\t", "");
+            if (string.IsNullOrWhiteSpace(surname))
+            {
+                surname = null;
+            }
+
+            color = h1Node.Attributes["style"].Value.Replace("color:#", "").Trim();
+            if (color.Length != 6)
+            {
+                color = null;
+            }
+
+            var indexofControlStyle = pageContent.IndexOf("uses the <strong>");
+            if (indexofControlStyle >= 0)
+            {
+                var controlStyleTxt = pageContent.Substring(indexofControlStyle + "uses the <strong>".Length);
+                controlStyleTxt = controlStyleTxt.Split(new[] { "</strong>" }, StringSplitOptions.RemoveEmptyEntries).First().Trim().Replace("\r", "").Replace("\n", "").Replace("\t", "");
+                if (!string.IsNullOrWhiteSpace(controlStyleTxt))
+                {
+                    controlStyle = controlStyleTxt;
+                }
+            }
+
+            var indexofRealname = pageContent.IndexOf("real name is <strong>");
+            if (indexofRealname >= 0)
+            {
+                var realnameTxt = pageContent.Substring(indexofRealname + "real name is <strong>".Length);
+                realnameTxt = realnameTxt.Split(new[] { "</strong>" }, StringSplitOptions.RemoveEmptyEntries).First().Trim().Replace("\r", "").Replace("\n", "").Replace("\t", "");
+                if (!string.IsNullOrWhiteSpace(realnameTxt))
+                {
+                    realName = realnameTxt;
+                }
+            }
+
+            var p = new PlayerDto
+            {
+                Color = color ?? Player.DefaultPlayerHexColor,
+                ControlStyle = controlStyle,
+                RealName = realName ?? (surname ?? urlName),
+                SurName = surname ?? urlName,
+                UrlName = urlName
+            };
+
+            return (p, logs);
         }
 
         private async Task<List<EntryRequest>> ExtractEntryDetailsAsync(long entryId, Stage stage, Level levelKey, List<string> logs)

@@ -106,6 +106,40 @@ namespace TheEliteExplorer.Controllers
             return logs;
         }
 
+        /// <summary>
+        /// Cleans dirty players.
+        /// </summary>
+        /// <returns>Collection of logs.</returns>
+        [HttpPatch("dirty-players")]
+        public async Task<IReadOnlyCollection<string>> CleanDirtyPlayersAsync()
+        {
+            var logs = new List<string>();
+
+            var players = await _sqlContext
+                .GetDirtyPlayersAsync()
+                .ConfigureAwait(false);
+
+            foreach (var p in players)
+            {
+                var pInfoAndLogs = await _siteParser
+                    .GetPlayerInformation(p.UrlName)
+                    .ConfigureAwait(false);
+
+                if (pInfoAndLogs.Item1 != null)
+                {
+                    var pInfo = pInfoAndLogs.Item1;
+                    pInfo.Id = p.Id;
+                    await _sqlContext
+                        .UpdatePlayerInformationAsync(pInfo)
+                        .ConfigureAwait(false);
+                }
+
+                logs.AddRange(pInfoAndLogs.Item2);
+            }
+
+            return logs;
+        }
+
         private async Task<bool> CheckForExistingEntries(long stageId)
         {
             foreach (Level level in SystemExtensions.Enumerate<Level>())
