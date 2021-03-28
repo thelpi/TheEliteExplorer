@@ -97,5 +97,18 @@ namespace TheEliteExplorerInfrastructure
         /// <param name="newPlayerId">New player identifier.</param>
         /// <returns>Nothing.</returns>
         Task UpdatePlayerEntriesAsync(long currentPlayerId, long newPlayerId);
+
+        /// <summary>
+        /// Updates player information.
+        /// </summary>
+        /// <param name="player">Player information.</param>
+        /// <returns>Nothing.</returns>
+        Task UpdatePlayerInformationAsync(PlayerDto player);
+
+        /// <summary>
+        /// Gets every dirty player.
+        /// </summary>
+        /// <returns>Collection of <see cref="PlayerDto"/>.</returns>
+        Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync();
     }
 }

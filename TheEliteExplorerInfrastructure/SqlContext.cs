@@ -32,6 +32,7 @@ namespace TheEliteExplorerInfrastructure
         private const string _updateEntryPlayerPsName = "update_entry_player";
         private const string _selectDuplicatePlayersPsName = "select_duplicate_players";
         private const string _deletePlayerPsName = "delete_player";
+        private const string _updatePlayerPsName = "update_player";
 
         private readonly IConnectionProvider _connectionProvider;
         private readonly CacheConfiguration _cacheConfiguration;
@@ -74,13 +75,13 @@ namespace TheEliteExplorerInfrastructure
         {
             if (!_cacheConfiguration.Enabled)
             {
-                return await GetPlayersWithoutCacheAsync().ConfigureAwait(false);
+                return await GetPlayersWithoutCacheAsync(false).ConfigureAwait(false);
             }
 
             return await _cache.GetOrSetFromCacheAsync(
                 _getPlayersCacheKey,
                 GetCacheOptions(),
-                GetPlayersWithoutCacheAsync);
+                () => GetPlayersWithoutCacheAsync(false));
         }
 
         /// <inheritdoc />
@@ -232,6 +233,31 @@ namespace TheEliteExplorerInfrastructure
             }
         }
 
+        /// <inheritdoc />
+        public async Task UpdatePlayerInformationAsync(PlayerDto player)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection.QueryAsync(
+                    ToPsName(_updatePlayerPsName),
+                    new
+                    {
+                        id = player.Id,
+                        real_name = player.RealName,
+                        surname = player.SurName,
+                        color = player.Color,
+                        control_style = player.ControlStyle
+                    },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync()
+        {
+            return await GetPlayersWithoutCacheAsync(true).ConfigureAwait(false);
+        }
+
         private string ToPsName(string baseName)
         {
             return $"[dbo].[{baseName}]";
@@ -243,23 +269,20 @@ namespace TheEliteExplorerInfrastructure
                 .SetSlidingExpiration(TimeSpan.FromMinutes(_cacheConfiguration.MinutesBeforeExpiration));
         }
 
-        private async Task<List<PlayerDto>> GetPlayersWithoutCacheAsync()
+        private async Task<List<PlayerDto>> GetPlayersWithoutCacheAsync(bool isDirty)
         {
-            var players = new List<PlayerDto>();
-
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
-                var results = await connection.QueryAsync<PlayerDto>(
-                   ToPsName(_getEveryPlayersPsName), new { },
+                var players = await connection.QueryAsync<PlayerDto>(
+                   ToPsName(_getEveryPlayersPsName),
+                   new
+                   {
+                       is_dirty = isDirty
+                   },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
 
-                if (results != null)
-                {
-                    players.AddRange(results);
-                }
+                return players.ToList();
             }
-
-            return players;
         }
 
         private async Task<long> InsertOrRetrievePlayerInternalAsync(string urlName, string realName, string surname, string color, string controlStyle, bool isDirty, DateTime? joinDate)
