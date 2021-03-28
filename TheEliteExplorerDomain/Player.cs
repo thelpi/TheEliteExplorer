@@ -9,6 +9,10 @@ namespace TheEliteExplorerDomain
     public class Player
     {
         /// <summary>
+        /// Virtual date where submitted times should have a date, except for newcomers.
+        /// </summary>
+        public static readonly DateTime LastEmptyDate = new DateTime(2013, 1, 1);
+        /// <summary>
         /// Default player's hexadecimal color.
         /// </summary>
         public static readonly string DefaultPlayerHexColor = "000000";

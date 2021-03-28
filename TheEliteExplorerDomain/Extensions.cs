@@ -14,10 +14,10 @@ namespace TheEliteExplorerDomain
         /// </summary>
         public const string DefaultLabel = "Unknown";
 
-        private static readonly Dictionary<Game, int> _firstYear = new Dictionary<Game, int>
+        private static readonly Dictionary<Game, DateTime> _eliteBeginDate = new Dictionary<Game, DateTime>
         {
-            { Game.GoldenEye, 1998 },
-            { Game.PerfectDark, 2000 }
+            { Game.GoldenEye, new DateTime(1998, 07, 26) },
+            { Game.PerfectDark, new DateTime(1998, 07, 26) } // TODO !
         };
         private static readonly Dictionary<(Level, Game), string> _levelLabels = new Dictionary<(Level, Game), string>
         {
@@ -58,14 +58,13 @@ namespace TheEliteExplorerDomain
         }
 
         /// <summary>
-        /// Gets the release year of the game.
+        /// Gets the elite beginning date for the specified game.
         /// </summary>
-        /// <param name="game">The game.</param>
-        /// <returns>Release year.</returns>
-        public static int GetReleaseYear(this Game game)
+        /// <param name="game">Game.</param>
+        /// <returns>Elite beginning date.</returns>
+        public static DateTime GetEliteFirstDate(this Game game)
         {
-            return _firstYear.ContainsKey(game) ?
-                _firstYear[game] : 0;
+            return _eliteBeginDate[game];
         }
 
         /// <summary>
@@ -78,7 +77,7 @@ namespace TheEliteExplorerDomain
         {
             return !date.HasValue || (
                 date?.Date <= ServiceProviderAccessor.ClockProvider.Now.Date
-                && date?.Year >= game.GetReleaseYear()
+                && date?.Date >= game.GetEliteFirstDate()
             );
         }
     }

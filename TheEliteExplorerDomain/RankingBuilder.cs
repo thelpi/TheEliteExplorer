@@ -190,20 +190,78 @@ namespace TheEliteExplorerDomain
         private IEnumerable<EntryDto> GetDateableEntries(IEnumerable<EntryDto> entries, DateTime rankingDate)
         {
             // Entry date must be prior or equal to the ranking date
-            // or unknown, but the player doesn't have submit entry past the ranking date with a worst time
+            // If no date on the entry, we try to guess it
             return entries.Where(e =>
                 e.Date?.Date <= rankingDate
                 || (
                     !e.Date.HasValue
                     && _configuration.IncludeUnknownDate
-                    && !HasWorstTimeLater(entries, rankingDate, e)
+                    && ComputeNearDate(e, rankingDate) <= rankingDate
                 )
             );
         }
 
+        private DateTime ComputeNearDate(EntryDto entry, DateTime rankingDate)
+        {
+            var playerEntries = Entries.Where(e => e.Id != entry.Id && e.PlayerId == entry.PlayerId);
+            var playerStageLevelEntries = playerEntries.Where(e => e.StageId == entry.StageId && e.LevelId == entry.LevelId);
+
+            if (HasWorstTimeLater(playerStageLevelEntries, rankingDate, entry))
+            {
+                // Any date after the ranking date works here
+                return rankingDate.AddDays(1);
+            }
+
+            var betweenMin = playerStageLevelEntries.Any(e => e.Date < rankingDate)
+                ? playerStageLevelEntries.Where(e => e.Date < rankingDate).Max(e => e.Date.Value)
+                : GetJoinDateForPlayer(entry);
+            var betweenMax = playerStageLevelEntries.Any(e => e.Date > rankingDate && e.Date < Player.LastEmptyDate)
+                ? playerStageLevelEntries.Where(e => e.Date > rankingDate).Min(e => e.Date.Value)
+                : GetExitDateForPlayer(playerEntries);
+
+            // This case might happen for newcomers
+            if (betweenMax < betweenMin)
+            {
+                betweenMax = betweenMin;
+            }
+
+            // TODO: find a better method to compute the posting pattern of the player
+            var entriesInDateRange = playerEntries.Where(e => e.Date >= betweenMin && e.Date <= betweenMax);
+            if (entriesInDateRange.Count() > 0)
+            {
+                // Takes the year where the player has submitted the most times
+                var selectedYear = entriesInDateRange
+                    .GroupBy(e => e.Date.Value.Year)
+                    .OrderByDescending(grp => grp.Count())
+                    .First()
+                    .Key;
+                betweenMin = new DateTime(selectedYear, 1, 1);
+                betweenMax = new DateTime(selectedYear + 1, 1, 1);
+            }
+
+            return betweenMin.AddDays((betweenMax - betweenMin).TotalDays / 2).Date;
+        }
+
+        private DateTime GetJoinDateForPlayer(EntryDto entry)
+        {
+            return _basePlayersList[entry.PlayerId].JoinDate ?? _game.GetEliteFirstDate();
+        }
+
+        private static DateTime GetExitDateForPlayer(IEnumerable<EntryDto> playerEntries)
+        {
+            // times post-"Player.LastEmptyDate" are ignored
+            var exitDate = playerEntries.Any(e => e.Date.HasValue)
+                ? playerEntries.Max(e => e.Date).Value
+                : Player.LastEmptyDate;
+            return exitDate > Player.LastEmptyDate ? Player.LastEmptyDate : exitDate;
+        }
+
         private static bool HasWorstTimeLater(IEnumerable<EntryDto> entries, DateTime rankingDate, EntryDto entry)
         {
-            return entries.Any(e => e.Time > entry.Time && e.Date?.Date > rankingDate);
+            return entries.Any(e => e.Time > entry.Time
+                && e.Date?.Date > rankingDate);
+            // We could take in consideration the engine, as shown below:
+            // && (!entry.SystemId.HasValue || !e.SystemId.HasValue || entry.SystemId == e.SystemId)
         }
 
         private static EntryDto GetBestTimeFromEntries(IEnumerable<EntryDto> entries)

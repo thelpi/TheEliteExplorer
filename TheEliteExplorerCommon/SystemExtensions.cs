@@ -101,5 +101,44 @@ namespace TheEliteExplorerCommon
                 { DateStep.Month, (d, i) => d.AddMonths(i) },
                 { DateStep.Year, (d, i) => d.AddYears(i) }
             };
+
+        /// <summary>
+        /// Computes the standard deviation of a list of integers.
+        /// </summary>
+        /// <param name="values">List of integers.</param>
+        /// <returns>The standard deviation.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="values"/> is <c>Null</c>.</exception>
+        public static double ComputeStandardDeviation(this IEnumerable<int> values)
+        {
+            if (values == null)
+            {
+                throw new ArgumentNullException(nameof(values));
+            }
+
+            return values.Select(v => (double)v).ComputeStandardDeviation();
+        }
+
+        /// <summary>
+        /// Computes the standard deviation of a list of floating numbers.
+        /// </summary>
+        /// <param name="values">List of floating numbers.</param>
+        /// <returns>The standard deviation.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="values"/> is <c>Null</c>.</exception>
+        public static double ComputeStandardDeviation(this IEnumerable<double> values)
+        {
+            if (values == null)
+            {
+                throw new ArgumentNullException(nameof(values));
+            }
+
+            if (!values.Any())
+            {
+                return 0;
+            }
+
+            double sum = values.Sum(d => Math.Pow(d - values.Average(), 2));
+
+            return Math.Sqrt((sum) / (values.Count() - 1));
+        }
     }
 }
