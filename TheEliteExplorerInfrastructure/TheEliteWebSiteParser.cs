@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Models;
 using TheEliteExplorerInfrastructure.Configuration;
 
 namespace TheEliteExplorerInfrastructure
@@ -621,7 +622,7 @@ namespace TheEliteExplorerInfrastructure
 
             dateString = dateString?.Trim();
 
-            if (dateString != Extensions.DefaultLabel)
+            if (dateString != ModelExtensions.DefaultLabel)
             {
                 string[] dateComponents = dateString.Split(separator);
                 if (dateComponents.Length != 3)

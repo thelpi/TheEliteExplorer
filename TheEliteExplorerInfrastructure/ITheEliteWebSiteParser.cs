@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorerInfrastructure
 {

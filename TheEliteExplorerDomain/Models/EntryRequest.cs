@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TheEliteExplorerDomain
+namespace TheEliteExplorerDomain.Models
 {
     /// <summary>
     /// Represents a time entry to process.
@@ -10,19 +10,19 @@ namespace TheEliteExplorerDomain
         /// <summary>
         /// Stage identifier.
         /// </summary>
-        public long StageId { get; set; }
+        public long StageId { get; }
         /// <summary>
         /// Level identifier.
         /// </summary>
-        public long LevelId { get; set; }
+        public long LevelId { get; }
         /// <summary>
         /// Player URL name.
         /// </summary>
-        public string PlayerUrlName { get; set; }
+        public string PlayerUrlName { get; }
         /// <summary>
         /// Time.
         /// </summary>
-        public long Time { get; set; }
+        public long Time { get; }
         /// <summary>
         /// Date.
         /// </summary>
@@ -30,11 +30,11 @@ namespace TheEliteExplorerDomain
         /// If the player needs to be created, this date is also used to set the joining the elite date.
         /// It's not great, but the player has a "dirty" flag so he needs to be fixed anyway.
         /// </remarks>
-        public DateTime? Date { get; set; }
+        public DateTime? Date { get; }
         /// <summary>
         /// Engine identifier.
         /// </summary>
-        public long? EngineId { get; set; }
+        public long? EngineId { get; }
 
         /// <summary>
         /// Constructor.

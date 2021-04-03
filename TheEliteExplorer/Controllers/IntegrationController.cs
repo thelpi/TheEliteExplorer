@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Models;
 using TheEliteExplorerInfrastructure;
 
 namespace TheEliteExplorer.Controllers
@@ -165,7 +166,7 @@ namespace TheEliteExplorer.Controllers
                     .ConfigureAwait(false);
 
                 await _sqlContext
-                    .InsertOrRetrieveTimeEntryAsync(new TheEliteExplorerDomain.Dtos.EntryDto(entry, playerId))
+                    .InsertOrRetrieveTimeEntryAsync(entry.ToDto(playerId))
                     .ConfigureAwait(false);
 
                 return null;

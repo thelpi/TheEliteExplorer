@@ -4,7 +4,7 @@ using System.Linq;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Dtos;
 
-namespace TheEliteExplorerDomain
+namespace TheEliteExplorerDomain.Models
 {
     /// <summary>
     /// Represents a ranking entry.
@@ -142,7 +142,6 @@ namespace TheEliteExplorerDomain
         /// <param name="position">The position (ranking) of the entry for this stage and level.</param>
         /// <param name="untied">Indicates if the entry is an untied world record; ignored if <paramref name="position"/> is not <c>1</c>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="entry"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentException"><paramref name="entry"/> is invalid.</exception>
         /// <exception cref="ArgumentException"><paramref name="entry"/> is not related to <see cref="PlayerId"/>.</exception>
         /// <exception cref="ArgumentException"><paramref name="entry"/> is not related to <see cref="Game"/>.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="position"/> is below <c>1</c>.</exception>
@@ -151,11 +150,6 @@ namespace TheEliteExplorerDomain
             if (entry == null)
             {
                 throw new ArgumentNullException(nameof(entry));
-            }
-
-            if (!entry.IsValid())
-            {
-                throw new ArgumentException($"{entry} is invalid.", nameof(entry));
             }
 
             if (entry.PlayerId != PlayerId)

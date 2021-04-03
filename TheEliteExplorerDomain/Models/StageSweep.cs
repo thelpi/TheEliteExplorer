@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TheEliteExplorerDomain
+namespace TheEliteExplorerDomain.Models
 {
     /// <summary>
     /// Represents a sweep on stage (untied or not).

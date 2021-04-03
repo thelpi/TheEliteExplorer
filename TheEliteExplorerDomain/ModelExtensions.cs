@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using TheEliteExplorerCommon;
+using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorerDomain
 {
     /// <summary>
     /// Extension methods and tools.
     /// </summary>
-    public static class Extensions
+    public static class ModelExtensions
     {
         /// <summary>
         /// Default label for unknown data.
@@ -79,6 +81,37 @@ namespace TheEliteExplorerDomain
                 date?.Date <= ServiceProviderAccessor.ClockProvider.Now.Date
                 && date?.Date >= game.GetEliteFirstDate()
             );
+        }
+
+        /// <summary>
+        /// Transforms an entry request into a DTO.
+        /// </summary>
+        /// <param name="request">Entry request.</param>
+        /// <param name="playerId">Player identifier.</param>
+        /// <returns>Entry DTO.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="playerId"/> is below 1.</exception>
+        public static EntryDto ToDto(this EntryRequest request, long playerId)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (playerId < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(playerId), playerId, $"{nameof(playerId)} is below 1");
+            }
+
+            return new EntryDto
+            {
+                PlayerId = playerId,
+                StageId = request.StageId,
+                LevelId = request.LevelId,
+                Date = request.Date,
+                Time = request.Time,
+                SystemId = request.EngineId
+            };
         }
     }
 }

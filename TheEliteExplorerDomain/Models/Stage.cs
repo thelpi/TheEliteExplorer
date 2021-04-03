@@ -2,7 +2,7 @@
 using System.Linq;
 using TheEliteExplorerCommon;
 
-namespace TheEliteExplorerDomain
+namespace TheEliteExplorerDomain.Models
 {
     /// <summary>
     /// Represents a stage.
@@ -82,6 +82,12 @@ namespace TheEliteExplorerDomain
             Game = game;
             Name = name;
             Position = position;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return Name;
         }
 
         #region GoldenEye stages instances

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TheEliteExplorerDomain.Dtos;
+//using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorerInfrastructure
 {
@@ -59,9 +60,9 @@ namespace TheEliteExplorerInfrastructure
         /// <summary>
         /// Gets time entries for every stage and level of the specified game.
         /// </summary>
-        /// <param name="game">The game.</param>
+        /// <param name="gameId">The game identifier.</param>
         /// <returns>Collection of <see cref="EntryDto"/>.</returns>
-        Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(TheEliteExplorerDomain.Game game);
+        Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(int gameId);
 
         /// <summary>
         /// Inserts a ranking into the database.

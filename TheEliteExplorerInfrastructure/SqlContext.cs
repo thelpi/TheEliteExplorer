@@ -7,8 +7,8 @@ using Dapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
-using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Models;
 using TheEliteExplorerInfrastructure.Configuration;
 
 namespace TheEliteExplorerInfrastructure
@@ -144,13 +144,13 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(Game game)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(int gameId)
         {
             var entries = new List<EntryDto>();
 
             foreach (Level level in SystemExtensions.Enumerate<Level>())
             {
-                foreach (Stage stage in Stage.Get(game))
+                foreach (Stage stage in Stage.Get((Game)gameId))
                 {
                     entries.AddRange(
                         await GetEntriesAsync(stage.Position, (long)level, null, null).ConfigureAwait(false)

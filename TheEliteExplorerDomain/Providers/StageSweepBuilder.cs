@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Models;
 
-namespace TheEliteExplorerDomain
+namespace TheEliteExplorerDomain.Providers
 {
     /// <summary>
     /// 
@@ -39,7 +40,7 @@ namespace TheEliteExplorerDomain
 
             var fullList = new List<(long playerId, DateTime date, Stage stage)>();
 
-            var game = entries.First().Game.Value;
+            var game = Stage.Get().FirstOrDefault(s => s.Id == entries.First().StageId).Game;
 
             var groupEntries = entries
                 .Where(e => e.Date.HasValue)
@@ -47,7 +48,7 @@ namespace TheEliteExplorerDomain
                 .ToDictionary(e => e.Key, e => e.ToList());
 
             foreach (var currentDate in SystemExtensions.LoopBetweenDates(
-                startDate ?? Extensions.GetEliteFirstDate(game),
+                startDate ?? ModelExtensions.GetEliteFirstDate(game),
                 endDate ?? ServiceProviderAccessor.ClockProvider.Now,
                 DateStep.Day))
             {

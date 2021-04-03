@@ -9,6 +9,8 @@ using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Models;
+using TheEliteExplorerDomain.Providers;
 using TheEliteExplorerInfrastructure;
 
 namespace TheEliteExplorer.Controllers
@@ -53,7 +55,7 @@ namespace TheEliteExplorer.Controllers
                 _configuration,
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
                 game,
-                await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false)
+                await _sqlContext.GetEntriesForEachStageAndLevelAsync((int)game).ConfigureAwait(false)
             );
 
             IReadOnlyCollection<RankingEntry> rankingEntries = builder.GetRankingEntries(realDate);
@@ -75,7 +77,7 @@ namespace TheEliteExplorer.Controllers
                 _configuration,
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
                 game,
-                await _sqlContext.GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false)
+                await _sqlContext.GetEntriesForEachStageAndLevelAsync((int)game).ConfigureAwait(false)
             );
 
             foreach (DateTime date in GetRealStartDate(startDate, builder.Entries).LoopBetweenDates(DateStep.Day))
@@ -102,7 +104,7 @@ namespace TheEliteExplorer.Controllers
             [FromQuery] DateTime? endDate)
         {
             var entries = await _sqlContext
-                .GetEntriesForEachStageAndLevelAsync(Game.GoldenEye)
+                .GetEntriesForEachStageAndLevelAsync((int)Game.GoldenEye)
                 .ConfigureAwait(false);
 
             var players = await _sqlContext

@@ -1,7 +1,7 @@
 ﻿using System;
 using TheEliteExplorerDomain.Dtos;
 
-namespace TheEliteExplorerDomain
+namespace TheEliteExplorerDomain.Models
 {
     /// <summary>
     /// Represents a player.
@@ -44,7 +44,13 @@ namespace TheEliteExplorerDomain
 
             RealName = dto.RealName;
             SurName = dto.SurName;
-            ControlStyle = Extensions.ToControlStyle(dto.ControlStyle);
+            ControlStyle = ModelExtensions.ToControlStyle(dto.ControlStyle);
+        }
+        
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{SurName} - {RealName}";
         }
     }
 }

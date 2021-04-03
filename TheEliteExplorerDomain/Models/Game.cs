@@ -1,4 +1,4 @@
-﻿namespace TheEliteExplorerDomain
+﻿namespace TheEliteExplorerDomain.Models
 {
     /// <summary>
     /// Games enumeration.
