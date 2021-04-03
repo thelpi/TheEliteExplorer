@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -86,12 +87,19 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
-        /// Gets untied sweeps.
+        /// Gets sweeps.
         /// </summary>
         /// <param name="game">Game.</param>
+        /// <param name="untied">Is untied y/n.</param>
+        /// <param name="startDate">Start date.</param>
+        /// <param name="endDate">End date.</param>
         /// <returns>Collection of untied sweeps.</returns>
-        [HttpGet("untied-sweeps/{game}")]
-        public async Task<IReadOnlyCollection<UntiedSweep>> GetUntiedSweeps([FromRoute] Game game)
+        [HttpGet("sweeps/{game}")]
+        public async Task<IReadOnlyCollection<StageSweep>> GetSweeps(
+            [FromRoute] Game game,
+            [FromQuery][Required] bool untied,
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate)
         {
             var entries = await _sqlContext
                 .GetEntriesForEachStageAndLevelAsync(Game.GoldenEye)
@@ -101,7 +109,7 @@ namespace TheEliteExplorer.Controllers
                 .GetPlayersAsync()
                 .ConfigureAwait(false);
 
-            return new UntiedSweepBuilder().GetUntiedSweeps(entries, players);
+            return new StageSweepBuilder().GetSweeps(entries, players, untied, startDate, endDate);
         }
 
         private DateTime GetRealStartDate(DateTime? startDate, IReadOnlyCollection<EntryDto> entries)

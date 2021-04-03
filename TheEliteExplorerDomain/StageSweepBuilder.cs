@@ -9,17 +9,23 @@ namespace TheEliteExplorerDomain
     /// <summary>
     /// 
     /// </summary>
-    public class UntiedSweepBuilder
+    public class StageSweepBuilder
     {
         /// <summary>
         /// 
         /// </summary>
         /// <param name="entries"></param>
         /// <param name="players"></param>
+        /// <param name="untied"></param>
+        /// <param name="startDate"></param>
+        /// <param name="endDate"></param>
         /// <returns></returns>
-        public IReadOnlyCollection<UntiedSweep> GetUntiedSweeps(
+        public IReadOnlyCollection<StageSweep> GetSweeps(
             IReadOnlyCollection<EntryDto> entries,
-            IReadOnlyCollection<PlayerDto> players)
+            IReadOnlyCollection<PlayerDto> players,
+            bool untied,
+            DateTime? startDate,
+            DateTime? endDate)
         {
             if (players == null)
             {
@@ -41,11 +47,13 @@ namespace TheEliteExplorerDomain
                 .ToDictionary(e => e.Key, e => e.ToList());
 
             foreach (var currentDate in SystemExtensions.LoopBetweenDates(
-                Extensions.GetEliteFirstDate(game),
+                startDate ?? Extensions.GetEliteFirstDate(game),
+                endDate ?? ServiceProviderAccessor.ClockProvider.Now,
                 DateStep.Day))
             {
                 foreach (var stage in Stage.Get(game))
                 {
+                    var playersWithWr = new List<long>();
                     long? pId = null;
                     bool isUntiedSweep = true;
                     foreach (var level in SystemExtensions.Enumerate<Level>())
@@ -55,14 +63,22 @@ namespace TheEliteExplorerDomain
                             .GroupBy(e => e.Time)
                             .OrderBy(e => e.Key)
                             .FirstOrDefault();
-                        if (currentWr?.Count() == 1)
+                        if (untied)
                         {
-                            var currentPId = currentWr.First().PlayerId;
-                            if (!pId.HasValue)
+                            if (currentWr?.Count() == 1)
                             {
-                                pId = currentPId;
+                                var currentPId = currentWr.First().PlayerId;
+                                if (!pId.HasValue)
+                                {
+                                    pId = currentPId;
+                                }
+                                else if (pId.Value != currentPId)
+                                {
+                                    isUntiedSweep = false;
+                                    break;
+                                }
                             }
-                            else if (pId.Value != currentPId)
+                            else
                             {
                                 isUntiedSweep = false;
                                 break;
@@ -70,20 +86,45 @@ namespace TheEliteExplorerDomain
                         }
                         else
                         {
-                            isUntiedSweep = false;
-                            break;
+                            if (currentWr?.Count() > 0)
+                            {
+                                if (playersWithWr.Count == 0)
+                                {
+                                    playersWithWr.AddRange(currentWr.Select(_ => _.PlayerId));
+                                }
+                                else
+                                {
+                                    playersWithWr = playersWithWr.Intersect(currentWr.Select(_ => _.PlayerId)).ToList();
+                                }
+                                if (playersWithWr.Count == 0)
+                                {
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                playersWithWr.Clear();
+                                break;
+                            }
                         }
                     }
-                    if (isUntiedSweep)
+                    if (untied)
                     {
-                        fullList.Add((pId.Value, currentDate.Date, stage));
+                        if (isUntiedSweep)
+                        {
+                            fullList.Add((pId.Value, currentDate.Date, stage));
+                        }
+                    }
+                    else
+                    {
+                        fullList.AddRange(playersWithWr.Select(_ => (_, currentDate, stage)));
                     }
                 }
             }
 
             fullList = fullList.OrderBy(f => f.date).ToList();
 
-            var refinedList = new List<UntiedSweep>();
+            var refinedList = new List<StageSweep>();
 
             foreach (var (playerId, date, stage) in fullList)
             {
@@ -93,7 +134,7 @@ namespace TheEliteExplorerDomain
                     && e.EndDate == date.AddDays(-1));
                 if (yesterdayEntry == null)
                 {
-                    refinedList.Add(new UntiedSweep
+                    refinedList.Add(new StageSweep
                     {
                         EndDate = date,
                         StartDate = date,

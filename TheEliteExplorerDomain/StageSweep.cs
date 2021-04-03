@@ -3,9 +3,9 @@
 namespace TheEliteExplorerDomain
 {
     /// <summary>
-    /// Represents an untied sweep.
+    /// Represents a sweep on stage (untied or not).
     /// </summary>
-    public class UntiedSweep
+    public class StageSweep
     {
         /// <summary>
         /// Stage.
