@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
-using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
 using TheEliteExplorerInfrastructure.Configuration;
 
@@ -649,7 +649,7 @@ namespace TheEliteExplorerInfrastructure
 
             dateString = dateString?.Trim();
 
-            if (dateString != ModelExtensions.DefaultLabel)
+            if (dateString != Extensions.DefaultLabel)
             {
                 string[] dateComponents = dateString.Split(separator);
                 if (dateComponents.Length != 3)

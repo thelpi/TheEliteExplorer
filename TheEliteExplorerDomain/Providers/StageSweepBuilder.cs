@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorerDomain.Providers
@@ -48,7 +49,7 @@ namespace TheEliteExplorerDomain.Providers
                 .ToDictionary(e => e.Key, e => e.ToList());
 
             foreach (var currentDate in SystemExtensions.LoopBetweenDates(
-                startDate ?? ModelExtensions.GetEliteFirstDate(game),
+                startDate ?? Extensions.GetEliteFirstDate(game),
                 endDate ?? ServiceProviderAccessor.ClockProvider.Now,
                 DateStep.Day))
             {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerInfrastructure
 {
@@ -20,11 +21,11 @@ namespace TheEliteExplorerInfrastructure
         /// Gets every entries for a specified stage and level, between two dates.
         /// </summary>
         /// <param name="stageId">Stage identifier.</param>
-        /// <param name="levelId">Level identifier.</param>
+        /// <param name="level">Level.</param>
         /// <param name="startDate">Start date (inclusive).</param>
         /// <param name="endDate">End date (exclusive).</param>
         /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
-        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate);
+        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, Level level, DateTime? startDate, DateTime? endDate);
 
         /// <summary>
         /// Insert a time entry, or retrieves it if the tuple [playerId / levelId / stageId / time / systemId] already exists.
@@ -67,9 +68,9 @@ namespace TheEliteExplorerInfrastructure
         /// <summary>
         /// Gets the date of the latest ranking.
         /// </summary>
-        /// <param name="gameId">Game identifier.</param>
+        /// <param name="game">Game.</param>
         /// <returns>Date of the latest ranking; <c>Null</c> if no ranking.</returns>
-        Task<DateTime?> GetLatestRankingDateAsync(long gameId);
+        Task<DateTime?> GetLatestRankingDateAsync(Game game);
 
         /// <summary>
         /// Gets duplicate players.

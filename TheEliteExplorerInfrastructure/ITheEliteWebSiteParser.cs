@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TheEliteExplorerDomain.Dtos;
-using TheEliteExplorerDomain.Models;
+using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerInfrastructure
 {

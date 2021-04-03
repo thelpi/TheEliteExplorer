@@ -7,6 +7,7 @@ using Dapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerInfrastructure.Configuration;
 
 namespace TheEliteExplorerInfrastructure
@@ -55,17 +56,17 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, Level level, DateTime? startDate, DateTime? endDate)
         {
             if (!_cacheConfiguration.Enabled || startDate.HasValue || endDate.HasValue)
             {
-                return await GetEntriesWithoutCacheAsync(stageId, levelId, startDate, endDate).ConfigureAwait(false);
+                return await GetEntriesWithoutCacheAsync(stageId, level, startDate, endDate).ConfigureAwait(false);
             }
 
             return await _cache.GetOrSetFromCacheAsync(
-                string.Format(_getEntriesCacheKeyFormat, stageId, levelId),
+                string.Format(_getEntriesCacheKeyFormat, stageId, level),
                 GetCacheOptions(),
-                () => GetEntriesWithoutCacheAsync(stageId, levelId, null, null));
+                () => GetEntriesWithoutCacheAsync(stageId, level, null, null));
         }
 
         /// <inheritdoc />
@@ -85,7 +86,9 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry)
         {
-            IReadOnlyCollection<EntryDto> entries = await GetEntriesAsync(requestEntry.StageId, requestEntry.LevelId,
+            IReadOnlyCollection<EntryDto> entries = await GetEntriesAsync(
+                requestEntry.StageId,
+                (Level)requestEntry.LevelId,
                 requestEntry.Date?.Date,
                 requestEntry.Date?.Date.AddDays(1));
 
@@ -162,12 +165,12 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<DateTime?> GetLatestRankingDateAsync(long gameId)
+        public async Task<DateTime?> GetLatestRankingDateAsync(Game game)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 DateTime? data = await connection.QuerySingleAsync<DateTime?>(
-                    ToPsName(_getLatestRankingDatePsName), new { game_id = gameId },
+                    ToPsName(_getLatestRankingDatePsName), new { game_id = (int)game },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
                 return data;
             }
@@ -311,7 +314,7 @@ namespace TheEliteExplorerInfrastructure
             }
         }
 
-        private async Task<List<EntryDto>> GetEntriesWithoutCacheAsync(long stageId, long levelId, DateTime? startDate, DateTime? endDate)
+        private async Task<List<EntryDto>> GetEntriesWithoutCacheAsync(long stageId, Level level, DateTime? startDate, DateTime? endDate)
         {
             var entries = new List<EntryDto>();
 
@@ -322,7 +325,7 @@ namespace TheEliteExplorerInfrastructure
                    new
                    {
                        stage_id = stageId,
-                       level_id = levelId,
+                       level_id = (int)level,
                        start_date = startDate,
                        end_date = endDate
                    },

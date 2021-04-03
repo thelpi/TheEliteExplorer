@@ -9,6 +9,7 @@ using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
 using TheEliteExplorerDomain.Providers;
 using TheEliteExplorerInfrastructure;
@@ -71,7 +72,7 @@ namespace TheEliteExplorer.Controllers
         [HttpPost("games/{game}")]
         public async Task CreatesRanking([FromRoute] Game game)
         {
-            DateTime? startDate = await _sqlContext.GetLatestRankingDateAsync((int)game).ConfigureAwait(false);
+            DateTime? startDate = await _sqlContext.GetLatestRankingDateAsync(game).ConfigureAwait(false);
 
             var builder = new RankingBuilder(
                 _configuration,
@@ -135,7 +136,7 @@ namespace TheEliteExplorer.Controllers
                 foreach (Stage stage in Stage.Get(game))
                 {
                     entries.AddRange(
-                        await _sqlContext.GetEntriesAsync(stage.Position, (long)level, null, null).ConfigureAwait(false)
+                        await _sqlContext.GetEntriesAsync(stage.Position, level, null, null).ConfigureAwait(false)
                     );
                 }
             }

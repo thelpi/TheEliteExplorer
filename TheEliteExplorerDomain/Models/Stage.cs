@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using TheEliteExplorerCommon;
+using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerDomain.Models
 {

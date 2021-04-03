@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using TheEliteExplorerCommon;
-using TheEliteExplorerDomain.Models;
 
-namespace TheEliteExplorerDomain
+namespace TheEliteExplorerDomain.Enums
 {
     /// <summary>
     /// Extension methods and tools.
     /// </summary>
-    public static class ModelExtensions
+    public static class Extensions
     {
         /// <summary>
         /// Default label for unknown data.

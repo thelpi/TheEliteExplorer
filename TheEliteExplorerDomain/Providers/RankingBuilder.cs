@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorerDomain.Providers

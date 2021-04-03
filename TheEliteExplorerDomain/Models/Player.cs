@@ -1,5 +1,6 @@
 ﻿using System;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerDomain.Models
 {
@@ -44,7 +45,7 @@ namespace TheEliteExplorerDomain.Models
 
             RealName = dto.RealName;
             SurName = dto.SurName;
-            ControlStyle = ModelExtensions.ToControlStyle(dto.ControlStyle);
+            ControlStyle = Extensions.ToControlStyle(dto.ControlStyle);
         }
         
         /// <inheritdoc />

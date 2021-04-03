@@ -1,4 +1,4 @@
-﻿namespace TheEliteExplorerDomain.Models
+﻿namespace TheEliteExplorerDomain.Enums
 {
     /// <summary>
     /// Engines enumeration.

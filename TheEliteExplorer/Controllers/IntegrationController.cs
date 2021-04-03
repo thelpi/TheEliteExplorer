@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
 using TheEliteExplorerInfrastructure;
 
@@ -145,8 +146,8 @@ namespace TheEliteExplorer.Controllers
         {
             foreach (Level level in SystemExtensions.Enumerate<Level>())
             {
-                IReadOnlyCollection<TheEliteExplorerDomain.Dtos.EntryDto> levelEntries = await _sqlContext
-                    .GetEntriesAsync(stageId, (long)level, null, null)
+                IReadOnlyCollection<EntryDto> levelEntries = await _sqlContext
+                    .GetEntriesAsync(stageId, level, null, null)
                     .ConfigureAwait(false);
                 if (levelEntries.Count > 0)
                 {
