@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Models;
 using TheEliteExplorerInfrastructure;
 
@@ -44,11 +45,11 @@ namespace TheEliteExplorer.Controllers
             DateTime currentDate = await _sqlContext.GetLatestEntryDateAsync().ConfigureAwait(false);
 
             var logs = new List<string>();
-            var entries = new List<EntryRequest>();
+            var entries = new List<EntryWebDto>();
 
             foreach (DateTime loopDate in currentDate.LoopBetweenDates(DateStep.Month))
             {
-                (IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>) resultsAndLogs =
+                (IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>) resultsAndLogs =
                     await _siteParser
                         .ExtractTimeEntriesAsync(
                             game,
@@ -61,7 +62,7 @@ namespace TheEliteExplorer.Controllers
                 entries.AddRange(resultsAndLogs.Item1);
             }
 
-            foreach (EntryRequest entry in entries)
+            foreach (var entry in entries)
             {
                 string log = await CreateEntryAsync(entry).ConfigureAwait(false);
                 if (!string.IsNullOrWhiteSpace(log))
@@ -90,12 +91,11 @@ namespace TheEliteExplorer.Controllers
                 };
             }
 
-            (IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>) entriesAngLogs =
-                await _siteParser.ExtractStageAllTimeEntriesAsync(stageId).ConfigureAwait(false);
+            var entriesAngLogs = await _siteParser.ExtractStageAllTimeEntriesAsync(stageId).ConfigureAwait(false);
 
             var logs = new List<string>(entriesAngLogs.Item2);
 
-            foreach (EntryRequest entry in entriesAngLogs.Item1)
+            foreach (var entry in entriesAngLogs.Item1)
             {
                 string log = await CreateEntryAsync(entry).ConfigureAwait(false);
                 if (!string.IsNullOrWhiteSpace(log))
@@ -157,7 +157,7 @@ namespace TheEliteExplorer.Controllers
             return false;
         }
 
-        private async Task<string> CreateEntryAsync(EntryRequest entry)
+        private async Task<string> CreateEntryAsync(EntryWebDto entry)
         {
             try
             {
@@ -166,7 +166,7 @@ namespace TheEliteExplorer.Controllers
                     .ConfigureAwait(false);
 
                 await _sqlContext
-                    .InsertOrRetrieveTimeEntryAsync(entry.ToDto(playerId))
+                    .InsertOrRetrieveTimeEntryAsync(entry.ToEntry(playerId))
                     .ConfigureAwait(false);
 
                 return null;

@@ -32,9 +32,9 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<(IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>)> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan)
+        public async Task<(IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>)> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan)
         {
-            var linksValues = new List<EntryRequest>();
+            var linksValues = new List<EntryWebDto>();
             var logs = new List<string>();
 
             string uri = string.Format(_configuration.HistoryPage, year, month);
@@ -69,7 +69,7 @@ namespace TheEliteExplorerInfrastructure
 
                     if (useLink)
                     {
-                        EntryRequest linkValues = await ExtractTimeLinkDetailsAsync(game, link, logs, minimalDateToScan).ConfigureAwait(false);
+                        var linkValues = await ExtractTimeLinkDetailsAsync(game, link, logs, minimalDateToScan).ConfigureAwait(false);
                         if (linkValues != null)
                         {
                             linksValues.Add(linkValues);
@@ -86,9 +86,9 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<(IReadOnlyCollection<EntryRequest>, IReadOnlyCollection<string>)> ExtractStageAllTimeEntriesAsync(long stageId)
+        public async Task<(IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>)> ExtractStageAllTimeEntriesAsync(long stageId)
         {
-            var entries = new List<EntryRequest>();
+            var entries = new List<EntryWebDto>();
             var logs = new List<string>();
 
             Stage stage = Stage.Get().FirstOrDefault(s => s.Id == stageId);
@@ -130,7 +130,7 @@ namespace TheEliteExplorerInfrastructure
                 {
                     try
                     {
-                        List<EntryRequest> entryDetails = await ExtractEntryDetailsAsync(entryId, stage, levelKey, logs).ConfigureAwait(false);
+                        var entryDetails = await ExtractEntryDetailsAsync(entryId, stage, levelKey, logs).ConfigureAwait(false);
                         entries.AddRange(entryDetails);
                     }
                     catch (Exception ex)
@@ -219,9 +219,9 @@ namespace TheEliteExplorerInfrastructure
             return (p, logs);
         }
 
-        private async Task<List<EntryRequest>> ExtractEntryDetailsAsync(long entryId, Stage stage, Level levelKey, List<string> logs)
+        private async Task<List<EntryWebDto>> ExtractEntryDetailsAsync(long entryId, Stage stage, Level levelKey, List<string> logs)
         {
-            List<EntryRequest> finalEntries = new List<EntryRequest>();
+            var finalEntries = new List<EntryWebDto>();
 
             // /!\/!\/!\ Any name can go in the URL
             string linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}", logs).ConfigureAwait(false);
@@ -260,7 +260,7 @@ namespace TheEliteExplorerInfrastructure
                 string timeFromHead = indexOfDoubleDot < 0 ? N_A : string.Join(string.Empty,
                     Enumerable.Range(-2, 5).Select(i => headTitleText[indexOfDoubleDot + i]));
 
-                EntryRequest entryRequest = ExtractEntryFromHead(stage, levelKey, timeFromHead, playerUrlName, htmlParts[0], logs);
+                var entryRequest = ExtractEntryFromHead(stage, levelKey, timeFromHead, playerUrlName, htmlParts[0], logs);
                 if (entryRequest != null)
                 {
                     finalEntries.Add(entryRequest);
@@ -274,7 +274,7 @@ namespace TheEliteExplorerInfrastructure
             return finalEntries;
         }
 
-        private EntryRequest ExtractEntryFromHead(Stage stage, Level levelKey, string timeFromhead, string playerUrlName, string content, List<string> logs)
+        private EntryWebDto ExtractEntryFromHead(Stage stage, Level levelKey, string timeFromhead, string playerUrlName, string content, List<string> logs)
         {
             var versionFromHead = "Unknown";
             var dateFromHead = "Unknown";
@@ -313,10 +313,19 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            return new EntryRequest(stage, levelKey, playerUrlName, time.Value, date, ToEngine(versionFromHead));
+            var system = ToEngine(versionFromHead);
+            return new EntryWebDto
+            {
+                Date = date,
+                LevelId = (int)levelKey,
+                PlayerUrlName = playerUrlName,
+                StageId = stage.Id,
+                SystemId = system.HasValue ? (int)system.Value : (int?)null,
+                Time = time.Value
+            };
         }
 
-        private IEnumerable<EntryRequest> ExtractEntriesFromTable(Stage stage, Level levelKey, string playerUrlName, string content, List<string> logs)
+        private IEnumerable<EntryWebDto> ExtractEntriesFromTable(Stage stage, Level levelKey, string playerUrlName, string content, List<string> logs)
         {
             string tableContent = string.Concat("<table>", content, "</table>");
 
@@ -333,7 +342,16 @@ namespace TheEliteExplorerInfrastructure
                     DateTime? date = ParseDateFromString(rowDatas[0], logs, out failToExtract);
                     if (!failToExtract)
                     {
-                        yield return new EntryRequest(stage, levelKey, playerUrlName, time.Value, date, ToEngine(rowDatas[3]));
+                        var system = ToEngine(rowDatas[3]);
+                        yield return new EntryWebDto
+                        {
+                            Date = date,
+                            LevelId = (int)levelKey,
+                            PlayerUrlName = playerUrlName,
+                            StageId = stage.Id,
+                            SystemId = system.HasValue ? (int)system.Value : (int?)null,
+                            Time = time.Value
+                        };
                     }
                 }
             }
@@ -384,7 +402,7 @@ namespace TheEliteExplorerInfrastructure
             return entryIdListByLevel;
         }
 
-        private async Task<EntryRequest> ExtractTimeLinkDetailsAsync(Game game, HtmlNode link, List<string> logs, DateTime? minimalDateToScan)
+        private async Task<EntryWebDto> ExtractTimeLinkDetailsAsync(Game game, HtmlNode link, List<string> logs, DateTime? minimalDateToScan)
         {
             const char linkSeparator = '-';
             const string playerUrlPrefix = "/~";
@@ -443,9 +461,18 @@ namespace TheEliteExplorerInfrastructure
             {
                 return null;
             }
-            
-            return new EntryRequest(stage, level.Value, playerUrl, time.Value, date,
-                await ExtractTimeEntryEngineAsync(link, logs).ConfigureAwait(false));
+
+            var system = await ExtractTimeEntryEngineAsync(link, logs).ConfigureAwait(false);
+
+            return new EntryWebDto
+            {
+                Date = date,
+                LevelId = (int)level.Value,
+                PlayerUrlName = playerUrl,
+                StageId = stage.Id,
+                SystemId = system.HasValue ? (int)system.Value : (int?)null,
+                Time = time.Value
+            };
         }
 
         private static DateTime? ExtractAndCheckDate(HtmlNode link, List<string> logs, DateTime? minimalDateToScan, out bool exit)
