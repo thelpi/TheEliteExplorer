@@ -81,7 +81,7 @@ namespace TheEliteExplorer.Controllers
         /// <param name="stageId">Stage identifier.</param>
         /// <returns>A list of logs.</returns>
         [HttpPost("stages/{stageId}/times")]
-        public async Task<IReadOnlyCollection<string>> ScanStageTimesAsync([FromRoute] long stageId)
+        public async Task<IReadOnlyCollection<string>> ScanStageTimesAsync([FromRoute] int stageId)
         {
             bool haveEntries = await CheckForExistingEntries(stageId).ConfigureAwait(false);
             if (haveEntries)
@@ -124,7 +124,7 @@ namespace TheEliteExplorer.Controllers
             foreach (var p in players)
             {
                 var pInfoAndLogs = await _siteParser
-                    .GetPlayerInformation(p.UrlName)
+                    .GetPlayerInformation(p.UrlName, Player.DefaultPlayerHexColor)
                     .ConfigureAwait(false);
 
                 if (pInfoAndLogs.Item1 != null)
@@ -142,7 +142,7 @@ namespace TheEliteExplorer.Controllers
             return logs;
         }
 
-        private async Task<bool> CheckForExistingEntries(long stageId)
+        private async Task<bool> CheckForExistingEntries(int stageId)
         {
             foreach (Level level in SystemExtensions.Enumerate<Level>())
             {

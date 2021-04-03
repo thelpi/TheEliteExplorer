@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
-using TheEliteExplorerDomain.Models;
 using TheEliteExplorerInfrastructure.Configuration;
 
 namespace TheEliteExplorerInfrastructure
@@ -86,17 +85,10 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<(IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>)> ExtractStageAllTimeEntriesAsync(long stageId)
+        public async Task<(IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>)> ExtractStageAllTimeEntriesAsync(int stageId)
         {
             var entries = new List<EntryWebDto>();
             var logs = new List<string>();
-
-            Stage stage = Stage.Get().FirstOrDefault(s => s.Id == stageId);
-            if (stage == null)
-            {
-                logs.Add($"Invalid stage identifier - {stageId}");
-                return (entries, logs);
-            }
 
             string pageContent = await GetPageStringContentAsync($"/ajax/stage/{stageId}/{_configuration.AjaxKey}", logs).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(pageContent))
@@ -130,7 +122,7 @@ namespace TheEliteExplorerInfrastructure
                 {
                     try
                     {
-                        var entryDetails = await ExtractEntryDetailsAsync(entryId, stage, levelKey, logs).ConfigureAwait(false);
+                        var entryDetails = await ExtractEntryDetailsAsync(entryId, stageId, levelKey, logs).ConfigureAwait(false);
                         entries.AddRange(entryDetails);
                     }
                     catch (Exception ex)
@@ -144,7 +136,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<(PlayerDto, IReadOnlyCollection<string>)> GetPlayerInformation(string urlName)
+        public async Task<(PlayerDto, IReadOnlyCollection<string>)> GetPlayerInformation(string urlName, string defaultHexPlayer)
         {
             var logs = new List<string>();
             string realName = null;
@@ -209,7 +201,7 @@ namespace TheEliteExplorerInfrastructure
 
             var p = new PlayerDto
             {
-                Color = color ?? Player.DefaultPlayerHexColor,
+                Color = color ?? defaultHexPlayer,
                 ControlStyle = controlStyle,
                 RealName = realName ?? (surname ?? urlName),
                 SurName = surname ?? urlName,
@@ -219,7 +211,7 @@ namespace TheEliteExplorerInfrastructure
             return (p, logs);
         }
 
-        private async Task<List<EntryWebDto>> ExtractEntryDetailsAsync(long entryId, Stage stage, Level levelKey, List<string> logs)
+        private async Task<List<EntryWebDto>> ExtractEntryDetailsAsync(long entryId, int stageId, Level levelKey, List<string> logs)
         {
             var finalEntries = new List<EntryWebDto>();
 
@@ -260,7 +252,7 @@ namespace TheEliteExplorerInfrastructure
                 string timeFromHead = indexOfDoubleDot < 0 ? N_A : string.Join(string.Empty,
                     Enumerable.Range(-2, 5).Select(i => headTitleText[indexOfDoubleDot + i]));
 
-                var entryRequest = ExtractEntryFromHead(stage, levelKey, timeFromHead, playerUrlName, htmlParts[0], logs);
+                var entryRequest = ExtractEntryFromHead(stageId, levelKey, timeFromHead, playerUrlName, htmlParts[0], logs);
                 if (entryRequest != null)
                 {
                     finalEntries.Add(entryRequest);
@@ -268,13 +260,13 @@ namespace TheEliteExplorerInfrastructure
             }
             else
             {
-                finalEntries.AddRange(ExtractEntriesFromTable(stage, levelKey, playerUrlName, htmlParts[1], logs));
+                finalEntries.AddRange(ExtractEntriesFromTable(stageId, levelKey, playerUrlName, htmlParts[1], logs));
             }
 
             return finalEntries;
         }
 
-        private EntryWebDto ExtractEntryFromHead(Stage stage, Level levelKey, string timeFromhead, string playerUrlName, string content, List<string> logs)
+        private EntryWebDto ExtractEntryFromHead(int stageId, Level levelKey, string timeFromhead, string playerUrlName, string content, List<string> logs)
         {
             var versionFromHead = "Unknown";
             var dateFromHead = "Unknown";
@@ -319,13 +311,13 @@ namespace TheEliteExplorerInfrastructure
                 Date = date,
                 LevelId = (int)levelKey,
                 PlayerUrlName = playerUrlName,
-                StageId = stage.Id,
+                StageId = stageId,
                 SystemId = system.HasValue ? (int)system.Value : (int?)null,
                 Time = time.Value
             };
         }
 
-        private IEnumerable<EntryWebDto> ExtractEntriesFromTable(Stage stage, Level levelKey, string playerUrlName, string content, List<string> logs)
+        private IEnumerable<EntryWebDto> ExtractEntriesFromTable(int stageId, Level levelKey, string playerUrlName, string content, List<string> logs)
         {
             string tableContent = string.Concat("<table>", content, "</table>");
 
@@ -348,7 +340,7 @@ namespace TheEliteExplorerInfrastructure
                             Date = date,
                             LevelId = (int)levelKey,
                             PlayerUrlName = playerUrlName,
-                            StageId = stage.Id,
+                            StageId = stageId,
                             SystemId = system.HasValue ? (int)system.Value : (int?)null,
                             Time = time.Value
                         };
@@ -424,9 +416,9 @@ namespace TheEliteExplorerInfrastructure
             }
 
             string stageName = linkParts[0].ToLowerInvariant().Replace(" ", string.Empty);
-            var stage = Stage.Get(game).FirstOrDefault(g => g.FormatedName.Equals(stageName));
-            if (stage == null)
+            if (!_stageNames.ContainsKey(stageName))
             {
+                logs.Add($"Unable to extract the stage ID.");
                 return null;
             }
 
@@ -469,7 +461,7 @@ namespace TheEliteExplorerInfrastructure
                 Date = date,
                 LevelId = (int)level.Value,
                 PlayerUrlName = playerUrl,
-                StageId = stage.Id,
+                StageId = _stageNames[stageName],
                 SystemId = system.HasValue ? (int)system.Value : (int?)null,
                 Time = time.Value
             };
@@ -681,5 +673,49 @@ namespace TheEliteExplorerInfrastructure
 
             return null;
         }
+
+        private static readonly IReadOnlyDictionary<string, int> _stageNames = new Dictionary<string, int>
+        {
+            { "dam", 1 },
+            { "facility", 2 },
+            { "runway", 3 },
+            { "surface1", 4 },
+            { "bunker1", 5 },
+            { "silo", 6 },
+            { "frigate", 7 },
+            { "surface2", 8 },
+            { "bunker2", 9 },
+            { "statue", 10 },
+            { "archives", 11 },
+            { "streets", 12 },
+            { "depot", 13 },
+            { "train", 14 },
+            { "jungle", 15 },
+            { "control", 16 },
+            { "caverns", 17 },
+            { "cradle", 18 },
+            { "aztec", 19 },
+            { "egypt", 20 },
+            { "Defection", 1 },
+            { "Investigation", 2 },
+            { "Extraction", 3 },
+            { "Villa", 4 },
+            { "Chicago", 5 },
+            { "G5", 6 },
+            { "Infiltration", 7 },
+            { "Rescue", 8 },
+            { "Escape", 9 },
+            { "AirBase", 10 },
+            { "AirForceOne", 11 },
+            { "CrashSite", 12 },
+            { "PelagicII", 13 },
+            { "DeepSea", 14 },
+            { "CI", 15 },
+            { "AttackShip", 16 },
+            { "SkedarRuins", 17 },
+            { "MBR", 18 },
+            { "MaianSOS", 19 },
+            { "WAR", 20 }
+        };
     }
 }

@@ -26,10 +26,6 @@ namespace TheEliteExplorerDomain.Models
         public int Position { get; }
 
         /// <summary>
-        /// Inferred; name of the stage without spaces and full lowercase.
-        /// </summary>
-        public string FormatedName { get { return Name.Replace(" ", string.Empty).ToLowerInvariant(); } }
-        /// <summary>
         /// Inferred; stage technical identifier.
         /// </summary>
         public long Id

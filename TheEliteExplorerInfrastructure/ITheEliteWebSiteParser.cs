@@ -29,13 +29,14 @@ namespace TheEliteExplorerInfrastructure
         /// </summary>
         /// <param name="stageId">Stage identifier.</param>
         /// <returns>A tuple with the list of <see cref="EntryWebDto"/> and list of error logs.</returns>
-        Task<(IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>)> ExtractStageAllTimeEntriesAsync(long stageId);
+        Task<(IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>)> ExtractStageAllTimeEntriesAsync(int stageId);
 
         /// <summary>
         /// Gets information about a player.
         /// </summary>
         /// <param name="urlName">Player URL name.</param>
+        /// <param name="defaultHexPlayer">Default hexadecimal player color.</param>
         /// <returns>Instance of <see cref="PlayerDto"/>; <c>Null</c> if not found; plus additional logs.</returns>
-        Task<(PlayerDto, IReadOnlyCollection<string>)> GetPlayerInformation(string urlName);
+        Task<(PlayerDto, IReadOnlyCollection<string>)> GetPlayerInformation(string urlName, string defaultHexPlayer);
     }
 }
