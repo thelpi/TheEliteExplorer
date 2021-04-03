@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Dtos;
-using TheEliteExplorerDomain.Models;
 using TheEliteExplorerInfrastructure.Configuration;
 
 namespace TheEliteExplorerInfrastructure
@@ -126,9 +124,9 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName, DateTime? joinDate)
+        public async Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName, DateTime? joinDate, string defaultHexColor)
         {
-            return await InsertOrRetrievePlayerInternalAsync(urlName, urlName, urlName, Player.DefaultPlayerHexColor, null, true, joinDate).ConfigureAwait(false);
+            return await InsertOrRetrievePlayerInternalAsync(urlName, urlName, urlName, defaultHexColor, null, true, joinDate).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -141,24 +139,6 @@ namespace TheEliteExplorerInfrastructure
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
                 return data.First();
             }
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(int gameId)
-        {
-            var entries = new List<EntryDto>();
-
-            foreach (Level level in SystemExtensions.Enumerate<Level>())
-            {
-                foreach (Stage stage in Stage.Get((Game)gameId))
-                {
-                    entries.AddRange(
-                        await GetEntriesAsync(stage.Position, (long)level, null, null).ConfigureAwait(false)
-                    );
-                }
-            }
-
-            return entries;
         }
 
         /// <inheritdoc />

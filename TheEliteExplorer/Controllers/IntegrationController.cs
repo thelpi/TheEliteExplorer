@@ -162,7 +162,7 @@ namespace TheEliteExplorer.Controllers
             try
             {
                 long playerId = await _sqlContext
-                    .InsertOrRetrievePlayerDirtyAsync(entry.PlayerUrlName, entry.Date)
+                    .InsertOrRetrievePlayerDirtyAsync(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
                     .ConfigureAwait(false);
 
                 await _sqlContext

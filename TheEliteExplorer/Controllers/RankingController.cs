@@ -55,7 +55,7 @@ namespace TheEliteExplorer.Controllers
                 _configuration,
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
                 game,
-                await _sqlContext.GetEntriesForEachStageAndLevelAsync((int)game).ConfigureAwait(false)
+                await GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false)
             );
 
             IReadOnlyCollection<RankingEntry> rankingEntries = builder.GetRankingEntries(realDate);
@@ -77,7 +77,7 @@ namespace TheEliteExplorer.Controllers
                 _configuration,
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
                 game,
-                await _sqlContext.GetEntriesForEachStageAndLevelAsync((int)game).ConfigureAwait(false)
+                await GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false)
             );
 
             foreach (DateTime date in GetRealStartDate(startDate, builder.Entries).LoopBetweenDates(DateStep.Day))
@@ -103,9 +103,7 @@ namespace TheEliteExplorer.Controllers
             [FromQuery] DateTime? startDate,
             [FromQuery] DateTime? endDate)
         {
-            var entries = await _sqlContext
-                .GetEntriesForEachStageAndLevelAsync((int)Game.GoldenEye)
-                .ConfigureAwait(false);
+            var entries = await GetEntriesForEachStageAndLevelAsync(Game.GoldenEye).ConfigureAwait(false);
 
             var players = await _sqlContext
                 .GetPlayersAsync()
@@ -126,6 +124,23 @@ namespace TheEliteExplorer.Controllers
                 realDate = ServiceProviderAccessor.ClockProvider.Now;
             }
             return realDate.Date;
+        }
+
+        private async Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(Game game)
+        {
+            var entries = new List<EntryDto>();
+
+            foreach (Level level in SystemExtensions.Enumerate<Level>())
+            {
+                foreach (Stage stage in Stage.Get(game))
+                {
+                    entries.AddRange(
+                        await _sqlContext.GetEntriesAsync(stage.Position, (long)level, null, null).ConfigureAwait(false)
+                    );
+                }
+            }
+
+            return entries;
         }
     }
 }

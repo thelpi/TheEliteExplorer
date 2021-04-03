@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TheEliteExplorerDomain.Dtos;
-//using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorerInfrastructure
 {
@@ -48,21 +47,15 @@ namespace TheEliteExplorerInfrastructure
         /// <remarks>If <paramref name="joinDate"/> is specified, it will be rounded without the time part.</remarks>
         /// <param name="urlName">Player URL name.</param>
         /// <param name="joinDate">Date of joining the elite.</param>
+        /// <param name="defaultHexColor">Default hexadecimal color.</param>
         /// <returns>Player identifier.</returns>
-        Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName, DateTime? joinDate);
+        Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName, DateTime? joinDate, string defaultHexColor);
 
         /// <summary>
         /// Gets the most recent entry date.
         /// </summary>
         /// <returns>Most recent entry date</returns>
         Task<DateTime> GetLatestEntryDateAsync();
-
-        /// <summary>
-        /// Gets time entries for every stage and level of the specified game.
-        /// </summary>
-        /// <param name="gameId">The game identifier.</param>
-        /// <returns>Collection of <see cref="EntryDto"/>.</returns>
-        Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(int gameId);
 
         /// <summary>
         /// Inserts a ranking into the database.
