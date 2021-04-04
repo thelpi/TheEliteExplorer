@@ -12,7 +12,6 @@ using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
 using TheEliteExplorerDomain.Providers;
-using TheEliteExplorerInfrastructure;
 
 namespace TheEliteExplorer.Controllers
 {
@@ -23,20 +22,27 @@ namespace TheEliteExplorer.Controllers
     [Route("rankings")]
     public class RankingController : Controller
     {
+        private readonly IStageSweepProvider _stageSweepProvider;
         private readonly ISqlContext _sqlContext;
         private readonly RankingConfiguration _configuration;
 
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="stageSweepProvider">Instance of <see cref="IStageSweepProvider"/>.</param>
         /// <param name="sqlContext">Instance of <see cref="ISqlContext"/>.</param>
         /// <param name="configuration">Instance of <see cref="RankingConfiguration"/>.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="stageSweepProvider"/> is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
-        public RankingController(ISqlContext sqlContext, IOptions<RankingConfiguration> configuration)
+        public RankingController(
+            IStageSweepProvider stageSweepProvider,
+            ISqlContext sqlContext,
+            IOptions<RankingConfiguration> configuration)
         {
             _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
             _configuration = configuration?.Value ?? throw new ArgumentNullException(nameof(configuration));
+            _stageSweepProvider = stageSweepProvider ?? throw new ArgumentNullException(nameof(stageSweepProvider));
         }
 
         /// <summary>
@@ -56,7 +62,7 @@ namespace TheEliteExplorer.Controllers
                 _configuration,
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
                 game,
-                await GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false)
+                await _sqlContext.GetEntriesAsync((long)game).ConfigureAwait(false)
             );
 
             IReadOnlyCollection<RankingEntry> rankingEntries = builder.GetRankingEntries(realDate);
@@ -78,7 +84,7 @@ namespace TheEliteExplorer.Controllers
                 _configuration,
                 await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
                 game,
-                await GetEntriesForEachStageAndLevelAsync(game).ConfigureAwait(false)
+                await _sqlContext.GetEntriesAsync((long)game).ConfigureAwait(false)
             );
 
             foreach (DateTime date in GetRealStartDate(startDate, builder.Entries).LoopBetweenDates(DateStep.Day))
@@ -104,13 +110,9 @@ namespace TheEliteExplorer.Controllers
             [FromQuery] DateTime? startDate,
             [FromQuery] DateTime? endDate)
         {
-            var entries = await GetEntriesForEachStageAndLevelAsync(Game.GoldenEye).ConfigureAwait(false);
-
-            var players = await _sqlContext
-                .GetPlayersAsync()
+            return await _stageSweepProvider
+                .GetSweepsAsync(game, untied, startDate, endDate)
                 .ConfigureAwait(false);
-
-            return new StageSweepBuilder().GetSweeps(entries, players, untied, startDate, endDate);
         }
 
         private DateTime GetRealStartDate(DateTime? startDate, IReadOnlyCollection<EntryDto> entries)
@@ -125,23 +127,6 @@ namespace TheEliteExplorer.Controllers
                 realDate = ServiceProviderAccessor.ClockProvider.Now;
             }
             return realDate.Date;
-        }
-
-        private async Task<IReadOnlyCollection<EntryDto>> GetEntriesForEachStageAndLevelAsync(Game game)
-        {
-            var entries = new List<EntryDto>();
-
-            foreach (Level level in SystemExtensions.Enumerate<Level>())
-            {
-                foreach (Stage stage in Stage.Get(game))
-                {
-                    entries.AddRange(
-                        await _sqlContext.GetEntriesAsync(stage.Position, level, null, null).ConfigureAwait(false)
-                    );
-                }
-            }
-
-            return entries;
         }
     }
 }

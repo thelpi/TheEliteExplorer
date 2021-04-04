@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
+using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerInfrastructure.Configuration;
@@ -20,6 +21,7 @@ namespace TheEliteExplorerInfrastructure
     {
         private const string _getPlayersCacheKey = "players";
         private const string _getEntriesCacheKeyFormat = "entries_{0}_{1}"; // stageId, levelId
+        private const string _getAllEntriesCacheKeyFormat = "entries_all_{0}"; // gameId
 
         private const string _getEveryPlayersPsName = "select_player";
         private const string _getEntriesByCriteriaPsName = "select_entry";
@@ -32,6 +34,7 @@ namespace TheEliteExplorerInfrastructure
         private const string _selectDuplicatePlayersPsName = "select_duplicate_players";
         private const string _deletePlayerPsName = "delete_player";
         private const string _updatePlayerPsName = "update_player";
+        private const string _getEntriesByGamePsName = "select_all_entry";
 
         private readonly IConnectionProvider _connectionProvider;
         private readonly CacheConfiguration _cacheConfiguration;
@@ -70,6 +73,20 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long gameId)
+        {
+            if (!_cacheConfiguration.Enabled)
+            {
+                return await GetEntriesWithoutCacheAsync(gameId).ConfigureAwait(false);
+            }
+
+            return await _cache.GetOrSetFromCacheAsync(
+                string.Format(_getAllEntriesCacheKeyFormat, gameId),
+                GetCacheOptions(),
+                () => GetEntriesWithoutCacheAsync(gameId));
+        }
+
+        /// <inheritdoc />
         public async Task<IReadOnlyCollection<PlayerDto>> GetPlayersAsync()
         {
             if (!_cacheConfiguration.Enabled)
@@ -84,7 +101,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry)
+        public async Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry, long gameId)
         {
             IReadOnlyCollection<EntryDto> entries = await GetEntriesAsync(
                 requestEntry.StageId,
@@ -112,9 +129,12 @@ namespace TheEliteExplorerInfrastructure
                     system_id = requestEntry.SystemId
                 }).ConfigureAwait(false);
 
-            // invalidates cache
+            // invalidates caches
             await _cache
                 .RemoveAsync(string.Format(_getEntriesCacheKeyFormat, requestEntry.StageId, requestEntry.LevelId))
+                .ConfigureAwait(false);
+            await _cache
+                .RemoveAsync(string.Format(_getAllEntriesCacheKeyFormat, gameId))
                 .ConfigureAwait(false);
 
             return entryid;
@@ -328,6 +348,29 @@ namespace TheEliteExplorerInfrastructure
                        level_id = (int)level,
                        start_date = startDate,
                        end_date = endDate
+                   },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+
+                if (results != null)
+                {
+                    entries.AddRange(results);
+                }
+            }
+
+            return entries;
+        }
+
+        private async Task<List<EntryDto>> GetEntriesWithoutCacheAsync(long gameId)
+        {
+            var entries = new List<EntryDto>();
+
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                var results = await connection.QueryAsync<EntryDto>(
+                   ToPsName(_getEntriesByGamePsName),
+                   new
+                   {
+                       game_id = gameId
                    },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
 

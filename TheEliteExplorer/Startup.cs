@@ -6,7 +6,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Converters;
 using TheEliteExplorerCommon;
+using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Configuration;
+using TheEliteExplorerDomain.Providers;
 using TheEliteExplorerInfrastructure;
 using TheEliteExplorerInfrastructure.Configuration;
 
@@ -56,6 +58,7 @@ namespace TheEliteExplorer
                 .Configure<TheEliteWebsiteConfiguration>(_configuration.GetSection(_theEliteWebsiteSection))
                 .AddSingleton<ISqlContext, SqlContext>()
                 .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()
+                .AddSingleton<IStageSweepProvider, StageSweepProvider>()
                 .AddDistributedMemoryCache();
         }
 

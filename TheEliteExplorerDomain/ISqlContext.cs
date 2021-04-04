@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 
-namespace TheEliteExplorerInfrastructure
+namespace TheEliteExplorerDomain
 {
     /// <summary>
     /// SQL context interface.
@@ -28,11 +28,19 @@ namespace TheEliteExplorerInfrastructure
         Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, Level level, DateTime? startDate, DateTime? endDate);
 
         /// <summary>
+        /// Gets every entry for a specified game.
+        /// </summary>
+        /// <param name="gameId">Game identifier.</param>
+        /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
+        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long gameId);
+
+        /// <summary>
         /// Insert a time entry, or retrieves it if the tuple [playerId / levelId / stageId / time / systemId] already exists.
         /// </summary>
         /// <param name="requestEntry">Entry to insert.</param>
+        /// <param name="gameId">Game identifier.</param>
         /// <returns>Time entry identifier.</returns>
-        Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry);
+        Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry, long gameId);
 
         /// <summary>
         /// Inserts a player, or retrieves him if <see cref="PlayerDto.UrlName"/> already exists.

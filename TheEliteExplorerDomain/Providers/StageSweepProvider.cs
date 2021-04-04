@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
@@ -9,39 +10,41 @@ using TheEliteExplorerDomain.Models;
 namespace TheEliteExplorerDomain.Providers
 {
     /// <summary>
-    /// 
+    /// Stage sweep provider implementation.
     /// </summary>
-    public class StageSweepBuilder
+    /// <seealso cref="IStageSweepProvider"/>
+    public sealed class StageSweepProvider : IStageSweepProvider
     {
+        private readonly ISqlContext _sqlContext;
+
         /// <summary>
-        /// 
+        /// Ctor.
         /// </summary>
-        /// <param name="entries"></param>
-        /// <param name="players"></param>
-        /// <param name="untied"></param>
-        /// <param name="startDate"></param>
-        /// <param name="endDate"></param>
-        /// <returns></returns>
-        public IReadOnlyCollection<StageSweep> GetSweeps(
-            IReadOnlyCollection<EntryDto> entries,
-            IReadOnlyCollection<PlayerDto> players,
-            bool untied,
-            DateTime? startDate,
-            DateTime? endDate)
+        /// <param name="sqlContext">SQL context.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
+        public StageSweepProvider(ISqlContext sqlContext)
         {
-            if (players == null)
+            _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<StageSweep>> GetSweepsAsync(Game game, bool untied, DateTime? startDate, DateTime? endDate)
+        {
+            if (startDate > endDate)
             {
-                throw new ArgumentNullException(nameof(players));
+                throw new ArgumentOutOfRangeException(nameof(startDate), startDate,
+                    $"{nameof(startDate)} is greater than {nameof(endDate)}.");
             }
 
-            if ((entries?.Count ?? 0) == 0)
-            {
-                throw new ArgumentException($"{entries} is null or empty.", nameof(entries));
-            }
+            var entries = await _sqlContext
+                .GetEntriesAsync((long)game)
+                .ConfigureAwait(false);
+
+            var players = await _sqlContext
+                .GetPlayersAsync()
+                .ConfigureAwait(false);
 
             var fullList = new List<(long playerId, DateTime date, Stage stage)>();
-
-            var game = Stage.Get().FirstOrDefault(s => s.Id == entries.First().StageId).Game;
 
             var groupEntries = entries
                 .Where(e => e.Date.HasValue)

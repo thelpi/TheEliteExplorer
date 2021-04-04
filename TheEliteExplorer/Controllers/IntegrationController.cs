@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerCommon;
@@ -65,7 +66,7 @@ namespace TheEliteExplorer.Controllers
 
             foreach (var entry in entries)
             {
-                string log = await CreateEntryAsync(entry).ConfigureAwait(false);
+                string log = await CreateEntryAsync(entry, game).ConfigureAwait(false);
                 if (!string.IsNullOrWhiteSpace(log))
                 {
                     logs.Add(log);
@@ -83,6 +84,8 @@ namespace TheEliteExplorer.Controllers
         [HttpPost("stages/{stageId}/times")]
         public async Task<IReadOnlyCollection<string>> ScanStageTimesAsync([FromRoute] int stageId)
         {
+            var game = Stage.Get().FirstOrDefault(s => s.Id == stageId).Game;
+
             bool haveEntries = await CheckForExistingEntries(stageId).ConfigureAwait(false);
             if (haveEntries)
             {
@@ -98,7 +101,7 @@ namespace TheEliteExplorer.Controllers
 
             foreach (var entry in entriesAngLogs.Item1)
             {
-                string log = await CreateEntryAsync(entry).ConfigureAwait(false);
+                string log = await CreateEntryAsync(entry, game).ConfigureAwait(false);
                 if (!string.IsNullOrWhiteSpace(log))
                 {
                     logs.Add(log);
@@ -158,7 +161,7 @@ namespace TheEliteExplorer.Controllers
             return false;
         }
 
-        private async Task<string> CreateEntryAsync(EntryWebDto entry)
+        private async Task<string> CreateEntryAsync(EntryWebDto entry, Game game)
         {
             try
             {
@@ -167,7 +170,7 @@ namespace TheEliteExplorer.Controllers
                     .ConfigureAwait(false);
 
                 await _sqlContext
-                    .InsertOrRetrieveTimeEntryAsync(entry.ToEntry(playerId))
+                    .InsertOrRetrieveTimeEntryAsync(entry.ToEntry(playerId), (long)game)
                     .ConfigureAwait(false);
 
                 return null;
