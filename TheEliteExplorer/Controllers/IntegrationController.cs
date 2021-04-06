@@ -44,11 +44,7 @@ namespace TheEliteExplorer.Controllers
         [HttpPost("games/{game}/new-times")]
         public async Task<IReadOnlyCollection<string>> ScanTimePageAsync([FromRoute] Game game)
         {
-            var currentDateNull = await _sqlContext
-                .GetLatestEntryDateAsync()
-                .ConfigureAwait(false);
-
-            var currentDate = currentDateNull ?? game.GetEliteFirstDate();
+            DateTime currentDate = await _sqlContext.GetLatestEntryDateAsync().ConfigureAwait(false);
 
             var logs = new List<string>();
             var entries = new List<EntryWebDto>();
@@ -170,7 +166,7 @@ namespace TheEliteExplorer.Controllers
             try
             {
                 long playerId = await _sqlContext
-                    .InsertOrRetrievePlayerAsync(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
+                    .InsertOrRetrievePlayerDirtyAsync(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
                     .ConfigureAwait(false);
 
                 await _sqlContext

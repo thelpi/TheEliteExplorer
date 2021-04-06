@@ -12,32 +12,26 @@ namespace TheEliteExplorerDomain
     public interface ISqlContext
     {
         /// <summary>
-        /// Gets every stage.
+        /// Gets every players from the database.
         /// </summary>
-        /// <returns>Collection of <see cref="StageDto"/>.</returns>
-        Task<IReadOnlyCollection<StageDto>> GetAllStagesAsync();
-
-        /// <summary>
-        /// Gets every player from the database.
-        /// </summary>
-        /// <returns>Collection of <see cref="PlayerDto"/>.</returns>
+        /// <returns>Collection of <see cref="PlayerDto"/>; can't be <c>Null</c>.</returns>
         Task<IReadOnlyCollection<PlayerDto>> GetPlayersAsync();
 
         /// <summary>
-        /// Gets every entry for a specified stage and level, between two dates.
+        /// Gets every entries for a specified stage and level, between two dates.
         /// </summary>
         /// <param name="stageId">Stage identifier.</param>
         /// <param name="level">Level.</param>
         /// <param name="startDate">Start date (inclusive).</param>
         /// <param name="endDate">End date (exclusive).</param>
-        /// <returns>Collection of <see cref="EntryDto"/>.</returns>
+        /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
         Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, Level level, DateTime? startDate, DateTime? endDate);
 
         /// <summary>
         /// Gets every entry for a specified game.
         /// </summary>
         /// <param name="gameId">Game identifier.</param>
-        /// <returns>Collection of <see cref="EntryDto"/>.</returns>
+        /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
         Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long gameId);
 
         /// <summary>
@@ -49,21 +43,28 @@ namespace TheEliteExplorerDomain
         Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry, long gameId);
 
         /// <summary>
-        /// Inserts a player, or retrieves him if a player with the same <paramref name="urlName"/> already exists.
-        /// The created player is flagged as dirty.
+        /// Inserts a player, or retrieves him if <see cref="PlayerDto.UrlName"/> already exists.
+        /// </summary>
+        /// <remarks>If <see cref="PlayerDto.JoinDate"/> is specified, it will be rounded without the time part.</remarks>
+        /// <param name="dto">The player DTO.</param>
+        /// <returns>Player identifier.</returns>
+        Task<long> InsertOrRetrievePlayerAsync(PlayerDto dto);
+
+        /// <summary>
+        /// Inserts a player, or retrieves him if <paramref name="urlName"/> already exists.
         /// </summary>
         /// <remarks>If <paramref name="joinDate"/> is specified, it will be rounded without the time part.</remarks>
         /// <param name="urlName">Player URL name.</param>
         /// <param name="joinDate">Date of joining the elite.</param>
         /// <param name="defaultHexColor">Default hexadecimal color.</param>
         /// <returns>Player identifier.</returns>
-        Task<long> InsertOrRetrievePlayerAsync(string urlName, DateTime? joinDate, string defaultHexColor);
+        Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName, DateTime? joinDate, string defaultHexColor);
 
         /// <summary>
         /// Gets the most recent entry date.
         /// </summary>
-        /// <returns>Most recent entry date; <c>Null</c> if none.</returns>
-        Task<DateTime?> GetLatestEntryDateAsync();
+        /// <returns>Most recent entry date</returns>
+        Task<DateTime> GetLatestEntryDateAsync();
 
         /// <summary>
         /// Inserts a ranking into the database.
