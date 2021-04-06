@@ -59,6 +59,7 @@ namespace TheEliteExplorer
                 .AddSingleton<ISqlContext, SqlContext>()
                 .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()
                 .AddSingleton<IStageSweepProvider, StageSweepProvider>()
+                .AddSingleton<IRankingProvider, RankingProvider>()
                 .AddDistributedMemoryCache();
         }
 

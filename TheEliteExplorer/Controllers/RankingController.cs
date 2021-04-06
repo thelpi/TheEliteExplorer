@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
-using TheEliteExplorerDomain;
-using TheEliteExplorerDomain.Configuration;
-using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
 using TheEliteExplorerDomain.Providers;
@@ -23,26 +18,21 @@ namespace TheEliteExplorer.Controllers
     public class RankingController : Controller
     {
         private readonly IStageSweepProvider _stageSweepProvider;
-        private readonly ISqlContext _sqlContext;
-        private readonly RankingConfiguration _configuration;
+        private readonly IRankingProvider _rankingProvider;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="stageSweepProvider">Instance of <see cref="IStageSweepProvider"/>.</param>
-        /// <param name="sqlContext">Instance of <see cref="ISqlContext"/>.</param>
-        /// <param name="configuration">Instance of <see cref="RankingConfiguration"/>.</param>
+        /// <param name="rankingProvider">Instance of <see cref="IRankingProvider"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="stageSweepProvider"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="rankingProvider"/> is <c>Null</c>.</exception>
         public RankingController(
             IStageSweepProvider stageSweepProvider,
-            ISqlContext sqlContext,
-            IOptions<RankingConfiguration> configuration)
+            IRankingProvider rankingProvider)
         {
-            _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
-            _configuration = configuration?.Value ?? throw new ArgumentNullException(nameof(configuration));
             _stageSweepProvider = stageSweepProvider ?? throw new ArgumentNullException(nameof(stageSweepProvider));
+            _rankingProvider = rankingProvider ?? throw new ArgumentNullException(nameof(rankingProvider));
         }
 
         /// <summary>
@@ -56,16 +46,9 @@ namespace TheEliteExplorer.Controllers
         [HttpGet("games/{game}")]
         public async Task<PaginatedCollection<RankingEntry>> GetRankingAsync([FromRoute] Game game, [FromQuery] int page, [FromQuery] int count, [FromQuery] string date)
         {
-            DateTime realDate = ValidateDateParameter(date);
-
-            var builder = new RankingBuilder(
-                _configuration,
-                await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
-                game,
-                await _sqlContext.GetEntriesAsync((long)game).ConfigureAwait(false)
-            );
-
-            IReadOnlyCollection<RankingEntry> rankingEntries = builder.GetRankingEntries(realDate);
+            var rankingEntries = await _rankingProvider
+                .GetRankingEntries(game, ValidateDateParameter(date))
+                .ConfigureAwait(false);
 
             return PaginatedCollection<RankingEntry>.CreateInstance(rankingEntries, page, count);
         }
@@ -78,21 +61,9 @@ namespace TheEliteExplorer.Controllers
         [HttpPost("games/{game}")]
         public async Task CreatesRanking([FromRoute] Game game)
         {
-            DateTime? startDate = await _sqlContext.GetLatestRankingDateAsync(game).ConfigureAwait(false);
-
-            var builder = new RankingBuilder(
-                _configuration,
-                await _sqlContext.GetPlayersAsync().ConfigureAwait(false),
-                game,
-                await _sqlContext.GetEntriesAsync((long)game).ConfigureAwait(false)
-            );
-
-            foreach (DateTime date in GetRealStartDate(startDate, builder.Entries).LoopBetweenDates(DateStep.Day))
-            {
-                await builder
-                    .GenerateRankings(date, (r) => _sqlContext.InsertRankingAsync(r))
-                    .ConfigureAwait(false);
-            }
+            await _rankingProvider
+                .GenerateRankings(game)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -115,18 +86,11 @@ namespace TheEliteExplorer.Controllers
                 .ConfigureAwait(false);
         }
 
-        private DateTime GetRealStartDate(DateTime? startDate, IReadOnlyCollection<EntryDto> entries)
-        {
-            return startDate ?? entries.Where(e => e.Date.HasValue).Min(e => e.Date.Value);
-        }
-
         private DateTime ValidateDateParameter(string date)
         {
-            if (!DateTime.TryParse(date, out DateTime realDate))
-            {
-                realDate = ServiceProviderAccessor.ClockProvider.Now;
-            }
-            return realDate.Date;
+            return DateTime.TryParse(date, out DateTime realDate)
+                ? realDate
+                : ServiceProviderAccessor.ClockProvider.Now;
         }
     }
 }

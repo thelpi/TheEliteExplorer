@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
@@ -12,58 +14,50 @@ namespace TheEliteExplorerDomain.Providers
     /// <summary>
     /// Ranking builder.
     /// </summary>
-    public class RankingBuilder
+    /// <seealso cref="IRankingProvider"/>
+    public sealed class RankingProvider : IRankingProvider
     {
         private readonly RankingConfiguration _configuration;
-        private readonly IReadOnlyDictionary<long, PlayerDto> _basePlayersList;
-        private readonly Game _game;
-
-        /// <summary>
-        /// Collection of every time entry.
-        /// </summary>
-        public IReadOnlyCollection<EntryDto> Entries { get; }
+        private readonly ISqlContext _sqlContext;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Ranking configuration.</param>
-        /// <param name="basePlayersList">Players base list.</param>
-        /// <param name="game">Game.</param>
-        /// <param name="entries">Every time entries.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="basePlayersList"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="entries"/> is <c>Null</c>.</exception>
-        public RankingBuilder(RankingConfiguration configuration,
-            IReadOnlyCollection<PlayerDto> basePlayersList,
-            Game game,
-            IReadOnlyCollection<EntryDto> entries)
+        /// <param name="sqlContext">Players base list.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
+        public RankingProvider(IOptions<RankingConfiguration> configuration,
+            ISqlContext sqlContext)
         {
-            _configuration = configuration ??
-                throw new ArgumentNullException(nameof(configuration));
-            Entries = entries ??
-                throw new ArgumentNullException(nameof(entries));
-            _basePlayersList = basePlayersList?.ToDictionary(p => p.Id, p => p) ??
-                throw new ArgumentNullException(nameof(basePlayersList));
-            _game = game;
+            _configuration = configuration?.Value ?? throw new ArgumentNullException(nameof(configuration));
+            _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
         }
 
         /// <summary>
         /// Computes and gets the full ranking at the specified date.
         /// </summary>
         /// <param name="rankingDate">Ranking date.</param>
+        /// <param name="game"></param>
         /// <returns>
         /// Collection of <see cref="RankingEntry"/>;
         /// sorted by <see cref="RankingEntry.Points"/> descending.
         /// </returns>
-        public IReadOnlyCollection<RankingEntry> GetRankingEntries(DateTime rankingDate)
+        public async Task<IReadOnlyCollection<RankingEntry>> GetRankingEntries(Game game, DateTime rankingDate)
         {
+            var basePlayersList = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
+
+            var entries = await _sqlContext.GetEntriesAsync((long)game).ConfigureAwait(false);
+
+            var _basePlayersList = basePlayersList?.ToDictionary(p => p.Id, p => p);
+
             rankingDate = rankingDate.Date;
 
-            List<EntryDto> finalEntries = SetFinalEntriesList(rankingDate);
+            List<EntryDto> finalEntries = SetFinalEntriesList(game, entries, _basePlayersList, rankingDate);
 
             List<RankingEntry> rankingEntries = finalEntries
                 .GroupBy(e => e.PlayerId)
-                .Select(e => new RankingEntry(_game, e.Key, _basePlayersList[e.Key].RealName))
+                .Select(e => new RankingEntry(game, e.Key, _basePlayersList[e.Key].RealName))
                 .ToList();
 
             foreach ((long, long, IEnumerable<EntryDto>) entryGroup in LoopByStageAndLevel(finalEntries))
@@ -94,17 +88,31 @@ namespace TheEliteExplorerDomain.Providers
                 .ToList();
         }
 
-        /// <summary>
-        /// Computes the ranking for each stage and each level at the specified date.
-        /// </summary>
-        /// <remarks>
-        /// Does not compute ranking for a day without any submited time.
-        /// Does not compute ranking for (stage,level) tuples without any submited time for the day.
-        /// </remarks>
-        /// <param name="actionDelegateAsync">Delegate to process the output <see cref="RankingDto"/>.</param>
-        /// <param name="rankingDate">Ranking date.</param>
-        /// <returns>Nothing.</returns>
-        public async Task GenerateRankings(DateTime rankingDate, Func<RankingDto, Task> actionDelegateAsync)
+        /// <inheritdoc />
+        public async Task GenerateRankings(Game game)
+        {
+            var basePlayersList = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
+
+            var Entries = await _sqlContext.GetEntriesAsync((long)game).ConfigureAwait(false);
+
+            var _basePlayersList = basePlayersList?.ToDictionary(p => p.Id, p => p);
+
+            var startDate = await _sqlContext
+                .GetLatestRankingDateAsync(game)
+                .ConfigureAwait(false);
+
+            foreach (var rankingDate in (startDate ?? game.GetEliteFirstDate()).LoopBetweenDates(DateStep.Day))
+            {
+                await InternalGenerateRankings(game, Entries, rankingDate, _basePlayersList)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        private async Task InternalGenerateRankings(
+            Game game,
+            IReadOnlyCollection<EntryDto> Entries,
+            DateTime rankingDate,
+            Dictionary<long, PlayerDto> _basePlayersList)
         {
             rankingDate = rankingDate.Date;
 
@@ -114,7 +122,7 @@ namespace TheEliteExplorerDomain.Providers
                 return;
             }
 
-            var finalEntries = SetFinalEntriesList(rankingDate);
+            var finalEntries = SetFinalEntriesList(game, Entries, _basePlayersList, rankingDate);
 
             foreach ((long, long, IEnumerable<EntryDto>) entryGroup in LoopByStageAndLevel(finalEntries))
             {
@@ -142,7 +150,7 @@ namespace TheEliteExplorerDomain.Providers
                             Time = timesGroup.Key
                         };
 
-                        await actionDelegateAsync(rkDto).ConfigureAwait(false);
+                        await _sqlContext.InsertRankingAsync(rkDto).ConfigureAwait(false);
                     }
                     rank += timesGroup.Count();
                 }
@@ -154,7 +162,11 @@ namespace TheEliteExplorerDomain.Providers
             return entryGroup.GroupBy(l => l.Time).OrderBy(l => l.Key);
         }
 
-        private List<EntryDto> SetFinalEntriesList(DateTime rankingDate)
+        private List<EntryDto> SetFinalEntriesList(
+            Game game,
+            IReadOnlyCollection<EntryDto> Entries,
+            Dictionary<long, PlayerDto> _basePlayersList,
+            DateTime rankingDate)
         {
             var filteredEntries = Entries
                 .Where(e => _basePlayersList.ContainsKey(e.PlayerId))
@@ -163,7 +175,7 @@ namespace TheEliteExplorerDomain.Providers
             var finalEntries = new List<EntryDto>();
             foreach (var entryGroup in LoopByPlayerStageAndLevel(filteredEntries))
             {
-                var dateableEntries = GetDateableEntries(entryGroup, rankingDate);
+                var dateableEntries = GetDateableEntries(game, Entries, _basePlayersList, entryGroup, rankingDate);
                 if (dateableEntries.Any())
                 {
                     finalEntries.Add(GetBestTimeFromEntries(dateableEntries));
@@ -189,7 +201,12 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
-        private IEnumerable<EntryDto> GetDateableEntries(IEnumerable<EntryDto> entries, DateTime rankingDate)
+        private IEnumerable<EntryDto> GetDateableEntries(
+            Game game,
+            IReadOnlyCollection<EntryDto> Entries,
+            Dictionary<long, PlayerDto> _basePlayersList,
+            IEnumerable<EntryDto> entries,
+            DateTime rankingDate)
         {
             // Entry date must be prior or equal to the ranking date
             // If no date on the entry, we try to guess it
@@ -198,12 +215,17 @@ namespace TheEliteExplorerDomain.Providers
                 || (
                     !e.Date.HasValue
                     && _configuration.IncludeUnknownDate
-                    && ComputeNearDate(e, rankingDate) <= rankingDate
+                    && ComputeNearDate(game, Entries, _basePlayersList, e, rankingDate) <= rankingDate
                 )
             );
         }
 
-        private DateTime ComputeNearDate(EntryDto entry, DateTime rankingDate)
+        private DateTime ComputeNearDate(
+            Game game,
+            IReadOnlyCollection<EntryDto> Entries,
+            Dictionary<long, PlayerDto> _basePlayersList,
+            EntryDto entry,
+            DateTime rankingDate)
         {
             var playerEntries = Entries.Where(e => e.Id != entry.Id && e.PlayerId == entry.PlayerId);
             var playerStageLevelEntries = playerEntries.Where(e => e.StageId == entry.StageId && e.LevelId == entry.LevelId);
@@ -216,7 +238,7 @@ namespace TheEliteExplorerDomain.Providers
 
             var betweenMin = playerStageLevelEntries.Any(e => e.Date < rankingDate)
                 ? playerStageLevelEntries.Where(e => e.Date < rankingDate).Max(e => e.Date.Value)
-                : GetJoinDateForPlayer(entry);
+                : GetJoinDateForPlayer(game, _basePlayersList, entry);
             var betweenMax = playerStageLevelEntries.Any(e => e.Date > rankingDate && e.Date < Player.LastEmptyDate)
                 ? playerStageLevelEntries.Where(e => e.Date > rankingDate).Min(e => e.Date.Value)
                 : GetExitDateForPlayer(playerEntries);
@@ -244,9 +266,9 @@ namespace TheEliteExplorerDomain.Providers
             return betweenMin.AddDays((betweenMax - betweenMin).TotalDays / 2).Date;
         }
 
-        private DateTime GetJoinDateForPlayer(EntryDto entry)
+        private DateTime GetJoinDateForPlayer(Game game, Dictionary<long, PlayerDto> players, EntryDto entry)
         {
-            return _basePlayersList[entry.PlayerId].JoinDate ?? _game.GetEliteFirstDate();
+            return players[entry.PlayerId].JoinDate ?? game.GetEliteFirstDate();
         }
 
         private static DateTime GetExitDateForPlayer(IEnumerable<EntryDto> playerEntries)
