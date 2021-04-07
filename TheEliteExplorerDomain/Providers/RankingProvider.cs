@@ -215,7 +215,7 @@ namespace TheEliteExplorerDomain.Providers
                 e.Date?.Date <= rankingDate
                 || (
                     !e.Date.HasValue
-                    && _configuration.IncludeUnknownDate
+                    && _configuration.NoDateEntryRankingRule != NoDateEntryRankingRule.Ignore
                     && ComputeNearDate(game, Entries, _basePlayersList, e, rankingDate) <= rankingDate
                 )
             );
@@ -250,21 +250,34 @@ namespace TheEliteExplorerDomain.Providers
                 betweenMax = betweenMin;
             }
 
-            // TODO: find a better method to compute the posting pattern of the player
-            var entriesInDateRange = playerEntries.Where(e => e.Date >= betweenMin && e.Date <= betweenMax);
-            if (entriesInDateRange.Count() > 0)
+            switch (_configuration.NoDateEntryRankingRule)
             {
-                // Takes the year where the player has submitted the most times
-                var selectedYear = entriesInDateRange
-                    .GroupBy(e => e.Date.Value.Year)
-                    .OrderByDescending(grp => grp.Count())
-                    .First()
-                    .Key;
-                betweenMin = new DateTime(selectedYear, 1, 1);
-                betweenMax = new DateTime(selectedYear + 1, 1, 1);
+                case NoDateEntryRankingRule.Max:
+                    return betweenMax.Date;
+                case NoDateEntryRankingRule.Min:
+                    return betweenMin.Date;
+                case NoDateEntryRankingRule.Average:
+                case NoDateEntryRankingRule.PlayerHabit:
+                    if (_configuration.NoDateEntryRankingRule == NoDateEntryRankingRule.PlayerHabit)
+                    {
+                        // TODO: find a better method to compute the posting pattern of the player
+                        var entriesInDateRange = playerEntries.Where(e => e.Date >= betweenMin && e.Date <= betweenMax);
+                        if (entriesInDateRange.Count() > 0)
+                        {
+                            // Takes the year where the player has submitted the most times
+                            var selectedYear = entriesInDateRange
+                                .GroupBy(e => e.Date.Value.Year)
+                                .OrderByDescending(grp => grp.Count())
+                                .First()
+                                .Key;
+                            betweenMin = new DateTime(selectedYear, 1, 1);
+                            betweenMax = new DateTime(selectedYear + 1, 1, 1);
+                        }
+                    }
+                    return betweenMin.AddDays((betweenMax - betweenMin).TotalDays / 2).Date;
+                default:
+                    throw new NotSupportedException();
             }
-
-            return betweenMin.AddDays((betweenMax - betweenMin).TotalDays / 2).Date;
         }
 
         private DateTime GetJoinDateForPlayer(Game game, Dictionary<long, PlayerDto> players, EntryDto entry)

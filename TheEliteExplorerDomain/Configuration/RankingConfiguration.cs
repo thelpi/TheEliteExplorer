@@ -1,4 +1,6 @@
-﻿namespace TheEliteExplorerDomain.Configuration
+﻿using TheEliteExplorerDomain.Enums;
+
+namespace TheEliteExplorerDomain.Configuration
 {
     /// <summary>
     /// Ranking configuration.
@@ -6,8 +8,8 @@
     public class RankingConfiguration
     {
         /// <summary>
-        /// Includes unknown dates to compute ranking.
+        /// Rule to apply for entry without date.
         /// </summary>
-        public bool IncludeUnknownDate { get; set; }
+        public NoDateEntryRankingRule NoDateEntryRankingRule { get; set; }
     }
 }
