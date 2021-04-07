@@ -151,5 +151,34 @@ namespace TheEliteExplorerCommon
         {
             yield return item;
         }
+
+        /// <summary>
+        /// Intersects a list with a second source, or fills the list if empty.
+        /// </summary>
+        /// <typeparam name="T">Type of item.</typeparam>
+        /// <param name="items">Items collection.</param>
+        /// <param name="secondItems">Second items collection.</param>
+        /// <returns>Merged collection.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="items"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="secondItems"/> is <c>Null</c>.</exception>
+        public static List<T> IntersectOrConcat<T>(
+            this List<T> items,
+            IEnumerable<T> secondItems)
+        {
+            if (items == null)
+            {
+                throw new ArgumentNullException(nameof(items));
+            }
+
+            if (secondItems == null)
+            {
+                throw new ArgumentNullException(nameof(secondItems));
+            }
+
+            return (items.Count == 0
+                    ? items.Concat(secondItems)
+                    : items.Intersect(secondItems))
+                .ToList();
+        }
     }
 }

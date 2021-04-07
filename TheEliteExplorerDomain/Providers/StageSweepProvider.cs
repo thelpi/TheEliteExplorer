@@ -63,69 +63,55 @@ namespace TheEliteExplorerDomain.Providers
             DateTime currentDate,
             Stage stage)
         {
-            var playersWithWr = new List<long>();
-            long? pId = null;
-            bool isUntiedSweep = true;
+            var tiedSweepPlayerIds = new List<long>();
+            long? untiedSweepPlayerId = null;
             foreach (var level in SystemExtensions.Enumerate<Level>())
             {
-                var currentWr = entriesGroups[(stage.Id, (int)level)]
+                var stageLevelDateWrs = entriesGroups[(stage.Id, (int)level)]
                     .Where(e => e.Date.Value.Date <= currentDate.Date)
                     .GroupBy(e => e.Time)
                     .OrderBy(e => e.Key)
                     .FirstOrDefault();
-                if (untied)
+
+                bool isPotentialSweep = untied
+                    ? stageLevelDateWrs?.Count() == 1
+                    : stageLevelDateWrs?.Count() > 0;
+
+                if (isPotentialSweep)
                 {
-                    if (currentWr?.Count() == 1)
+                    if (untied)
                     {
-                        var currentPId = currentWr.First().PlayerId;
-                        if (!pId.HasValue)
+                        var currentPId = stageLevelDateWrs.First().PlayerId;
+                        if (!untiedSweepPlayerId.HasValue)
                         {
-                            pId = currentPId;
+                            untiedSweepPlayerId = currentPId;
                         }
-                        else if (pId.Value != currentPId)
-                        {
-                            isUntiedSweep = false;
-                            break;
-                        }
+
+                        isPotentialSweep = untiedSweepPlayerId.Value == currentPId;
                     }
                     else
                     {
-                        isUntiedSweep = false;
-                        break;
+                        tiedSweepPlayerIds = tiedSweepPlayerIds.IntersectOrConcat(stageLevelDateWrs.Select(_ => _.PlayerId));
+
+                        isPotentialSweep = tiedSweepPlayerIds.Count > 0;
                     }
                 }
-                else
+
+                if (!isPotentialSweep)
                 {
-                    if (currentWr?.Count() > 0)
-                    {
-                        if (playersWithWr.Count == 0)
-                        {
-                            playersWithWr.AddRange(currentWr.Select(_ => _.PlayerId));
-                        }
-                        else
-                        {
-                            playersWithWr = playersWithWr.Intersect(currentWr.Select(_ => _.PlayerId)).ToList();
-                        }
-                        if (playersWithWr.Count == 0)
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        playersWithWr.Clear();
-                        break;
-                    }
+                    tiedSweepPlayerIds.Clear();
+                    untiedSweepPlayerId = null;
+                    break;
                 }
             }
 
             if (!untied)
             {
-                return playersWithWr.Select(_ => (_, currentDate, stage));
+                return tiedSweepPlayerIds.Select(_ => (_, currentDate, stage));
             }
 
-            return isUntiedSweep
-                ? (pId.Value, currentDate.Date, stage).Yield()
+            return untiedSweepPlayerId.HasValue
+                ? (untiedSweepPlayerId.Value, currentDate.Date, stage).Yield()
                 : Enumerable.Empty<(long, DateTime, Stage)>();
         }
 
