@@ -290,9 +290,13 @@ namespace TheEliteExplorerInfrastructure
 
         private async Task<long> InsertOrRetrievePlayerInternalAsync(string urlName, string realName, string surname, string color, string controlStyle, bool isDirty, DateTime? joinDate)
         {
-            IReadOnlyCollection<PlayerDto> players = await GetPlayersAsync().ConfigureAwait(false);
+            var players = await GetPlayersWithoutCacheAsync(false).ConfigureAwait(false);
+            var dirtyPlayers = await GetPlayersWithoutCacheAsync(true).ConfigureAwait(false);
 
-            PlayerDto match = players.FirstOrDefault(p => p.UrlName.Equals(urlName, StringComparison.InvariantCultureIgnoreCase));
+            var match = players
+                .Concat(dirtyPlayers)
+                .FirstOrDefault(p =>
+                    p.UrlName.Equals(urlName, StringComparison.InvariantCultureIgnoreCase));
             if (match != null)
             {
                 return match.Id;
@@ -311,8 +315,12 @@ namespace TheEliteExplorerInfrastructure
                     join_date = joinDate?.Date
                 }).ConfigureAwait(false);
 
-            // invalidates cache
-            await _cache.RemoveAsync(_getPlayersCacheKey).ConfigureAwait(false);
+            if (!isDirty)
+            {
+                // invalidates cache
+                // dirty players are not cached
+                await _cache.RemoveAsync(_getPlayersCacheKey).ConfigureAwait(false);
+            }
 
             return id;
         }

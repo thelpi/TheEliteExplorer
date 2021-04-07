@@ -85,9 +85,36 @@ namespace TheEliteExplorerCommon
         /// <returns>Collection of dates.</returns>
         public static IEnumerable<DateTime> LoopBetweenDates(this DateTime startDate, DateTime endDate, DateStep stepType, int stepValue)
         {
-            for (DateTime date = startDate; date <= endDate; date = _dateStepDelegates[stepType](date, stepValue))
+            for (DateTime date = startDate.Truncat(stepType); date <= endDate.Truncat(stepType); date = _dateStepDelegates[stepType](date, stepValue))
             {
                 yield return date;
+            }
+        }
+
+        /// <summary>
+        /// Truncates a date on a specified step of time.
+        /// </summary>
+        /// <param name="dateTime">The date to truncate.</param>
+        /// <param name="stepType">The time step.</param>
+        /// <returns>Truncated date.</returns>
+        public static DateTime Truncat(this DateTime dateTime, DateStep stepType)
+        {
+            switch (stepType)
+            {
+                case DateStep.Second:
+                    return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Kind);
+                case DateStep.Minute:
+                    return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, 0, dateTime.Kind);
+                case DateStep.Hour:
+                    return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, 0, 0, dateTime.Kind);
+                case DateStep.Day:
+                    return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, dateTime.Kind);
+                case DateStep.Month:
+                    return new DateTime(dateTime.Year, dateTime.Month, 1, 0, 0, 0, dateTime.Kind);
+                case DateStep.Year:
+                    return new DateTime(dateTime.Year, 1, 1, 0, 0, 0, dateTime.Kind);
+                default:
+                    return dateTime;
             }
         }
 

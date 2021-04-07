@@ -420,7 +420,10 @@ namespace TheEliteExplorerInfrastructure
             string stageName = linkParts[0].ToLowerInvariant().Replace(" ", string.Empty);
             if (!_stageNames.ContainsKey(stageName))
             {
-                logs.Add($"Unable to extract the stage ID.");
+                if (stageName != _duelStageName)
+                {
+                    logs.Add($"Unable to extract the stage ID.");
+                }
                 return null;
             }
 
@@ -698,26 +701,27 @@ namespace TheEliteExplorerInfrastructure
             { "cradle", 18 },
             { "aztec", 19 },
             { "egypt", 20 },
-            { "Defection", 1 },
-            { "Investigation", 2 },
-            { "Extraction", 3 },
-            { "Villa", 4 },
-            { "Chicago", 5 },
-            { "G5", 6 },
-            { "Infiltration", 7 },
-            { "Rescue", 8 },
-            { "Escape", 9 },
-            { "AirBase", 10 },
-            { "AirForceOne", 11 },
-            { "CrashSite", 12 },
-            { "PelagicII", 13 },
-            { "DeepSea", 14 },
-            { "CI", 15 },
-            { "AttackShip", 16 },
-            { "SkedarRuins", 17 },
-            { "MBR", 18 },
-            { "MaianSOS", 19 },
-            { "WAR", 20 }
+            { "defection", 1 },
+            { "investigation", 2 },
+            { "extraction", 3 },
+            { "villa", 4 },
+            { "chicago", 5 },
+            { "g5", 6 },
+            { "infiltration", 7 },
+            { "rescue", 8 },
+            { "escape", 9 },
+            { "airbase", 10 },
+            { "airforceone", 11 },
+            { "crashsite", 12 },
+            { "pelagicii", 13 },
+            { "deepsea", 14 },
+            { "ci", 15 },
+            { "attackship", 16 },
+            { "skedarruins", 17 },
+            { "mbr", 18 },
+            { "maiansos", 19 },
+            { "war!", 20 }
         };
+        private const string _duelStageName = "duel";
     }
 }
