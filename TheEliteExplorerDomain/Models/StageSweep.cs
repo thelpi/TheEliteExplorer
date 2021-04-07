@@ -10,31 +10,42 @@ namespace TheEliteExplorerDomain.Models
         /// <summary>
         /// Stage.
         /// </summary>
-        public Stage Stage { get; set; }
+        public Stage Stage { get; }
 
         /// <summary>
         /// Start date.
         /// </summary>
-        public DateTime StartDate { get; set; }
+        public DateTime StartDate { get; }
 
         /// <summary>
         /// End date (exclusive).
         /// </summary>
-        public DateTime EndDate { get; set; }
+        public DateTime EndDate { get; private set; }
 
         /// <summary>
         /// Player.
         /// </summary>
-        public Player Player { get; set; }
-
-        /// <summary>
-        /// Player identifier.
-        /// </summary>
-        internal long PlayerId { get; set; }
+        public Player Player { get; }
 
         /// <summary>
         /// Days count.
         /// </summary>
         public int Days { get { return (int)(EndDate - StartDate).TotalDays; } }
+
+        internal long PlayerId { get; }
+
+        internal StageSweep(DateTime date, Stage stage, Dtos.PlayerDto playerDto)
+        {
+            Stage = stage;
+            PlayerId = playerDto.Id;
+            EndDate = date;
+            StartDate = date;
+            Player = new Player(playerDto);
+        }
+
+        internal void AddDay()
+        {
+            EndDate = EndDate.AddDays(1);
+        }
     }
 }
