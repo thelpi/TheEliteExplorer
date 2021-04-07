@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
-using TheEliteExplorerInfrastructure;
 
 namespace TheEliteExplorer.Controllers
 {

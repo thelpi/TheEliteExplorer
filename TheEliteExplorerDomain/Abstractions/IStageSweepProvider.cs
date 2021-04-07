@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
 
-namespace TheEliteExplorerDomain.Providers
+namespace TheEliteExplorerDomain.Abstractions
 {
     /// <summary>
     /// Stage sweep provider interface.

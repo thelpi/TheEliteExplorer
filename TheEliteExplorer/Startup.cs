@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Converters;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Providers;
 using TheEliteExplorerInfrastructure;

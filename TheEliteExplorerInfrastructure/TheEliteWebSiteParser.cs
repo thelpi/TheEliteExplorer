@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
+using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerInfrastructure.Configuration;

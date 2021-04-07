@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using TheEliteExplorerDomain;
+using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerInfrastructure.Configuration;

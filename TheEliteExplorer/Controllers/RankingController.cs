@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerCommon;
+using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
-using TheEliteExplorerDomain.Providers;
 
 namespace TheEliteExplorer.Controllers
 {

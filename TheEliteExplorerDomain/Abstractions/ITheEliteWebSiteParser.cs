@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 
-namespace TheEliteExplorerInfrastructure
+namespace TheEliteExplorerDomain.Abstractions
 {
     /// <summary>
     /// The-elite website parser interface.

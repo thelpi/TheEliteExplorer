@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using TheEliteExplorerCommon;
+using TheEliteExplorerDomain.Enums;
 
-namespace TheEliteExplorerDomain.Enums
+namespace TheEliteExplorerDomain
 {
     /// <summary>
     /// Extension methods and tools.

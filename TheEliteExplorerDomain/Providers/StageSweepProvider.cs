@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TheEliteExplorerCommon;
-using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
 

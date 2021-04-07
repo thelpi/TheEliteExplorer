@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 
-namespace TheEliteExplorerDomain
+namespace TheEliteExplorerDomain.Abstractions
 {
     /// <summary>
     /// SQL context interface.

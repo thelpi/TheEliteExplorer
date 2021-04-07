@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using TheEliteExplorerCommon;
+using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
