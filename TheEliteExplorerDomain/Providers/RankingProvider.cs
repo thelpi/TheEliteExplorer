@@ -35,36 +35,26 @@ namespace TheEliteExplorerDomain.Providers
             _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
         }
 
-        /// <summary>
-        /// Computes and gets the full ranking at the specified date.
-        /// </summary>
-        /// <param name="rankingDate">Ranking date.</param>
-        /// <param name="game"></param>
-        /// <returns>
-        /// Collection of <see cref="RankingEntry"/>;
-        /// sorted by <see cref="RankingEntry.Points"/> descending.
-        /// </returns>
+        /// <inheritdoc />
         public async Task<IReadOnlyCollection<RankingEntry>> GetRankingEntries(Game game, DateTime rankingDate)
         {
-            var basePlayersList = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
+            var players = await GetPlayers().ConfigureAwait(false);
 
-            var entries = await _sqlContext.GetEntriesAsync((long)game).ConfigureAwait(false);
-
-            var _basePlayersList = basePlayersList?.ToDictionary(p => p.Id, p => p);
+            var entries = await GetEntries(game, players).ConfigureAwait(false);
 
             rankingDate = rankingDate.Date;
 
-            List<EntryDto> finalEntries = SetFinalEntriesList(game, entries, _basePlayersList, rankingDate);
+            var finalEntries = SetFinalEntriesList(game, entries, players, rankingDate);
 
-            List<RankingEntry> rankingEntries = finalEntries
+            var rankingEntries = finalEntries
                 .GroupBy(e => e.PlayerId)
-                .Select(e => new RankingEntry(game, e.Key, _basePlayersList[e.Key].RealName))
+                .Select(e => new RankingEntry(game, e.Key, players[e.Key].RealName))
                 .ToList();
 
-            foreach ((long, long, IEnumerable<EntryDto>) entryGroup in LoopByStageAndLevel(finalEntries))
+            foreach (var entryGroup in LoopByStageAndLevel(finalEntries))
             {
                 int rank = 1;
-                foreach (IGrouping<long, EntryDto> timesGroup in GroupAndOrderByTime(entryGroup.Item3))
+                foreach (var timesGroup in GroupAndOrderByTime(entryGroup.Item3))
                 {
                     if (rank > 100)
                     {
@@ -92,11 +82,9 @@ namespace TheEliteExplorerDomain.Providers
         /// <inheritdoc />
         public async Task GenerateRankings(Game game)
         {
-            var basePlayersList = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
+            var players = await GetPlayers().ConfigureAwait(false);
 
-            var Entries = await _sqlContext.GetEntriesAsync((long)game).ConfigureAwait(false);
-
-            var _basePlayersList = basePlayersList?.ToDictionary(p => p.Id, p => p);
+            var entries = await GetEntries(game, players).ConfigureAwait(false);
 
             var startDate = await _sqlContext
                 .GetLatestRankingDateAsync(game)
@@ -104,26 +92,130 @@ namespace TheEliteExplorerDomain.Providers
 
             foreach (var rankingDate in (startDate ?? game.GetEliteFirstDate()).LoopBetweenDates(DateStep.Day))
             {
-                await InternalGenerateRankings(game, Entries, rankingDate, _basePlayersList)
+                await InternalGenerateRankings(game, entries, rankingDate, players)
                     .ConfigureAwait(false);
             }
         }
 
+        private async Task<Dictionary<long, PlayerDto>> GetPlayers()
+        {
+            var basePlayersList = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
+
+            var players = basePlayersList.ToDictionary(p => p.Id, p => p);
+            return players;
+        }
+
+        private async Task<IReadOnlyCollection<EntryDto>> GetEntries(
+            Game game,
+            Dictionary<long, PlayerDto> players)
+        {
+            var entries = await _sqlContext.GetEntriesAsync((long)game).ConfigureAwait(false);
+
+            // useless ?
+            var entriesList = entries
+                .Where(e => players.ContainsKey(e.PlayerId))
+                .ToList();
+
+            ManageDateLessEntries(game, players, entriesList);
+
+            return entriesList;
+        }
+
+        private IReadOnlyCollection<EntryDto> ManageDateLessEntries(Game game, Dictionary<long, PlayerDto> players, List<EntryDto> entries)
+        {
+            if (_configuration.NoDateEntryRankingRule == NoDateEntryRankingRule.Ignore)
+            {
+                entries.RemoveAll(e => !e.Date.HasValue);
+            }
+            else
+            {
+                var dateMinMaxPlayer = new Dictionary<long, (DateTime Min, DateTime Max, IReadOnlyCollection<EntryDto> Entries)>();
+
+                var dateLessEntries = entries.Where(e => !e.Date.HasValue).ToList();
+                foreach (var entry in dateLessEntries)
+                {
+                    if (!dateMinMaxPlayer.ContainsKey(entry.PlayerId))
+                    {
+                        var dateMin = players[entry.PlayerId].JoinDate ?? game.GetEliteFirstDate();
+                        var dateMax = entries.Where(e => e.PlayerId == entry.PlayerId).Max(e => e.Date ?? Player.LastEmptyDate);
+                        dateMinMaxPlayer.Add(entry.PlayerId, (dateMin, dateMax, entries.Where(e => e.PlayerId == entry.PlayerId).ToList()));
+                    }
+
+                    // Same time with a known date (possible for another engine/system)
+                    var sameEntry = dateMinMaxPlayer[entry.PlayerId].Entries.FirstOrDefault(e => e.StageId == entry.StageId && e.LevelId == entry.LevelId && e.Time == entry.Time && e.Date.HasValue);
+                    // Better time (closest to current) with a known date
+                    var betterEntry = dateMinMaxPlayer[entry.PlayerId].Entries.OrderBy(e => e.Time).FirstOrDefault(e => e.StageId == entry.StageId && e.LevelId == entry.LevelId && e.Time < entry.Time && e.Date.HasValue);
+                    // Worse time (closest to current) with a known date
+                    var worseEntry = dateMinMaxPlayer[entry.PlayerId].Entries.OrderByDescending(e => e.Time).FirstOrDefault(e => e.StageId == entry.StageId && e.LevelId == entry.LevelId && e.Time < entry.Time && e.Date.HasValue);
+
+                    if (sameEntry != null)
+                    {
+                        // use the another engine/system date as the current date
+                        entry.Date = sameEntry.Date;
+                    }
+                    else
+                    {
+                        var realMin = dateMinMaxPlayer[entry.PlayerId].Min;
+                        if (worseEntry != null && worseEntry.Date > realMin)
+                        {
+                            realMin = worseEntry.Date.Value;
+                        }
+
+                        var realMax = dateMinMaxPlayer[entry.PlayerId].Max;
+                        if (betterEntry != null && betterEntry.Date < realMax)
+                        {
+                            realMax = betterEntry.Date.Value;
+                        }
+
+                        switch (_configuration.NoDateEntryRankingRule)
+                        {
+                            case NoDateEntryRankingRule.Average:
+                                entry.Date = realMin.AddDays((realMax - realMin).TotalDays / 2).Date;
+                                break;
+                            case NoDateEntryRankingRule.Max:
+                                entry.Date = realMax;
+                                break;
+                            case NoDateEntryRankingRule.Min:
+                                entry.Date = realMin;
+                                break;
+                            case NoDateEntryRankingRule.PlayerHabit:
+                                var entriesBetween = dateMinMaxPlayer[entry.PlayerId].Entries
+                                    .Where(e => e.Date < realMax && e.Date > realMin)
+                                    .Select(e => Convert.ToInt32((ServiceProviderAccessor.ClockProvider.Now - e.Date.Value).TotalDays))
+                                    .ToList();
+                                if (entriesBetween.Count == 0)
+                                {
+                                    entry.Date = realMin.AddDays((realMax - realMin).TotalDays / 2).Date;
+                                }
+                                else
+                                {
+                                    var avgDays = entriesBetween.Average();
+                                    entry.Date = ServiceProviderAccessor.ClockProvider.Now.AddDays(-avgDays).Date;
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+
+            return entries;
+        }
+
         private async Task InternalGenerateRankings(
             Game game,
-            IReadOnlyCollection<EntryDto> Entries,
+            IReadOnlyCollection<EntryDto> entries,
             DateTime rankingDate,
-            Dictionary<long, PlayerDto> _basePlayersList)
+            Dictionary<long, PlayerDto> players)
         {
             rankingDate = rankingDate.Date;
 
             // Do nothing for date without time entries.
-            if (!Entries.Any(e => e.Date?.Date == rankingDate))
+            if (!entries.Any(e => e.Date?.Date == rankingDate))
             {
                 return;
             }
 
-            var finalEntries = SetFinalEntriesList(game, Entries, _basePlayersList, rankingDate);
+            var finalEntries = SetFinalEntriesList(game, entries, players, rankingDate);
 
             foreach ((long, long, IEnumerable<EntryDto>) entryGroup in LoopByStageAndLevel(finalEntries))
             {
@@ -158,26 +250,28 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
-        private static IOrderedEnumerable<IGrouping<long, EntryDto>> GroupAndOrderByTime(IEnumerable<EntryDto> entryGroup)
+        private static IOrderedEnumerable<IGrouping<long, EntryDto>> GroupAndOrderByTime(
+            IEnumerable<EntryDto> entryGroup)
         {
             return entryGroup.GroupBy(l => l.Time).OrderBy(l => l.Key);
         }
 
         private List<EntryDto> SetFinalEntriesList(
             Game game,
-            IReadOnlyCollection<EntryDto> Entries,
-            Dictionary<long, PlayerDto> _basePlayersList,
+            IReadOnlyCollection<EntryDto> entries,
+            Dictionary<long, PlayerDto> players,
             DateTime rankingDate)
         {
-            var filteredEntries = Entries
-                .Where(e => _basePlayersList.ContainsKey(e.PlayerId))
-                .Where(e => _basePlayersList[e.PlayerId].JoinDate.GetValueOrDefault(rankingDate) <= rankingDate);
+            var filteredEntries = entries
+                .Where(e => players[e.PlayerId].JoinDate.GetValueOrDefault(rankingDate) <= rankingDate)
+                .GroupBy(e => (e.PlayerId, e.StageId, e.LevelId))
+                .ToList();
 
             var finalEntries = new List<EntryDto>();
-            foreach (var entryGroup in LoopByPlayerStageAndLevel(filteredEntries))
+            foreach (var entryGroup in filteredEntries)
             {
-                var dateableEntries = GetDateableEntries(game, Entries, _basePlayersList, entryGroup, rankingDate);
-                if (dateableEntries.Any())
+                var dateableEntries = entries.Where(e => e.Date.Value.Date <= rankingDate).ToList();
+                if (dateableEntries.Count > 0)
                 {
                     finalEntries.Add(GetBestTimeFromEntries(dateableEntries));
                 }
@@ -186,15 +280,8 @@ namespace TheEliteExplorerDomain.Providers
             return finalEntries;
         }
 
-        private static IEnumerable<IEnumerable<EntryDto>> LoopByPlayerStageAndLevel(IEnumerable<EntryDto> entries)
-        {
-            foreach (var group in entries.GroupBy(e => new { e.PlayerId, e.StageId, e.LevelId }))
-            {
-                yield return group;
-            }
-        }
-
-        private static IEnumerable<(long, long, IEnumerable<EntryDto>)> LoopByStageAndLevel(IEnumerable<EntryDto> entries)
+        private static IEnumerable<(long, long, IEnumerable<EntryDto>)> LoopByStageAndLevel(
+            IEnumerable<EntryDto> entries)
         {
             foreach (var group in entries.GroupBy(e => new { e.StageId, e.LevelId }))
             {
@@ -202,107 +289,8 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
-        private IEnumerable<EntryDto> GetDateableEntries(
-            Game game,
-            IReadOnlyCollection<EntryDto> Entries,
-            Dictionary<long, PlayerDto> _basePlayersList,
-            IEnumerable<EntryDto> entries,
-            DateTime rankingDate)
-        {
-            // Entry date must be prior or equal to the ranking date
-            // If no date on the entry, we try to guess it
-            return entries.Where(e =>
-                e.Date?.Date <= rankingDate
-                || (
-                    !e.Date.HasValue
-                    && _configuration.NoDateEntryRankingRule != NoDateEntryRankingRule.Ignore
-                    && ComputeNearDate(game, Entries, _basePlayersList, e, rankingDate) <= rankingDate
-                )
-            );
-        }
-
-        private DateTime ComputeNearDate(
-            Game game,
-            IReadOnlyCollection<EntryDto> Entries,
-            Dictionary<long, PlayerDto> _basePlayersList,
-            EntryDto entry,
-            DateTime rankingDate)
-        {
-            var playerEntries = Entries.Where(e => e.Id != entry.Id && e.PlayerId == entry.PlayerId);
-            var playerStageLevelEntries = playerEntries.Where(e => e.StageId == entry.StageId && e.LevelId == entry.LevelId);
-
-            if (HasWorstTimeLater(playerStageLevelEntries, rankingDate, entry))
-            {
-                // Any date after the ranking date works here
-                return rankingDate.AddDays(1);
-            }
-
-            var betweenMin = playerStageLevelEntries.Any(e => e.Date < rankingDate)
-                ? playerStageLevelEntries.Where(e => e.Date < rankingDate).Max(e => e.Date.Value)
-                : GetJoinDateForPlayer(game, _basePlayersList, entry);
-            var betweenMax = playerStageLevelEntries.Any(e => e.Date > rankingDate && e.Date < Player.LastEmptyDate)
-                ? playerStageLevelEntries.Where(e => e.Date > rankingDate).Min(e => e.Date.Value)
-                : GetExitDateForPlayer(playerEntries);
-
-            // This case might happen for newcomers
-            if (betweenMax < betweenMin)
-            {
-                betweenMax = betweenMin;
-            }
-
-            switch (_configuration.NoDateEntryRankingRule)
-            {
-                case NoDateEntryRankingRule.Max:
-                    return betweenMax.Date;
-                case NoDateEntryRankingRule.Min:
-                    return betweenMin.Date;
-                case NoDateEntryRankingRule.Average:
-                case NoDateEntryRankingRule.PlayerHabit:
-                    if (_configuration.NoDateEntryRankingRule == NoDateEntryRankingRule.PlayerHabit)
-                    {
-                        // TODO: find a better method to compute the posting pattern of the player
-                        var entriesInDateRange = playerEntries.Where(e => e.Date >= betweenMin && e.Date <= betweenMax);
-                        if (entriesInDateRange.Count() > 0)
-                        {
-                            // Takes the year where the player has submitted the most times
-                            var selectedYear = entriesInDateRange
-                                .GroupBy(e => e.Date.Value.Year)
-                                .OrderByDescending(grp => grp.Count())
-                                .First()
-                                .Key;
-                            betweenMin = new DateTime(selectedYear, 1, 1);
-                            betweenMax = new DateTime(selectedYear + 1, 1, 1);
-                        }
-                    }
-                    return betweenMin.AddDays((betweenMax - betweenMin).TotalDays / 2).Date;
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        private DateTime GetJoinDateForPlayer(Game game, Dictionary<long, PlayerDto> players, EntryDto entry)
-        {
-            return players[entry.PlayerId].JoinDate ?? game.GetEliteFirstDate();
-        }
-
-        private static DateTime GetExitDateForPlayer(IEnumerable<EntryDto> playerEntries)
-        {
-            // times post-"Player.LastEmptyDate" are ignored
-            var exitDate = playerEntries.Any(e => e.Date.HasValue)
-                ? playerEntries.Max(e => e.Date).Value
-                : Player.LastEmptyDate;
-            return exitDate > Player.LastEmptyDate ? Player.LastEmptyDate : exitDate;
-        }
-
-        private static bool HasWorstTimeLater(IEnumerable<EntryDto> entries, DateTime rankingDate, EntryDto entry)
-        {
-            return entries.Any(e => e.Time > entry.Time
-                && e.Date?.Date > rankingDate);
-            // We could take in consideration the engine, as shown below:
-            // && (!entry.SystemId.HasValue || !e.SystemId.HasValue || entry.SystemId == e.SystemId)
-        }
-
-        private static EntryDto GetBestTimeFromEntries(IEnumerable<EntryDto> entries)
+        private static EntryDto GetBestTimeFromEntries(
+            IReadOnlyCollection<EntryDto> entries)
         {
             return entries
                 .OrderBy(e => e.Time)
