@@ -33,6 +33,7 @@ namespace TheEliteExplorerInfrastructure
         private const string _updateEntryPlayerPsName = "update_entry_player";
         private const string _selectDuplicatePlayersPsName = "select_duplicate_players";
         private const string _deletePlayerPsName = "delete_player";
+        private const string _deleteRankingPsName = "delete_ranking";
         private const string _updatePlayerPsName = "update_player";
         private const string _getEntriesByGamePsName = "select_all_entry";
 
@@ -185,6 +186,40 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
+        public async Task BulkInsertRankingsAsync(IReadOnlyCollection<RankingDto> rankings)
+        {
+            var query = "INSERT INTO [dbo].[ranking]"
+                + " ([player_id],[level_id],[stage_id],[date],[time],[rank])"
+                + " VALUES"
+                + " (@player_id, @level_id, @stage_id, @date, @time, @rank)";
+
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection
+                    .ExecuteAsync("ALTER TABLE [dbo].[ranking] NOCHECK CONSTRAINT ALL")
+                    .ConfigureAwait(false);
+
+                await connection
+                    .ExecuteAsync(
+                        query,
+                        rankings.Select(r => new
+                        {
+                            date = r.Date,
+                            level_id = r.LevelId,
+                            player_id = r.PlayerId,
+                            rank = r.Rank,
+                            stage_id = r.StageId,
+                            time = r.Time
+                        }))
+                   .ConfigureAwait(false);
+
+                await connection
+                    .ExecuteAsync("ALTER TABLE [dbo].[ranking] CHECK CONSTRAINT ALL")
+                    .ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
         public async Task<DateTime?> GetLatestRankingDateAsync(Game game)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
@@ -259,6 +294,22 @@ namespace TheEliteExplorerInfrastructure
         public async Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync()
         {
             return await GetPlayersWithoutCacheAsync(true).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteStageLevelRankingHistory(long stageId, Level level)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection.QueryAsync(
+                    ToPsName(_deleteRankingPsName),
+                    new
+                    {
+                        stage_id = stageId,
+                        level_id = (long)level
+                    },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+            }
         }
 
         private string ToPsName(string baseName)

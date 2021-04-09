@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerCommon;
@@ -63,6 +64,20 @@ namespace TheEliteExplorer.Controllers
         {
             await _rankingProvider
                 .GenerateRankings(game)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="stage"></param>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        [HttpPost("stages/{stage}/levels/{level}/rankings")]
+        public async Task RebuildRankingHistory([FromRoute] long stage, [FromRoute] Level level)
+        {
+            await _rankingProvider
+                .RebuildRankingHistory(Stage.Get().Single(s => s.Id == stage), level)
                 .ConfigureAwait(false);
         }
 

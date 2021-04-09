@@ -97,6 +97,110 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
+        /// <inheritdoc />
+        public async Task RebuildRankingHistory(Stage stage, Level level)
+        {
+            if (stage == null)
+            {
+                throw new ArgumentNullException(nameof(stage));
+            }
+            
+            // Removes previous ranking history
+            await _sqlContext
+                .DeleteStageLevelRankingHistory(stage.Id, level)
+                .ConfigureAwait(false);
+            
+            // Gets every player
+            // TODO: gets also dirty players
+            var playersSource = await _sqlContext
+                .GetPlayersAsync()
+                .ConfigureAwait(false);
+
+            // Gets every entry for the stage and level
+            var entriesSource = await _sqlContext
+                .GetEntriesAsync(stage.Id, level, null, null)
+                .ConfigureAwait(false);
+
+            // Dictionary of players by ID
+            var players = playersSource.ToDictionary(p => p.Id, p => p);
+
+            // Entries not related to players are excluded
+            var entries = entriesSource.Where(e => players.ContainsKey(e.PlayerId)).ToList();
+
+            // Sets time for every entry
+            ManageDateLessEntries(stage.Game, players, entries);
+
+            // Groups and sorts by date
+            var entriesDateGroup = new SortedList<DateTime, List<EntryDto>>(
+                entries
+                    .GroupBy(e => e.Date.Value.Date)
+                    .ToDictionary(
+                        eGroup => eGroup.Key,
+                        // Descending sort by time is important
+                        // It allows, for a day, to get the best time with "Last()"
+                        eGroup => eGroup.OrderByDescending(e => e.Time).ToList()));
+
+            // Ranking is generated every day
+            // if the current day of the loop has at least one new time
+            var eligiblesDates = stage.Game.GetEliteFirstDate()
+                .LoopBetweenDates(DateStep.Day)
+                .Where(d => entriesDateGroup.ContainsKey(d))
+                .ToList();
+
+            var rankingsToInsert = new List<RankingDto>();
+
+            foreach (var rankingDate in eligiblesDates)
+            {
+                // For the current date + previous days
+                // Gets the min time entry for each player
+                // Then orders by entry time overall (ascending)
+                var selectedEntries = entriesDateGroup
+                    .Where(kvp => kvp.Key <= rankingDate)
+                    .SelectMany(kvp => kvp.Value)
+                    .GroupBy(e => e.PlayerId)
+                    .Select(eGroup => eGroup.Last())
+                    .OrderBy(e => e.Time)
+                    .ToList();
+
+                var pos = 1;
+                var posAgg = 1;
+                long? currentTime = null;
+                foreach (var entry in selectedEntries)
+                {
+                    if (!currentTime.HasValue)
+                    {
+                        currentTime = entry.Time;
+                    }
+                    else if (currentTime == entry.Time)
+                    {
+                        posAgg++;
+                    }
+                    else
+                    {
+                        pos += posAgg;
+                        posAgg = 1;
+                        currentTime = entry.Time;
+                    }
+
+                    var ranking = new RankingDto
+                    {
+                        Date = rankingDate,
+                        LevelId = entry.LevelId,
+                        PlayerId = entry.PlayerId,
+                        Rank = pos,
+                        StageId = entry.StageId,
+                        Time = entry.Time
+                    };
+
+                    rankingsToInsert.Add(ranking);
+                }
+            }
+
+            await _sqlContext
+                .BulkInsertRankingsAsync(rankingsToInsert)
+                .ConfigureAwait(false);
+        }
+
         private async Task<Dictionary<long, PlayerDto>> GetPlayers()
         {
             var basePlayersList = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
@@ -121,7 +225,7 @@ namespace TheEliteExplorerDomain.Providers
             return entriesList;
         }
 
-        private IReadOnlyCollection<EntryDto> ManageDateLessEntries(Game game, Dictionary<long, PlayerDto> players, List<EntryDto> entries)
+        private void ManageDateLessEntries(Game game, Dictionary<long, PlayerDto> players, List<EntryDto> entries)
         {
             if (_configuration.NoDateEntryRankingRule == NoDateEntryRankingRule.Ignore)
             {
@@ -197,8 +301,6 @@ namespace TheEliteExplorerDomain.Providers
                     }
                 }
             }
-
-            return entries;
         }
 
         private async Task InternalGenerateRankings(
