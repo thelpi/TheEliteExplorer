@@ -426,6 +426,14 @@ namespace TheEliteExplorerInfrastructure
                 }
                 return null;
             }
+            else if (game == Game.GoldenEye && _stageNames[stageName] >= _firstPdId)
+            {
+                return null;
+            }
+            else if (game == Game.PerfectDark && _stageNames[stageName] < _firstPdId)
+            {
+                return null;
+            }
 
             string playerUrl = null;
             try
@@ -701,27 +709,28 @@ namespace TheEliteExplorerInfrastructure
             { "cradle", 18 },
             { "aztec", 19 },
             { "egypt", 20 },
-            { "defection", 1 },
-            { "investigation", 2 },
-            { "extraction", 3 },
-            { "villa", 4 },
-            { "chicago", 5 },
-            { "g5", 6 },
-            { "infiltration", 7 },
-            { "rescue", 8 },
-            { "escape", 9 },
-            { "airbase", 10 },
-            { "airforceone", 11 },
-            { "crashsite", 12 },
-            { "pelagicii", 13 },
-            { "deepsea", 14 },
-            { "ci", 15 },
-            { "attackship", 16 },
-            { "skedarruins", 17 },
-            { "mbr", 18 },
-            { "maiansos", 19 },
-            { "war!", 20 }
+            { "defection", 21 },
+            { "investigation", 22 },
+            { "extraction", 23 },
+            { "villa", 24 },
+            { "chicago", 25 },
+            { "g5", 26 },
+            { "infiltration", 27 },
+            { "rescue", 28 },
+            { "escape", 29 },
+            { "airbase", 30 },
+            { "airforceone", 31 },
+            { "crashsite", 32 },
+            { "pelagicii", 33 },
+            { "deepsea", 34 },
+            { "ci", 35 },
+            { "attackship", 36 },
+            { "skedarruins", 37 },
+            { "mbr", 38 },
+            { "maiansos", 39 },
+            { "war!", 40 }
         };
         private const string _duelStageName = "duel";
+        private const int _firstPdId = 21;
     }
 }
