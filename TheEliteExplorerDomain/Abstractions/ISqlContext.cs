@@ -64,7 +64,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// Gets the most recent entry date.
         /// </summary>
         /// <returns>Most recent entry date</returns>
-        Task<DateTime> GetLatestEntryDateAsync();
+        Task<DateTime?> GetLatestEntryDateAsync();
 
         /// <summary>
         /// Inserts a ranking into the database.

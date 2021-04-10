@@ -40,109 +40,85 @@ namespace TheEliteExplorer.Controllers
         /// Scans the site to get new times and new players to integrate in the database.
         /// </summary>
         /// <param name="game">The game.</param>
-        /// <returns>A list of logs.</returns>
+        /// <returns>Nothing.</returns>
         [HttpPost("games/{game}/new-times")]
-        public async Task<IReadOnlyCollection<string>> ScanTimePageAsync([FromRoute] Game game)
+        public async Task ScanTimePageAsync([FromRoute] Game game)
         {
-            DateTime currentDate = await _sqlContext.GetLatestEntryDateAsync().ConfigureAwait(false);
+            var currentDate = await _sqlContext.GetLatestEntryDateAsync().ConfigureAwait(false);
 
-            var logs = new List<string>();
-            var entries = new List<EntryWebDto>();
-
-            foreach (DateTime loopDate in currentDate.LoopBetweenDates(DateStep.Month))
+            foreach (var loopDate in (currentDate ?? game.GetEliteFirstDate()).LoopBetweenDates(DateStep.Month))
             {
-                (IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>) resultsAndLogs =
+                var results =
                     await _siteParser
                         .ExtractTimeEntriesAsync(
                             game,
                             loopDate.Year,
                             loopDate.Month,
-                            currentDate)
+                            currentDate.Value)
                         .ConfigureAwait(false);
 
-                logs.AddRange(resultsAndLogs.Item2);
-                entries.AddRange(resultsAndLogs.Item1);
-            }
-
-            foreach (var entry in entries)
-            {
-                string log = await CreateEntryAsync(entry, game).ConfigureAwait(false);
-                if (!string.IsNullOrWhiteSpace(log))
+                foreach (var entry in results)
                 {
-                    logs.Add(log);
+                    await CreateEntryAsync(entry, game).ConfigureAwait(false);
                 }
-            }
 
-            return logs;
+                // TODO: to remove
+                System.Diagnostics.Debug.WriteLine($"Done: {loopDate}");
+            }
         }
 
         /// <summary>
         /// Scans the site to get every time for a single stage.
         /// </summary>
         /// <param name="stageId">Stage identifier.</param>
-        /// <returns>A list of logs.</returns>
+        /// <returns>Nothing.</returns>
         [HttpPost("stages/{stageId}/times")]
-        public async Task<IReadOnlyCollection<string>> ScanStageTimesAsync([FromRoute] int stageId)
+        public async Task ScanStageTimesAsync([FromRoute] int stageId)
         {
             var game = Stage.Get().FirstOrDefault(s => s.Id == stageId).Game;
 
             bool haveEntries = await CheckForExistingEntries(stageId).ConfigureAwait(false);
             if (haveEntries)
             {
-                return new List<string>
-                {
-                    "Unables to scan a stage already scanned."
-                };
+                throw new Exception("Unables to scan a stage already scanned.");
             }
 
-            var entriesAngLogs = await _siteParser.ExtractStageAllTimeEntriesAsync(stageId).ConfigureAwait(false);
+            var entries = await _siteParser
+                .ExtractStageAllTimeEntriesAsync(stageId)
+                .ConfigureAwait(false);
 
-            var logs = new List<string>(entriesAngLogs.Item2);
-
-            foreach (var entry in entriesAngLogs.Item1)
+            foreach (var entry in entries)
             {
-                string log = await CreateEntryAsync(entry, game).ConfigureAwait(false);
-                if (!string.IsNullOrWhiteSpace(log))
-                {
-                    logs.Add(log);
-                }
+                await CreateEntryAsync(entry, game)
+                    .ConfigureAwait(false);
             }
-
-            return logs;
         }
 
         /// <summary>
         /// Cleans dirty players.
         /// </summary>
-        /// <returns>Collection of logs.</returns>
+        /// <returns>Nothing.</returns>
         [HttpPatch("dirty-players")]
-        public async Task<IReadOnlyCollection<string>> CleanDirtyPlayersAsync()
+        public async Task CleanDirtyPlayersAsync()
         {
-            var logs = new List<string>();
-
             var players = await _sqlContext
                 .GetDirtyPlayersAsync()
                 .ConfigureAwait(false);
 
             foreach (var p in players)
             {
-                var pInfoAndLogs = await _siteParser
+                var pInfo = await _siteParser
                     .GetPlayerInformation(p.UrlName, Player.DefaultPlayerHexColor)
                     .ConfigureAwait(false);
 
-                if (pInfoAndLogs.Item1 != null)
+                if (pInfo != null)
                 {
-                    var pInfo = pInfoAndLogs.Item1;
                     pInfo.Id = p.Id;
                     await _sqlContext
                         .UpdatePlayerInformationAsync(pInfo)
                         .ConfigureAwait(false);
                 }
-
-                logs.AddRange(pInfoAndLogs.Item2);
             }
-
-            return logs;
         }
 
         private async Task<bool> CheckForExistingEntries(int stageId)
@@ -161,24 +137,15 @@ namespace TheEliteExplorer.Controllers
             return false;
         }
 
-        private async Task<string> CreateEntryAsync(EntryWebDto entry, Game game)
+        private async Task CreateEntryAsync(EntryWebDto entry, Game game)
         {
-            try
-            {
-                long playerId = await _sqlContext
-                    .InsertOrRetrievePlayerDirtyAsync(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
-                    .ConfigureAwait(false);
+            long playerId = await _sqlContext
+                .InsertOrRetrievePlayerDirtyAsync(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
+                .ConfigureAwait(false);
 
-                await _sqlContext
-                    .InsertOrRetrieveTimeEntryAsync(entry.ToEntry(playerId), (long)game)
-                    .ConfigureAwait(false);
-
-                return null;
-            }
-            catch (Exception ex)
-            {
-                return $"An error occured during the entry integration - {entry.ToString()} - {ex.Message}";
-            }
+            await _sqlContext
+                .InsertOrRetrieveTimeEntryAsync(entry.ToEntry(playerId), (long)game)
+                .ConfigureAwait(false);
         }
     }
 }

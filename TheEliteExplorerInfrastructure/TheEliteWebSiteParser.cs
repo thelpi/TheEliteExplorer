@@ -33,18 +33,18 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<(IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>)> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan)
+        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan)
         {
             var linksValues = new List<EntryWebDto>();
-            var logs = new List<string>();
 
             string uri = string.Format(_configuration.HistoryPage, year, month);
 
-            string historyContent = await GetPageStringContentAsync(uri, logs).ConfigureAwait(false);
+            string historyContent = await GetPageStringContentAsync(uri)
+                .ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(historyContent))
             {
-                return (linksValues, logs);
+                return linksValues;
             }
 
             var htmlDoc = new HtmlDocument();
@@ -54,8 +54,7 @@ namespace TheEliteExplorerInfrastructure
             }
             catch (Exception ex)
             {
-                logs.Add($"Error while parsing into HTML document the page string content - {ex.Message}");
-                return (linksValues, logs);
+                throw new Exception($"Error while parsing into HTML document the page string content - {ex.Message}");
             }
 
             const string timeClass = "time";
@@ -70,7 +69,7 @@ namespace TheEliteExplorerInfrastructure
 
                     if (useLink)
                     {
-                        var linkValues = await ExtractTimeLinkDetailsAsync(game, link, logs, minimalDateToScan).ConfigureAwait(false);
+                        var linkValues = await ExtractTimeLinkDetailsAsync(game, link, minimalDateToScan).ConfigureAwait(false);
                         if (linkValues != null)
                         {
                             linksValues.Add(linkValues);
@@ -79,24 +78,23 @@ namespace TheEliteExplorerInfrastructure
                 }
                 catch (Exception ex)
                 {
-                    logs.Add($"Error while processing the node - {ex.Message}");
+                    throw new Exception($"Error while processing the node - {ex.Message}");
                 }
             }
 
-            return (linksValues, logs);
+            return linksValues;
         }
 
         /// <inheritdoc />
-        public async Task<(IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>)> ExtractStageAllTimeEntriesAsync(int stageId)
+        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntriesAsync(int stageId)
         {
             var entries = new List<EntryWebDto>();
             var logs = new List<string>();
 
-            string pageContent = await GetPageStringContentAsync($"/ajax/stage/{stageId}/{_configuration.AjaxKey}", logs).ConfigureAwait(false);
+            string pageContent = await GetPageStringContentAsync($"/ajax/stage/{stageId}/{_configuration.AjaxKey}").ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(pageContent))
             {
-                logs.Add($"Unables to load the page content for stage {stageId}.");
-                return (entries, logs);
+                throw new Exception($"Unables to load the page content for stage {stageId}.");
             }
 
             IReadOnlyCollection<IReadOnlyCollection<object>> jsonContent = null;
@@ -106,14 +104,12 @@ namespace TheEliteExplorerInfrastructure
             }
             catch (Exception ex)
             {
-                logs.Add($"An error occured while parsing the content - {ex.Message}.");
-                return (entries, logs);
+                throw new Exception($"An error occured while parsing the content - {ex.Message}.");
             }
 
             if (jsonContent == null || jsonContent.Count != SystemExtensions.Count<Level>())
             {
-                logs.Add($"The list of entries by level is invalid.");
-                return (entries, logs);
+                throw new Exception($"The list of entries by level is invalid.");
             }
 
             Dictionary<Level, List<long>> links = ExtractEntryIdListFromJsonContent(jsonContent, logs);
@@ -134,11 +130,11 @@ namespace TheEliteExplorerInfrastructure
                 }
             }
 
-            return (entries, logs);
+            return entries;
         }
 
         /// <inheritdoc />
-        public async Task<(PlayerDto, IReadOnlyCollection<string>)> GetPlayerInformation(string urlName, string defaultHexPlayer)
+        public async Task<PlayerDto> GetPlayerInformation(string urlName, string defaultHexPlayer)
         {
             var logs = new List<string>();
             string realName = null;
@@ -146,11 +142,11 @@ namespace TheEliteExplorerInfrastructure
             string color = null;
             string controlStyle = null;
 
-            var pageContent = await GetPageStringContentAsync($"/~{urlName.Replace(" ", "+")}", logs).ConfigureAwait(false);
+            var pageContent = await GetPageStringContentAsync($"/~{urlName.Replace(" ", "+")}").ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(pageContent))
             {
-                return (null, logs);
+                return null;
             }
 
             var htmlDoc = new HtmlDocument();
@@ -160,8 +156,7 @@ namespace TheEliteExplorerInfrastructure
             }
             catch (Exception ex)
             {
-                logs.Add($"Error while parsing into HTML document the page string content - {ex.Message}");
-                return (null, logs);
+                throw new Exception($"Error while parsing into HTML document the page string content - {ex.Message}");
             }
 
             var headFull = htmlDoc.DocumentNode.SelectNodes("//h1");
@@ -210,7 +205,7 @@ namespace TheEliteExplorerInfrastructure
                 UrlName = urlName
             };
 
-            return (p, logs);
+            return p;
         }
 
         private async Task<List<EntryWebDto>> ExtractEntryDetailsAsync(long entryId, int stageId, Level levelKey, List<string> logs)
@@ -218,13 +213,13 @@ namespace TheEliteExplorerInfrastructure
             var finalEntries = new List<EntryWebDto>();
 
             // /!\/!\/!\ Any name can go in the URL
-            string linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}", logs).ConfigureAwait(false);
+            string linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}").ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(linkData))
             {
                 // This case occurs, for the most part, because of a temporary security issue
                 // So we wait one second and retry
                 System.Threading.Thread.Sleep(1000);
-                linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}", logs).ConfigureAwait(false);
+                linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}").ConfigureAwait(false);
             }
 
             if (string.IsNullOrWhiteSpace(linkData))
@@ -295,13 +290,13 @@ namespace TheEliteExplorerInfrastructure
                 }
             }
 
-            long? time = ExtractTime(timeFromhead, logs, out bool failToExtract);
+            long? time = ExtractTime(timeFromhead, out bool failToExtract);
             if (failToExtract || !time.HasValue)
             {
                 return null;
             }
 
-            DateTime? date = ParseDateFromString(dateFromHead, logs, out failToExtract);
+            DateTime? date = ParseDateFromString(dateFromHead, out failToExtract);
             if (failToExtract)
             {
                 return null;
@@ -330,10 +325,10 @@ namespace TheEliteExplorerInfrastructure
             {
                 var rowDatas = row.SelectNodes("td").Select(td => td.InnerText).ToArray();
 
-                long? time = ExtractTime(rowDatas[1], logs, out bool failToExtract);
+                long? time = ExtractTime(rowDatas[1], out bool failToExtract);
                 if (!failToExtract && time.HasValue)
                 {
-                    DateTime? date = ParseDateFromString(rowDatas[0], logs, out failToExtract);
+                    DateTime? date = ParseDateFromString(rowDatas[0], out failToExtract);
                     if (!failToExtract)
                     {
                         var system = ToEngine(rowDatas[3]);
@@ -396,7 +391,7 @@ namespace TheEliteExplorerInfrastructure
             return entryIdListByLevel;
         }
 
-        private async Task<EntryWebDto> ExtractTimeLinkDetailsAsync(Game game, HtmlNode link, List<string> logs, DateTime? minimalDateToScan)
+        private async Task<EntryWebDto> ExtractTimeLinkDetailsAsync(Game game, HtmlNode link, DateTime? minimalDateToScan)
         {
             const char linkSeparator = '-';
             const string playerUrlPrefix = "/~";
@@ -411,7 +406,7 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            DateTime? date = ExtractAndCheckDate(link, logs, minimalDateToScan, out bool exit);
+            DateTime? date = ExtractAndCheckDate(link, minimalDateToScan, out bool exit);
             if (exit)
             {
                 return null;
@@ -422,7 +417,7 @@ namespace TheEliteExplorerInfrastructure
             {
                 if (stageName != _duelStageName)
                 {
-                    logs.Add($"Unable to extract the stage ID.");
+                    throw new Exception($"Unable to extract the stage ID.");
                 }
                 return null;
             }
@@ -443,7 +438,7 @@ namespace TheEliteExplorerInfrastructure
             }
             catch (Exception ex)
             {
-                logs.Add($"Unable to extract the player name - {ex.Message}");
+                throw new Exception($"Unable to extract the player name - {ex.Message}");
             }
 
             if (string.IsNullOrWhiteSpace(playerUrl))
@@ -461,13 +456,13 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            long? time = ExtractTime(linkParts[2], logs, out bool failToExtractTime);
+            long? time = ExtractTime(linkParts[2], out bool failToExtractTime);
             if (failToExtractTime || !time.HasValue)
             {
                 return null;
             }
 
-            var system = await ExtractTimeEntryEngineAsync(link, logs).ConfigureAwait(false);
+            var system = await ExtractTimeEntryEngineAsync(link).ConfigureAwait(false);
 
             return new EntryWebDto
             {
@@ -480,7 +475,7 @@ namespace TheEliteExplorerInfrastructure
             };
         }
 
-        private static DateTime? ExtractAndCheckDate(HtmlNode link, List<string> logs, DateTime? minimalDateToScan, out bool exit)
+        private static DateTime? ExtractAndCheckDate(HtmlNode link, DateTime? minimalDateToScan, out bool exit)
         {
             exit = false;
 
@@ -492,7 +487,7 @@ namespace TheEliteExplorerInfrastructure
             }
             catch (Exception ex)
             {
-                logs.Add($"Unable to extract the date - {ex.Message}");
+                throw new Exception($"Unable to extract the date - {ex.Message}");
             }
 
             if (string.IsNullOrWhiteSpace(dateString))
@@ -501,7 +496,7 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            DateTime? date = ParseDateFromString(dateString, logs, out bool failToExtractDate);
+            DateTime? date = ParseDateFromString(dateString, out bool failToExtractDate);
             if (failToExtractDate)
             {
                 exit = true;
@@ -517,12 +512,12 @@ namespace TheEliteExplorerInfrastructure
             return date;
         }
 
-        private async Task<Engine?> ExtractTimeEntryEngineAsync(HtmlNode link, List<string> logs)
+        private async Task<Engine?> ExtractTimeEntryEngineAsync(HtmlNode link)
         {
             const string engineStringBeginString = "System:</strong>";
             const string engineStringEndString = "</li>";
 
-            string pageContent = await GetPageStringContentAsync(link.Attributes["href"].Value, logs).ConfigureAwait(false);
+            string pageContent = await GetPageStringContentAsync(link.Attributes["href"].Value).ConfigureAwait(false);
 
             if (!string.IsNullOrWhiteSpace(pageContent))
             {
@@ -551,25 +546,36 @@ namespace TheEliteExplorerInfrastructure
                 .FirstOrDefault(e => e.ToString().Equals(engineString.Trim().Replace("-", "_"), StringComparison.InvariantCultureIgnoreCase));
         }
 
-        private async Task<string> GetPageStringContentAsync(string partUri, List<string> logs)
+        private async Task<string> GetPageStringContentAsync(string partUri)
         {
             var uri = new Uri(string.Concat(_configuration.BaseUri, partUri));
 
-            using (var webClient = new WebClient())
+            const int maxAttemps = 5;
+            string data = null;
+            int attemps = 1;
+            while (attemps <= maxAttemps)
             {
-                try
+                using (var webClient = new WebClient())
                 {
-                    return await webClient
-                        .DownloadStringTaskAsync(uri)
-                        .ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                    when (ex is WebException || ex is NotSupportedException)
-                {
-                    logs.Add($"Error while downloading content of the page {uri.OriginalString} - {ex.Message}");
-                    return null;
+                    try
+                    {
+                        data = await webClient
+                            .DownloadStringTaskAsync(uri)
+                            .ConfigureAwait(false);
+                        attemps = maxAttemps + 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (attemps == maxAttemps)
+                        {
+                            throw new Exception($"Error while downloading content of the page {uri.OriginalString} - {ex.Message}");
+                        }
+                        attemps++;
+                    }
                 }
             }
+
+            return data;
         }
 
         private static string CleanString(string input)
@@ -577,7 +583,7 @@ namespace TheEliteExplorerInfrastructure
             return input.Replace("\t", "").Replace("\n", "").Replace("\r", "");
         }
 
-        private static long? ExtractTime(string timeString, List<string> logs, out bool failToExtractTime)
+        private static long? ExtractTime(string timeString, out bool failToExtractTime)
         {
             const string untiedString = "(untied!)";
             const string N_A = "N/A";
@@ -591,7 +597,7 @@ namespace TheEliteExplorerInfrastructure
                 string[] timeComponents = timeString.Split(separator);
                 if (timeComponents.Length > 3)
                 {
-                    logs.Add("Invalid time value");
+                    //logs.Add("Invalid time value");
                     failToExtractTime = true;
                     return null;
                 }
@@ -600,7 +606,7 @@ namespace TheEliteExplorerInfrastructure
                 {
                     if (!int.TryParse(timeComponents[0], out hours))
                     {
-                        logs.Add("Invalid time value");
+                        //logs.Add("Invalid time value");
                         failToExtractTime = true;
                         return null;
                     }
@@ -609,13 +615,13 @@ namespace TheEliteExplorerInfrastructure
                 }
                 if (!int.TryParse(timeComponents[0], out int minutes))
                 {
-                    logs.Add("Invalid time value");
+                    //logs.Add("Invalid time value");
                     failToExtractTime = true;
                     return null;
                 }
                 if (!int.TryParse(timeComponents[1], out int seconds))
                 {
-                    logs.Add("Invalid time value");
+                    //logs.Add("Invalid time value");
                     failToExtractTime = true;
                     return null;
                 }
@@ -623,7 +629,7 @@ namespace TheEliteExplorerInfrastructure
             }
             else if (timeString != N_A)
             {
-                logs.Add("Invalid time value");
+                //logs.Add("Invalid time value");
                 failToExtractTime = true;
                 return null;
             }
@@ -631,7 +637,7 @@ namespace TheEliteExplorerInfrastructure
             return null;
         }
 
-        private static DateTime? ParseDateFromString(string dateString, List<string> logs, out bool failToExtractDate)
+        private static DateTime? ParseDateFromString(string dateString, out bool failToExtractDate)
         {
             const char separator = ' ';
             IReadOnlyDictionary<string, int> monthsLabel = new Dictionary<string, int>
@@ -659,25 +665,25 @@ namespace TheEliteExplorerInfrastructure
                 string[] dateComponents = dateString.Split(separator);
                 if (dateComponents.Length != 3)
                 {
-                    logs.Add("No date found !");
+                    //logs.Add("No date found !");
                     failToExtractDate = true;
                     return null;
                 }
                 if (!monthsLabel.ContainsKey(dateComponents[1]))
                 {
-                    logs.Add("No date found !");
+                    //logs.Add("No date found !");
                     failToExtractDate = true;
                     return null;
                 }
                 if (!int.TryParse(dateComponents[0], out int day))
                 {
-                    logs.Add("No date found !");
+                    //logs.Add("No date found !");
                     failToExtractDate = true;
                     return null;
                 }
                 if (!int.TryParse(dateComponents[2], out int year))
                 {
-                    logs.Add("No date found !");
+                    //logs.Add("No date found !");
                     failToExtractDate = true;
                     return null;
                 }

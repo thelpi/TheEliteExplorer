@@ -8,14 +8,14 @@
         /// <summary>
         /// Agent.
         /// </summary>
-        Easy = 2,
+        Easy = 1,
         /// <summary>
         /// [Secret / Special] agent.
         /// </summary>
-        Medium = 3,
+        Medium,
         /// <summary>
         /// [00 / Perfect] agent.
         /// </summary>
-        Hard = 4
+        Hard
     }
 }

@@ -160,14 +160,16 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<DateTime> GetLatestEntryDateAsync()
+        public async Task<DateTime?> GetLatestEntryDateAsync()
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
-                IEnumerable<DateTime> data = await connection.QueryAsync<DateTime>(
-                    ToPsName(_getLatestEntryDatePsName),
-                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
-                return data.First();
+                var datas = await connection
+                    .QueryAsync<DateTime?>(
+                        ToPsName(_getLatestEntryDatePsName),
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
+                return datas.FirstOrDefault();
             }
         }
 

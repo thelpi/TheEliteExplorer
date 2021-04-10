@@ -21,22 +21,22 @@ namespace TheEliteExplorerDomain.Abstractions
         /// Optionnal date where to stop scan;
         /// if <c>Null</c>, the full page will be scanned.
         /// </param>
-        /// <returns>A tuple with the list of <see cref="EntryWebDto"/> and list of error logs.</returns>
-        Task<(IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>)> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan);
+        /// <returns>List of <see cref="EntryWebDto"/>.</returns>
+        Task<IReadOnlyCollection<EntryWebDto>> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan);
 
         /// <summary>
         /// Extracts every time for a given stage from the website "the-elite".
         /// </summary>
         /// <param name="stageId">Stage identifier.</param>
-        /// <returns>A tuple with the list of <see cref="EntryWebDto"/> and list of error logs.</returns>
-        Task<(IReadOnlyCollection<EntryWebDto>, IReadOnlyCollection<string>)> ExtractStageAllTimeEntriesAsync(int stageId);
+        /// <returns>List of <see cref="EntryWebDto"/>.</returns>
+        Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntriesAsync(int stageId);
 
         /// <summary>
         /// Gets information about a player.
         /// </summary>
         /// <param name="urlName">Player URL name.</param>
         /// <param name="defaultHexPlayer">Default hexadecimal player color.</param>
-        /// <returns>Instance of <see cref="PlayerDto"/>; <c>Null</c> if not found; plus additional logs.</returns>
-        Task<(PlayerDto, IReadOnlyCollection<string>)> GetPlayerInformation(string urlName, string defaultHexPlayer);
+        /// <returns>Instance of <see cref="PlayerDto"/>; <c>Null</c> if not found.</returns>
+        Task<PlayerDto> GetPlayerInformation(string urlName, string defaultHexPlayer);
     }
 }
