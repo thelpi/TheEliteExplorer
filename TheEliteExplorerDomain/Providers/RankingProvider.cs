@@ -38,38 +38,44 @@ namespace TheEliteExplorerDomain.Providers
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<RankingEntry>> GetRankingEntries(Game game, DateTime rankingDate)
         {
-            var players = await GetPlayers().ConfigureAwait(false);
-
-            var entries = await GetEntries(game, players).ConfigureAwait(false);
-
             rankingDate = rankingDate.Date;
 
-            var finalEntries = SetFinalEntriesList(game, entries, players, rankingDate);
+            var players = await GetPlayers().ConfigureAwait(false);
+
+            var finalEntries = new List<RankingDto>();
+            foreach (var stage in Stage.Get(game))
+            {
+                foreach (var level in SystemExtensions.Enumerate<Level>())
+                {
+                    var stageLevelRankings = await _sqlContext
+                        .GetStageLevelDateRankings(stage.Id, level, rankingDate)
+                        .ConfigureAwait(false);
+                    finalEntries.AddRange(stageLevelRankings);
+                }
+            }
 
             var rankingEntries = finalEntries
                 .GroupBy(e => e.PlayerId)
-                .Select(e => new RankingEntry(game, e.Key, players[e.Key].RealName))
+                .Select(e => new RankingEntry(game, players[e.Key]))
                 .ToList();
 
             foreach (var entryGroup in LoopByStageAndLevel(finalEntries))
             {
-                int rank = 1;
-                foreach (var timesGroup in GroupAndOrderByTime(entryGroup.Item3))
+                foreach (var timesGroup in entryGroup.Item3.GroupBy(l => l.Time).OrderBy(l => l.Key))
                 {
+                    var rank = timesGroup.First().Rank;
                     if (rank > 100)
                     {
                         break;
                     }
-                    int countAtRank = timesGroup.Count();
-                    bool isUntied = rank == 1 && countAtRank == 1;
+                    bool isUntied = rank == 1 && timesGroup.Count() == 1;
 
-                    foreach (EntryDto timeEntry in timesGroup)
+                    foreach (var timeEntry in timesGroup)
                     {
                         rankingEntries
                             .Single(e => e.PlayerId == timeEntry.PlayerId)
-                            .AddStageAndLevelDatas(timeEntry, rank, isUntied);
+                            .AddStageAndLevelDatas(timeEntry, isUntied);
                     }
-                    rank += countAtRank;
                 }
             }
 
@@ -80,49 +86,24 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task GenerateRankings(Game game)
-        {
-            var players = await GetPlayers().ConfigureAwait(false);
-
-            var entries = await GetEntries(game, players).ConfigureAwait(false);
-
-            var startDate = await _sqlContext
-                .GetLatestRankingDateAsync(game)
-                .ConfigureAwait(false);
-
-            foreach (var rankingDate in (startDate ?? game.GetEliteFirstDate()).LoopBetweenDates(DateStep.Day))
-            {
-                await InternalGenerateRankings(game, entries, rankingDate, players)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        /// <inheritdoc />
         public async Task RebuildRankingHistory(Stage stage, Level level)
         {
             if (stage == null)
             {
                 throw new ArgumentNullException(nameof(stage));
             }
-            
+
             // Removes previous ranking history
             await _sqlContext
                 .DeleteStageLevelRankingHistory(stage.Id, level)
                 .ConfigureAwait(false);
-            
-            // Gets every player
-            // TODO: gets also dirty players
-            var playersSource = await _sqlContext
-                .GetPlayersAsync()
-                .ConfigureAwait(false);
+
+            var players = await GetPlayers().ConfigureAwait(false);
 
             // Gets every entry for the stage and level
             var entriesSource = await _sqlContext
                 .GetEntriesAsync(stage.Id, level, null, null)
                 .ConfigureAwait(false);
-
-            // Dictionary of players by ID
-            var players = playersSource.ToDictionary(p => p.Id, p => p);
 
             // Entries not related to players are excluded
             var entries = entriesSource.Where(e => players.ContainsKey(e.PlayerId)).ToList();
@@ -201,28 +182,15 @@ namespace TheEliteExplorerDomain.Providers
                 .ConfigureAwait(false);
         }
 
+        // Gets every player keyed by ID
         private async Task<Dictionary<long, PlayerDto>> GetPlayers()
         {
-            var basePlayersList = await _sqlContext.GetPlayersAsync().ConfigureAwait(false);
-
-            var players = basePlayersList.ToDictionary(p => p.Id, p => p);
-            return players;
-        }
-
-        private async Task<IReadOnlyCollection<EntryDto>> GetEntries(
-            Game game,
-            Dictionary<long, PlayerDto> players)
-        {
-            var entries = await _sqlContext.GetEntriesAsync((long)game).ConfigureAwait(false);
-
-            // useless ?
-            var entriesList = entries
-                .Where(e => players.ContainsKey(e.PlayerId))
-                .ToList();
-
-            ManageDateLessEntries(game, players, entriesList);
-
-            return entriesList;
+            // TODO: gets also dirty players
+            var playersSource = await _sqlContext
+                .GetPlayersAsync()
+                .ConfigureAwait(false);
+            
+            return playersSource.ToDictionary(p => p.Id, p => p);
         }
 
         private void ManageDateLessEntries(Game game, Dictionary<long, PlayerDto> players, List<EntryDto> entries)
@@ -303,100 +271,13 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
-        private async Task InternalGenerateRankings(
-            Game game,
-            IReadOnlyCollection<EntryDto> entries,
-            DateTime rankingDate,
-            Dictionary<long, PlayerDto> players)
+        private static IEnumerable<(long, long, IEnumerable<RankingDto>)> LoopByStageAndLevel(
+            IEnumerable<RankingDto> rankings)
         {
-            rankingDate = rankingDate.Date;
-
-            // Do nothing for date without time entries.
-            if (!entries.Any(e => e.Date?.Date == rankingDate))
-            {
-                return;
-            }
-
-            var finalEntries = SetFinalEntriesList(game, entries, players, rankingDate);
-
-            foreach ((long, long, IEnumerable<EntryDto>) entryGroup in LoopByStageAndLevel(finalEntries))
-            {
-                // Do nothing for date without time entries for (stage,level) tuple.
-                if (!finalEntries.Any(e =>
-                    e.Date?.Date == rankingDate
-                    && entryGroup.Item1 == e.StageId
-                    && entryGroup.Item2 == e.LevelId))
-                {
-                    continue;
-                }
-
-                var rank = 1;
-                foreach (IGrouping<long, EntryDto> timesGroup in GroupAndOrderByTime(entryGroup.Item3))
-                {
-                    foreach (var timeEntry in timesGroup)
-                    {
-                        var rkDto = new RankingDto
-                        {
-                            Date = rankingDate,
-                            LevelId = entryGroup.Item2,
-                            PlayerId = timeEntry.PlayerId,
-                            Rank = rank,
-                            StageId = entryGroup.Item1,
-                            Time = timesGroup.Key
-                        };
-
-                        await _sqlContext.InsertRankingAsync(rkDto).ConfigureAwait(false);
-                    }
-                    rank += timesGroup.Count();
-                }
-            }
-        }
-
-        private static IOrderedEnumerable<IGrouping<long, EntryDto>> GroupAndOrderByTime(
-            IEnumerable<EntryDto> entryGroup)
-        {
-            return entryGroup.GroupBy(l => l.Time).OrderBy(l => l.Key);
-        }
-
-        private List<EntryDto> SetFinalEntriesList(
-            Game game,
-            IReadOnlyCollection<EntryDto> entries,
-            Dictionary<long, PlayerDto> players,
-            DateTime rankingDate)
-        {
-            var filteredEntries = entries
-                .Where(e => players[e.PlayerId].JoinDate.GetValueOrDefault(rankingDate) <= rankingDate)
-                .GroupBy(e => (e.PlayerId, e.StageId, e.LevelId))
-                .ToList();
-
-            var finalEntries = new List<EntryDto>();
-            foreach (var entryGroup in filteredEntries)
-            {
-                var dateableEntries = entries.Where(e => e.Date.Value.Date <= rankingDate).ToList();
-                if (dateableEntries.Count > 0)
-                {
-                    finalEntries.Add(GetBestTimeFromEntries(dateableEntries));
-                }
-            }
-
-            return finalEntries;
-        }
-
-        private static IEnumerable<(long, long, IEnumerable<EntryDto>)> LoopByStageAndLevel(
-            IEnumerable<EntryDto> entries)
-        {
-            foreach (var group in entries.GroupBy(e => new { e.StageId, e.LevelId }))
+            foreach (var group in rankings.GroupBy(r => new { r.StageId, r.LevelId }))
             {
                 yield return (group.Key.StageId, group.Key.LevelId, group);
             }
-        }
-
-        private static EntryDto GetBestTimeFromEntries(
-            IReadOnlyCollection<EntryDto> entries)
-        {
-            return entries
-                .OrderBy(e => e.Time)
-                .First();
         }
     }
 }

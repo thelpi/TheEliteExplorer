@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -23,6 +24,7 @@ namespace TheEliteExplorerInfrastructure
         private const string _getEntriesCacheKeyFormat = "entries_{0}_{1}"; // stageId, levelId
         private const string _getAllEntriesCacheKeyFormat = "entries_all_{0}"; // gameId
 
+        private const string _getRankingsPsName = "select_ranking";
         private const string _getEveryPlayersPsName = "select_player";
         private const string _getEntriesByCriteriaPsName = "select_entry";
         private const string _insertPlayerPsName = "insert_player";
@@ -36,6 +38,10 @@ namespace TheEliteExplorerInfrastructure
         private const string _deleteRankingPsName = "delete_ranking";
         private const string _updatePlayerPsName = "update_player";
         private const string _getEntriesByGamePsName = "select_all_entry";
+
+        private const string ColSeparator = ",";
+        private const string RowSeparator = "\r\n";
+        private static readonly string DataFilePath = Path.Combine(Environment.CurrentDirectory, "bulk_datas.csv");
 
         private readonly IConnectionProvider _connectionProvider;
         private readonly CacheConfiguration _cacheConfiguration;
@@ -188,35 +194,19 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task BulkInsertRankingsAsync(IReadOnlyCollection<RankingDto> rankings)
         {
-            var query = "INSERT INTO [dbo].[ranking]"
-                + " ([player_id],[level_id],[stage_id],[date],[time],[rank])"
-                + " VALUES"
-                + " (@player_id, @level_id, @stage_id, @date, @time, @rank)";
+            var itemsColumns = rankings
+                .Select(r => new[]
+                {
+                    r.StageId.ToString(),
+                    r.LevelId.ToString(),
+                    r.Date.ToString("yyyy-MM-dd hh:mm:ss"),
+                    r.PlayerId.ToString(),
+                    r.Time.ToString(),
+                    r.Rank.ToString()
+                })
+                .ToList();
 
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                await connection
-                    .ExecuteAsync("ALTER TABLE [dbo].[ranking] NOCHECK CONSTRAINT ALL")
-                    .ConfigureAwait(false);
-
-                await connection
-                    .ExecuteAsync(
-                        query,
-                        rankings.Select(r => new
-                        {
-                            date = r.Date,
-                            level_id = r.LevelId,
-                            player_id = r.PlayerId,
-                            rank = r.Rank,
-                            stage_id = r.StageId,
-                            time = r.Time
-                        }))
-                   .ConfigureAwait(false);
-
-                await connection
-                    .ExecuteAsync("ALTER TABLE [dbo].[ranking] CHECK CONSTRAINT ALL")
-                    .ConfigureAwait(false);
-            }
+            await BulkInsertInternalAsync(itemsColumns, "ranking");
         }
 
         /// <inheritdoc />
@@ -309,6 +299,26 @@ namespace TheEliteExplorerInfrastructure
                         level_id = (long)level
                     },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<RankingDto>> GetStageLevelDateRankings(long stageId, Level level, DateTime date)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                var rankings = await connection
+                    .QueryAsync<RankingDto>(
+                        ToPsName(_getRankingsPsName),
+                        new
+                        {
+                            stage_id = stageId,
+                            level_id = (long)level,
+                            date
+                        },
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
+                return rankings.ToList();
             }
         }
 
@@ -440,6 +450,33 @@ namespace TheEliteExplorerInfrastructure
             }
 
             return entries;
+        }
+
+        private async Task BulkInsertInternalAsync(IReadOnlyCollection<string[]> itemsColumns, string tableName)
+        {
+            using (var sw = new StreamWriter(DataFilePath))
+            {
+                sw.NewLine = "\r\n";
+                foreach (var itemColumns in itemsColumns)
+                {
+                    sw.WriteLine(string.Join(ColSeparator, itemColumns));
+                }
+            }
+
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection
+                    .ExecuteAsync($"BULK INSERT [dbo].[{tableName}]" +
+                        $"FROM '{DataFilePath}'" +
+                        $"WITH" +
+                        $"(" +
+                        $"FIELDTERMINATOR = '{ColSeparator}'," +
+                        $"ROWTERMINATOR = '{RowSeparator}'" +
+                        $"); ")
+                    .ConfigureAwait(false);
+            }
+
+            File.Delete(DataFilePath);
         }
     }
 }

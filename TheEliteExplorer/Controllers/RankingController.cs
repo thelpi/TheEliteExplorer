@@ -15,7 +15,6 @@ namespace TheEliteExplorer.Controllers
     /// Ranking controller.
     /// </summary>
     /// <seealso cref="Controller"/>
-    [Route("rankings")]
     public class RankingController : Controller
     {
         private readonly IStageSweepProvider _stageSweepProvider;
@@ -40,12 +39,16 @@ namespace TheEliteExplorer.Controllers
         /// Gets rankings for the current date or a specified date.
         /// </summary>
         /// <param name="game">The requested game.</param>
+        /// <param name="date">String representation of date; empty or <c>Null</c> for current date.</param>
         /// <param name="page">page index (starts at <c>1</c>).</param>
         /// <param name="count">Items count by page.</param>
-        /// <param name="date">String representation of date; <c>Null</c> for current date.</param>
         /// <returns>Paginated collection of <see cref="RankingEntry"/>.</returns>
-        [HttpGet("games/{game}")]
-        public async Task<PaginatedCollection<RankingEntry>> GetRankingAsync([FromRoute] Game game, [FromQuery] int page, [FromQuery] int count, [FromQuery] string date)
+        [HttpGet("games/{game}/rankings/{date}")]
+        public async Task<PaginatedCollection<RankingEntry>> GetRankingAsync(
+            [FromRoute] Game game,
+            [FromRoute] string date,
+            [FromQuery] int page,
+            [FromQuery] int count)
         {
             var rankingEntries = await _rankingProvider
                 .GetRankingEntries(game, ValidateDateParameter(date))
@@ -55,24 +58,11 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
-        /// Generates ranking for the specified game.
+        /// Builds or rebuilds the ranking history for a single stage and a single level.
         /// </summary>
-        /// <param name="game">Game.</param>
+        /// <param name="stage">The stage identifier.</param>
+        /// <param name="level">The level.</param>
         /// <returns>Nothing.</returns>
-        [HttpPost("games/{game}")]
-        public async Task CreatesRanking([FromRoute] Game game)
-        {
-            await _rankingProvider
-                .GenerateRankings(game)
-                .ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="stage"></param>
-        /// <param name="level"></param>
-        /// <returns></returns>
         [HttpPost("stages/{stage}/levels/{level}/rankings")]
         public async Task RebuildRankingHistory([FromRoute] long stage, [FromRoute] Level level)
         {
@@ -89,7 +79,7 @@ namespace TheEliteExplorer.Controllers
         /// <param name="startDate">Start date.</param>
         /// <param name="endDate">End date.</param>
         /// <returns>Collection of untied sweeps.</returns>
-        [HttpGet("sweeps/{game}")]
+        [HttpGet("games/{game}/sweeps")]
         public async Task<IReadOnlyCollection<StageSweep>> GetSweeps(
             [FromRoute] Game game,
             [FromQuery][Required] bool untied,

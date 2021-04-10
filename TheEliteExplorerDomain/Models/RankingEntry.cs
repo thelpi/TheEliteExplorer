@@ -100,25 +100,11 @@ namespace TheEliteExplorerDomain.Models
             });
         }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="game">The <see cref="Game"/> value.</param>
-        /// <param name="playerId">The <see cref="PlayerId"/> value.</param>
-        /// <param name="playerName">The <see cref="PlayerName"/> value.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="game"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="playerId"/> is not a valid identifier.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="playerName"/> is <c>Null</c>, empty or white spaces only.</exception>
-        public RankingEntry(Game game, long playerId, string playerName)
+        internal RankingEntry(Game game, PlayerDto player)
         {
-            if (playerId < 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(playerId), playerId, $"{playerId} is not a valid identifier.");
-            }
-
             Game = game;
-            PlayerId = playerId;
-            PlayerName = playerName ?? throw new ArgumentNullException(nameof(playerName));
+            PlayerId = player.Id;
+            PlayerName = player.RealName;
             _details = new Dictionary<Stage, Dictionary<Level, (int, int, long?)>>();
 
             Points = 0;
@@ -136,47 +122,18 @@ namespace TheEliteExplorerDomain.Models
             _levelCumuledTime = ToLevelDictionary(allStagesMaxTime);
         }
 
-        /// <summary>
-        /// Integrates a time entry to the instance statistics.
-        /// </summary>
-        /// <param name="entry">The time entry.</param>
-        /// <param name="position">The position (ranking) of the entry for this stage and level.</param>
-        /// <param name="untied">Indicates if the entry is an untied world record; ignored if <paramref name="position"/> is not <c>1</c>.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="entry"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentException"><paramref name="entry"/> is not related to <see cref="PlayerId"/>.</exception>
-        /// <exception cref="ArgumentException"><paramref name="entry"/> is not related to <see cref="Game"/>.</exception>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="position"/> is below <c>1</c>.</exception>
-        public void AddStageAndLevelDatas(EntryDto entry, int position, bool untied)
+        internal void AddStageAndLevelDatas(RankingDto ranking, bool untied)
         {
-            if (entry == null)
-            {
-                throw new ArgumentNullException(nameof(entry));
-            }
+            var stage = Stage.Get(Game).FirstOrDefault(s => s.Id == ranking.StageId);
 
-            if (entry.PlayerId != PlayerId)
-            {
-                throw new ArgumentException($"{entry} is not related to the player {PlayerId}.", nameof(entry));
-            }
+            Level level = (Level)ranking.LevelId;
 
-            Stage stage = Stage.Get(Game).FirstOrDefault(s => s.Id == entry.StageId);
-            if (stage == null)
-            {
-                throw new ArgumentException($"{entry} is not related to the game {Game}.", nameof(entry));
-            }
-
-            if (position < 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(position), position, $"{nameof(position)} is below 1.");
-            }
-
-            Level level = (Level)entry.LevelId;
-
-            int points = (100 - position) - 2;
+            int points = (100 - ranking.Rank) - 2;
             if (points < 0)
             {
                 points = 0;
             }
-            if (position == 1)
+            if (ranking.Rank == 1)
             {
                 points = 100;
                 RecordsCount++;
@@ -187,7 +144,7 @@ namespace TheEliteExplorerDomain.Models
                     _levelUntiedRecordsCount[level]++;
                 }
             }
-            else if (position == 2)
+            else if (ranking.Rank == 2)
             {
                 points = 97;
             }
@@ -195,12 +152,12 @@ namespace TheEliteExplorerDomain.Models
             Points += points;
             _levelPoints[level] += points;
             
-            GetDetailsByLevel(stage).Add(level, (position, points, entry.Time));
+            GetDetailsByLevel(stage).Add(level, (ranking.Rank, points, ranking.Time));
 
-            if (entry.Time < UnsetTimeValueSeconds)
+            if (ranking.Time < UnsetTimeValueSeconds)
             {
-                CumuledTime -= UnsetTimeValueSeconds - entry.Time;
-                _levelCumuledTime[level] -= UnsetTimeValueSeconds - entry.Time;
+                CumuledTime -= UnsetTimeValueSeconds - ranking.Time;
+                _levelCumuledTime[level] -= UnsetTimeValueSeconds - ranking.Time;
             }
         }
 

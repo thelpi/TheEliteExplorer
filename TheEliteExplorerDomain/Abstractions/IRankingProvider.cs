@@ -23,14 +23,6 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<RankingEntry>> GetRankingEntries(Game game, DateTime rankingDate);
 
         /// <summary>
-        /// Computes and inserts in database rankings, by level and by stage, for each missing day.
-        /// Days without entries are skipped.
-        /// </summary>
-        /// <param name="game">Game.</param>
-        /// <returns>Nothing.</returns>
-        Task GenerateRankings(Game game);
-
-        /// <summary>
         /// Rebuilds the ranking history for a single stage and level.
         /// </summary>
         /// <param name="stage">Stage.</param>

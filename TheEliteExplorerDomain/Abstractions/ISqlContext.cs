@@ -74,9 +74,9 @@ namespace TheEliteExplorerDomain.Abstractions
         Task InsertRankingAsync(RankingDto ranking);
 
         /// <summary>
-        /// Inserts a collection of rankings into the database.
+        /// Inserts in bulk a collection of <see cref="RankingDto"/>.
         /// </summary>
-        /// <param name="rankings">Rankings to insert.</param>
+        /// <param name="rankings">Collection of <see cref="RankingDto"/>.</param>
         /// <returns>Nothing.</returns>
         Task BulkInsertRankingsAsync(IReadOnlyCollection<RankingDto> rankings);
 
@@ -128,5 +128,14 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="level">Level.</param>
         /// <returns>Nothing.</returns>
         Task DeleteStageLevelRankingHistory(long stageId, Level level);
+
+        /// <summary>
+        /// Gets rankings for a specified stage and level a a specified date.
+        /// </summary>
+        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="level">Level.</param>
+        /// <param name="date">Date.</param>
+        /// <returns>Collection of rankings.</returns>
+        Task<IReadOnlyCollection<RankingDto>> GetStageLevelDateRankings(long stageId, Level level, DateTime date);
     }
 }
