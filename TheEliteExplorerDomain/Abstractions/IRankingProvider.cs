@@ -30,5 +30,12 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <returns>Nothing.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="stage"/> is <c>Null</c>.</exception>
         Task RebuildRankingHistory(Stage stage, Level level);
+
+        /// <summary>
+        /// Rebuilds the ranking history for a full game.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <returns>Nothing.</returns>
+        Task RebuildRankingHistory(Game game);
     }
 }

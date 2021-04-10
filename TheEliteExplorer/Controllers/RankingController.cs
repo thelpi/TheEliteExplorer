@@ -72,6 +72,19 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
+        /// Builds or rebuilds the ranking history for a full game.
+        /// </summary>
+        /// <param name="game">The game.</param>
+        /// <returns>Nothing.</returns>
+        [HttpPost("games/{game}/rankings")]
+        public async Task RebuildRankingHistory([FromRoute] Game game)
+        {
+            await _rankingProvider
+                .RebuildRankingHistory(game)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Gets sweeps.
         /// </summary>
         /// <param name="game">Game.</param>

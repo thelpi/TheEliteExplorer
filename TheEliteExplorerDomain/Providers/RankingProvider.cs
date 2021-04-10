@@ -86,6 +86,29 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
+        public async Task RebuildRankingHistory(Game game)
+        {
+            var players = await GetPlayers()
+                .ConfigureAwait(false);
+
+            var entries = await GetEntriesInternal(game, null, players)
+                .ConfigureAwait(false);
+
+            foreach (var stage in Stage.Get(game))
+            {
+                foreach (var level in SystemExtensions.Enumerate<Level>())
+                {
+                    var filteredEntries = entries
+                        .Where(e => e.StageId == stage.Id && e.LevelId == (long)level)
+                        .ToList();
+
+                    await RebuildRankingHistoryInternal(filteredEntries, players, stage, level)
+                        .ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <inheritdoc />
         public async Task RebuildRankingHistory(Stage stage, Level level)
         {
             if (stage == null)
@@ -93,23 +116,59 @@ namespace TheEliteExplorerDomain.Providers
                 throw new ArgumentNullException(nameof(stage));
             }
 
-            // Removes previous ranking history
-            await _sqlContext
-                .DeleteStageLevelRankingHistory(stage.Id, level)
+            var players = await GetPlayers()
                 .ConfigureAwait(false);
 
-            var players = await GetPlayers().ConfigureAwait(false);
-
-            // Gets every entry for the stage and level
-            var entriesSource = await _sqlContext
-                .GetEntriesAsync(stage.Id, level, null, null)
+            var entries = await GetEntriesInternal(null, (stage, level), players)
                 .ConfigureAwait(false);
+
+            await RebuildRankingHistoryInternal(entries, players, stage, level)
+                .ConfigureAwait(false);
+        }
+
+        // Gets entries according to parameters (full game, or one stage and level)
+        private async Task<List<EntryDto>> GetEntriesInternal(
+            Game? game,
+            (Stage Stage, Level Level)? stageAndLevel,
+            IDictionary<long, PlayerDto> players)
+        {
+            IReadOnlyCollection<EntryDto> entriesSource;
+
+            if (stageAndLevel.HasValue)
+            {
+                // Gets every entry for the stage and level
+                entriesSource = await _sqlContext
+                    .GetEntriesAsync(stageAndLevel.Value.Stage.Id, stageAndLevel.Value.Level, null, null)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                // Gets every entry for the game
+                entriesSource = await _sqlContext
+                    .GetEntriesAsync((long)game.Value)
+                    .ConfigureAwait(false);
+            }
 
             // Entries not related to players are excluded
             var entries = entriesSource.Where(e => players.ContainsKey(e.PlayerId)).ToList();
 
             // Sets time for every entry
-            ManageDateLessEntries(stage.Game, players, entries);
+            ManageDateLessEntries(game.Value, players, entries);
+
+            return entries;
+        }
+
+        // Rebuilds ranking for a stage and a level
+        private async Task RebuildRankingHistoryInternal(
+            List<EntryDto> entries,
+            IDictionary<long, PlayerDto> players,
+            Stage stage,
+            Level level)
+        {
+            // Removes previous ranking history
+            await _sqlContext
+                .DeleteStageLevelRankingHistory(stage.Id, level)
+                .ConfigureAwait(false);
 
             // Groups and sorts by date
             var entriesDateGroup = new SortedList<DateTime, List<EntryDto>>(
@@ -137,7 +196,7 @@ namespace TheEliteExplorerDomain.Providers
                     .Where(kvp => kvp.Key <= rankingDate)
                     .SelectMany(kvp => kvp.Value)
                     .GroupBy(e => e.PlayerId)
-                    .Select(eGroup => eGroup.OrderBy(e => e.Time).First())
+                    .Select(eGroup => eGroup.First(e => e.Time == eGroup.Min(et => et.Time)))
                     .OrderBy(e => e.Time)
                     .ToList();
 
@@ -181,7 +240,7 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         // Gets every player keyed by ID
-        private async Task<Dictionary<long, PlayerDto>> GetPlayers()
+        private async Task<IDictionary<long, PlayerDto>> GetPlayers()
         {
             // TODO: gets also dirty players
             var playersSource = await _sqlContext
@@ -191,7 +250,11 @@ namespace TheEliteExplorerDomain.Providers
             return playersSource.ToDictionary(p => p.Id, p => p);
         }
 
-        private void ManageDateLessEntries(Game game, Dictionary<long, PlayerDto> players, List<EntryDto> entries)
+        // Sets a fake date on emtries without it
+        private void ManageDateLessEntries(
+            Game game,
+            IDictionary<long, PlayerDto> players,
+            List<EntryDto> entries)
         {
             if (_configuration.NoDateEntryRankingRule == NoDateEntryRankingRule.Ignore)
             {
@@ -269,6 +332,7 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
+        // Loops on every stages and levels of a list of entries
         private static IEnumerable<(long, long, IEnumerable<RankingDto>)> LoopByStageAndLevel(
             IEnumerable<RankingDto> rankings)
         {
