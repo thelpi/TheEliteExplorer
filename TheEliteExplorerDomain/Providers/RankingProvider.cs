@@ -117,9 +117,7 @@ namespace TheEliteExplorerDomain.Providers
                     .GroupBy(e => e.Date.Value.Date)
                     .ToDictionary(
                         eGroup => eGroup.Key,
-                        // Descending sort by time is important
-                        // It allows, for a day, to get the best time with "Last()"
-                        eGroup => eGroup.OrderByDescending(e => e.Time).ToList()));
+                        eGroup => eGroup.ToList()));
 
             // Ranking is generated every day
             // if the current day of the loop has at least one new time
@@ -139,7 +137,7 @@ namespace TheEliteExplorerDomain.Providers
                     .Where(kvp => kvp.Key <= rankingDate)
                     .SelectMany(kvp => kvp.Value)
                     .GroupBy(e => e.PlayerId)
-                    .Select(eGroup => eGroup.Last())
+                    .Select(eGroup => eGroup.OrderBy(e => e.Time).First())
                     .OrderBy(e => e.Time)
                     .ToList();
 
