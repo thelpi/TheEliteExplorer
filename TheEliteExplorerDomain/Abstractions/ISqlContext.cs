@@ -40,6 +40,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="requestEntry">Entry to insert.</param>
         /// <param name="gameId">Game identifier.</param>
         /// <returns>Time entry identifier.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="requestEntry"/> is <c>Null</c>.</exception>
         Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry, long gameId);
 
         /// <summary>
@@ -48,6 +49,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <remarks>If <see cref="PlayerDto.JoinDate"/> is specified, it will be rounded without the time part.</remarks>
         /// <param name="dto">The player DTO.</param>
         /// <returns>Player identifier.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dto"/> is <c>Null</c>.</exception>
         Task<long> InsertOrRetrievePlayerAsync(PlayerDto dto);
 
         /// <summary>
@@ -71,6 +73,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <param name="ranking">Ranking data.</param>
         /// <returns>Nothing.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="ranking"/> is <c>Null</c>.</exception>
         Task InsertRankingAsync(RankingDto ranking);
 
         /// <summary>
@@ -78,6 +81,8 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <param name="rankings">Collection of <see cref="RankingDto"/>.</param>
         /// <returns>Nothing.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="rankings"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="rankings"/> is empty.</exception>
         Task BulkInsertRankingsAsync(IReadOnlyCollection<RankingDto> rankings);
 
         /// <summary>
@@ -113,6 +118,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <param name="player">Player information.</param>
         /// <returns>Nothing.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="player"/> is <c>Null</c>.</exception>
         Task UpdatePlayerInformationAsync(PlayerDto player);
 
         /// <summary>
@@ -120,6 +126,14 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <returns>Collection of <see cref="PlayerDto"/>.</returns>
         Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync();
+
+        /// <summary>
+        /// Deletes every entry for a stage and level.
+        /// </summary>
+        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="level">Level.</param>
+        /// <returns>Nothing.</returns>
+        Task DeleteStageLevelEntries(long stageId, Level level);
 
         /// <summary>
         /// Deletes ranking history for a specific stage and level.

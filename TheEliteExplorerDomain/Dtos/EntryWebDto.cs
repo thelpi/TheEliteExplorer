@@ -12,19 +12,8 @@ namespace TheEliteExplorerDomain.Dtos
         /// </summary>
         public string PlayerUrlName { get; set; }
 
-        /// <summary>
-        /// Transforms the instance into <see cref="EntryDto"/>.
-        /// </summary>
-        /// <param name="playerId">Player identifier.</param>
-        /// <returns>Instance of <see cref="EntryDto"/>.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Invalid <paramref name="playerId"/> value.</exception>
-        public EntryDto ToEntry(long playerId)
+        internal EntryDto ToEntry(long playerId)
         {
-            if (playerId < 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(playerId), playerId, $"{nameof(playerId)} is below 1");
-            }
-
             return new EntryDto
             {
                 PlayerId = playerId,

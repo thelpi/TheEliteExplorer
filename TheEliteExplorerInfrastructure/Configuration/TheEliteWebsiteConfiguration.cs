@@ -20,5 +20,9 @@
         /// Ajax URL key.
         /// </summary>
         public string AjaxKey { get; set; }
+        /// <summary>
+        /// Attemps of getting a page content.
+        /// </summary>
+        public int PageAttemps { get; set; }
     }
 }

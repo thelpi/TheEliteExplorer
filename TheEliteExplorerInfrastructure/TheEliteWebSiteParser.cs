@@ -48,37 +48,23 @@ namespace TheEliteExplorerInfrastructure
             }
 
             var htmlDoc = new HtmlDocument();
-            try
-            {
-                htmlDoc.LoadHtml(historyContent);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error while parsing into HTML document the page string content - {ex.Message}");
-            }
+            htmlDoc.LoadHtml(historyContent);
 
             const string timeClass = "time";
 
             HtmlNodeCollection links = htmlDoc.DocumentNode.SelectNodes("//a");
             foreach (HtmlNode link in links)
             {
-                try
-                {
-                    bool useLink = link.Attributes.Contains("class")
-                        && link.Attributes["class"].Value == timeClass;
+                bool useLink = link.Attributes.Contains("class")
+                    && link.Attributes["class"].Value == timeClass;
 
-                    if (useLink)
-                    {
-                        var linkValues = await ExtractTimeLinkDetailsAsync(game, link, minimalDateToScan).ConfigureAwait(false);
-                        if (linkValues != null)
-                        {
-                            linksValues.Add(linkValues);
-                        }
-                    }
-                }
-                catch (Exception ex)
+                if (useLink)
                 {
-                    throw new Exception($"Error while processing the node - {ex.Message}");
+                    var linkValues = await ExtractTimeLinkDetailsAsync(game, link, minimalDateToScan).ConfigureAwait(false);
+                    if (linkValues != null)
+                    {
+                        linksValues.Add(linkValues);
+                    }
                 }
             }
 
@@ -86,7 +72,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntriesAsync(int stageId)
+        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntriesAsync(long stageId)
         {
             var entries = new List<EntryWebDto>();
             var logs = new List<string>();
@@ -94,22 +80,14 @@ namespace TheEliteExplorerInfrastructure
             string pageContent = await GetPageStringContentAsync($"/ajax/stage/{stageId}/{_configuration.AjaxKey}").ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(pageContent))
             {
-                throw new Exception($"Unables to load the page content for stage {stageId}.");
+                throw new FormatException($"Unables to load the page content for stage {stageId}.");
             }
 
-            IReadOnlyCollection<IReadOnlyCollection<object>> jsonContent = null;
-            try
-            {
-                jsonContent = Newtonsoft.Json.JsonConvert.DeserializeObject<IReadOnlyCollection<IReadOnlyCollection<object>>>(pageContent);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"An error occured while parsing the content - {ex.Message}.");
-            }
+            var jsonContent = Newtonsoft.Json.JsonConvert.DeserializeObject<IReadOnlyCollection<IReadOnlyCollection<object>>>(pageContent);
 
             if (jsonContent == null || jsonContent.Count != SystemExtensions.Count<Level>())
             {
-                throw new Exception($"The list of entries by level is invalid.");
+                throw new FormatException($"The list of entries by level is invalid.");
             }
 
             Dictionary<Level, List<long>> links = ExtractEntryIdListFromJsonContent(jsonContent, logs);
@@ -118,15 +96,8 @@ namespace TheEliteExplorerInfrastructure
             {
                 foreach (long entryId in links[levelKey])
                 {
-                    try
-                    {
-                        var entryDetails = await ExtractEntryDetailsAsync(entryId, stageId, levelKey, logs).ConfigureAwait(false);
-                        entries.AddRange(entryDetails);
-                    }
-                    catch (Exception ex)
-                    {
-                        logs.Add($"General exception occured while retrieving entry details - {ex.Message}");
-                    }
+                    var entryDetails = await ExtractEntryDetailsAsync(entryId, stageId, levelKey, logs).ConfigureAwait(false);
+                    entries.AddRange(entryDetails);
                 }
             }
 
@@ -150,14 +121,7 @@ namespace TheEliteExplorerInfrastructure
             }
 
             var htmlDoc = new HtmlDocument();
-            try
-            {
-                htmlDoc.LoadHtml(pageContent);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error while parsing into HTML document the page string content - {ex.Message}");
-            }
+            htmlDoc.LoadHtml(pageContent);
 
             var headFull = htmlDoc.DocumentNode.SelectNodes("//h1");
             var h1Node = headFull.Count > 1 ? headFull[1] : headFull.First();
@@ -208,7 +172,7 @@ namespace TheEliteExplorerInfrastructure
             return p;
         }
 
-        private async Task<List<EntryWebDto>> ExtractEntryDetailsAsync(long entryId, int stageId, Level levelKey, List<string> logs)
+        private async Task<List<EntryWebDto>> ExtractEntryDetailsAsync(long entryId, long stageId, Level levelKey, List<string> logs)
         {
             var finalEntries = new List<EntryWebDto>();
 
@@ -263,7 +227,7 @@ namespace TheEliteExplorerInfrastructure
             return finalEntries;
         }
 
-        private EntryWebDto ExtractEntryFromHead(int stageId, Level levelKey, string timeFromhead, string playerUrlName, string content, List<string> logs)
+        private EntryWebDto ExtractEntryFromHead(long stageId, Level levelKey, string timeFromhead, string playerUrlName, string content, List<string> logs)
         {
             var versionFromHead = "Unknown";
             var dateFromHead = "Unknown";
@@ -314,7 +278,7 @@ namespace TheEliteExplorerInfrastructure
             };
         }
 
-        private IEnumerable<EntryWebDto> ExtractEntriesFromTable(int stageId, Level levelKey, string playerUrlName, string content, List<string> logs)
+        private IEnumerable<EntryWebDto> ExtractEntriesFromTable(long stageId, Level levelKey, string playerUrlName, string content, List<string> logs)
         {
             string tableContent = string.Concat("<table>", content, "</table>");
 
@@ -358,32 +322,25 @@ namespace TheEliteExplorerInfrastructure
             {
                 var entryIdList = new List<long>();
                 entryIdListByLevel.Add(SystemExtensions.Enumerate<Level>().ElementAt(m), entryIdList);
-                try
+                int j = positionOfStart;
+                foreach (object jsonEntry in jsonLevelEntries)
                 {
-                    int j = positionOfStart;
-                    foreach (object jsonEntry in jsonLevelEntries)
+                    if (j % positionOfId == 0)
                     {
-                        if (j % positionOfId == 0)
+                        if (jsonEntry == null)
                         {
-                            if (jsonEntry == null)
-                            {
-                                logs.Add("The JSON entry was null.");
-                            }
-                            else if (!long.TryParse(jsonEntry.ToString(), out long entryId))
-                            {
-                                logs.Add($"The JSON entry was not a long - value: {jsonEntry}");
-                            }
-                            else
-                            {
-                                entryIdList.Add(entryId);
-                            }
+                            logs.Add("The JSON entry was null.");
                         }
-                        j++;
+                        else if (!long.TryParse(jsonEntry.ToString(), out long entryId))
+                        {
+                            logs.Add($"The JSON entry was not a long - value: {jsonEntry}");
+                        }
+                        else
+                        {
+                            entryIdList.Add(entryId);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    logs.Add($"Error while parsing JSON entry - {ex.Message}");
+                    j++;
                 }
                 m++;
             }
@@ -417,7 +374,7 @@ namespace TheEliteExplorerInfrastructure
             {
                 if (stageName != _duelStageName)
                 {
-                    throw new Exception($"Unable to extract the stage ID.");
+                    throw new FormatException($"Unable to extract the stage ID.");
                 }
                 return null;
             }
@@ -430,16 +387,16 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            string playerUrl = null;
-            try
-            {
-                playerUrl = link.ParentNode.ParentNode.ChildNodes[3].ChildNodes.First().Attributes["href"].Value;
-                playerUrl = playerUrl.Replace(playerUrlPrefix, string.Empty).Replace("+", " ");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Unable to extract the player name - {ex.Message}");
-            }
+            string playerUrl = link
+                .ParentNode
+                .ParentNode
+                .ChildNodes[3]
+                .ChildNodes
+                .First()
+                .Attributes["href"]
+                .Value
+                .Replace(playerUrlPrefix, string.Empty)
+                .Replace("+", " ");
 
             if (string.IsNullOrWhiteSpace(playerUrl))
             {
@@ -479,16 +436,7 @@ namespace TheEliteExplorerInfrastructure
         {
             exit = false;
 
-            string dateString = null;
-
-            try
-            {
-                dateString = link.ParentNode.ParentNode.ChildNodes[1].InnerText;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Unable to extract the date - {ex.Message}");
-            }
+            string dateString = link.ParentNode.ParentNode.ChildNodes[1].InnerText;
 
             if (string.IsNullOrWhiteSpace(dateString))
             {
@@ -549,11 +497,10 @@ namespace TheEliteExplorerInfrastructure
         private async Task<string> GetPageStringContentAsync(string partUri)
         {
             var uri = new Uri(string.Concat(_configuration.BaseUri, partUri));
-
-            const int maxAttemps = 5;
+            
             string data = null;
-            int attemps = 1;
-            while (attemps <= maxAttemps)
+            int attemps = 0;
+            while (attemps < _configuration.PageAttemps)
             {
                 using (var webClient = new WebClient())
                 {
@@ -562,15 +509,15 @@ namespace TheEliteExplorerInfrastructure
                         data = await webClient
                             .DownloadStringTaskAsync(uri)
                             .ConfigureAwait(false);
-                        attemps = maxAttemps + 1;
+                        attemps = _configuration.PageAttemps;
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        if (attemps == maxAttemps)
-                        {
-                            throw new Exception($"Error while downloading content of the page {uri.OriginalString} - {ex.Message}");
-                        }
                         attemps++;
+                        if (attemps == _configuration.PageAttemps)
+                        {
+                            throw;
+                        }
                     }
                 }
             }

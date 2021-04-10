@@ -66,12 +66,22 @@ namespace TheEliteExplorerDomain.Models
         }
 
         /// <summary>
-        /// Gets every stages of every games.
+        /// Gets every stage of every game.
         /// </summary>
         /// <returns>Collection of <see cref="Stage"/>.</returns>
         public static IReadOnlyCollection<Stage> Get()
         {
             return SystemExtensions.Enumerate<Game>().SelectMany(Get).ToList();
+        }
+
+        /// <summary>
+        /// Gets a single stage by its identifier.
+        /// </summary>
+        /// <param name="stageId">Stage identifier.</param>
+        /// <returns>The stage or <c>Null</c>.</returns>
+        public static Stage Get(long stageId)
+        {
+            return SystemExtensions.Enumerate<Game>().SelectMany(Get).FirstOrDefault(s => s.Id == stageId);
         }
 
         private Stage(Game game, string name, int position)

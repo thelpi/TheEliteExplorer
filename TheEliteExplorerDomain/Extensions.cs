@@ -32,7 +32,13 @@ namespace TheEliteExplorerDomain
         private static readonly Dictionary<string, ControlStyle> _controlStyleConverters = new Dictionary<string, ControlStyle>
         {
             { "1.1", ControlStyle.OnePointOne },
-            { "1.2", ControlStyle.OnePointTwo }
+            { "1.2", ControlStyle.OnePointTwo },
+            { "1.3", ControlStyle.OnePointThree },
+            { "1.4", ControlStyle.OnePointFour },
+            { "2.1", ControlStyle.TwoPointOne },
+            { "2.2", ControlStyle.TwoPointTwo },
+            { "2.3", ControlStyle.TwoPointThree },
+            { "2.4", ControlStyle.TwoPointFour }
         };
 
         /// <summary>

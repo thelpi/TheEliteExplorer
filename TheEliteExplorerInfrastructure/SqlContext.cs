@@ -38,6 +38,7 @@ namespace TheEliteExplorerInfrastructure
         private const string _deleteRankingPsName = "delete_ranking";
         private const string _updatePlayerPsName = "update_player";
         private const string _getEntriesByGamePsName = "select_all_entry";
+        private const string _deleteStageLevelEntriesPsName = "delete_entry";
 
         private const string ColSeparator = ",";
         private const string RowSeparator = "\r\n";
@@ -63,6 +64,24 @@ namespace TheEliteExplorerInfrastructure
             _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
             _cacheConfiguration = cacheConfiguration?.Value ?? throw new ArgumentNullException(nameof(cacheConfiguration));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteStageLevelEntries(long stageId, Level level)
+        {
+            using (var connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection
+                    .QueryAsync(
+                        ToPsName(_deleteStageLevelEntriesPsName),
+                        new
+                        {
+                            stage_id = stageId,
+                            level_id = (long)level
+                        },
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
+            }
         }
 
         /// <inheritdoc />
@@ -110,6 +129,11 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry, long gameId)
         {
+            if (requestEntry == null)
+            {
+                throw new ArgumentNullException(nameof(requestEntry));
+            }
+
             IReadOnlyCollection<EntryDto> entries = await GetEntriesAsync(
                 requestEntry.StageId,
                 (Level)requestEntry.LevelId,
@@ -150,6 +174,11 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task<long> InsertOrRetrievePlayerAsync(PlayerDto dto)
         {
+            if (dto == null)
+            {
+                throw new ArgumentNullException(nameof(dto));
+            }
+
             return await InsertOrRetrievePlayerInternalAsync(dto.UrlName, dto.RealName, dto.SurName, dto.Color, dto.ControlStyle, false, dto.JoinDate).ConfigureAwait(false);
         }
 
@@ -176,6 +205,11 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task InsertRankingAsync(RankingDto ranking)
         {
+            if (ranking == null)
+            {
+                throw new ArgumentNullException(nameof(ranking));
+            }
+
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 await connection.QueryAsync(
@@ -196,6 +230,16 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task BulkInsertRankingsAsync(IReadOnlyCollection<RankingDto> rankings)
         {
+            if (rankings == null)
+            {
+                throw new ArgumentNullException(nameof(rankings));
+            }
+
+            if (rankings.Count == 0)
+            {
+                throw new ArgumentException($"{nameof(rankings)} is empty.", nameof(rankings));
+            }
+
             var itemsColumns = rankings
                 .Select(r => new[]
                 {
@@ -266,6 +310,11 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task UpdatePlayerInformationAsync(PlayerDto player)
         {
+            if (player == null)
+            {
+                throw new ArgumentNullException(nameof(player));
+            }
+
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 await connection.QueryAsync(

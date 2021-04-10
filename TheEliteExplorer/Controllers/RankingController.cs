@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerCommon;
@@ -44,31 +44,42 @@ namespace TheEliteExplorer.Controllers
         /// <param name="count">Items count by page.</param>
         /// <returns>Paginated collection of <see cref="RankingEntry"/>.</returns>
         [HttpGet("games/{game}/rankings/{date}")]
-        public async Task<PaginatedCollection<RankingEntry>> GetRankingAsync(
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<ActionResult<PaginatedCollection<RankingEntry>>> GetRankingAsync(
             [FromRoute] Game game,
-            [FromRoute] string date,
+            [FromRoute] DateTime? date,
             [FromQuery] int page,
             [FromQuery] int count)
         {
             var rankingEntries = await _rankingProvider
-                .GetRankingEntries(game, ValidateDateParameter(date))
+                .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now)
                 .ConfigureAwait(false);
 
-            return PaginatedCollection<RankingEntry>.CreateInstance(rankingEntries, page, count);
+            return Ok(PaginatedCollection<RankingEntry>.CreateInstance(rankingEntries, page, count));
         }
 
         /// <summary>
         /// Builds or rebuilds the ranking history for a single stage and a single level.
         /// </summary>
-        /// <param name="stage">The stage identifier.</param>
+        /// <param name="stageId">The stage identifier.</param>
         /// <param name="level">The level.</param>
         /// <returns>Nothing.</returns>
-        [HttpPost("stages/{stage}/levels/{level}/rankings")]
-        public async Task RebuildRankingHistory([FromRoute] long stage, [FromRoute] Level level)
+        [HttpPost("stages/{stageId}/levels/{level}/rankings")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> RebuildRankingHistory([FromRoute] long stageId, [FromRoute] Level level)
         {
+            var stage = Stage.Get(stageId);
+            if (stage == null)
+            {
+                return BadRequest();
+            }
+
             await _rankingProvider
-                .RebuildRankingHistory(Stage.Get().Single(s => s.Id == stage), level)
+                .RebuildRankingHistory(stage, level)
                 .ConfigureAwait(false);
+
+            return NoContent();
         }
 
         /// <summary>
@@ -77,11 +88,14 @@ namespace TheEliteExplorer.Controllers
         /// <param name="game">The game.</param>
         /// <returns>Nothing.</returns>
         [HttpPost("games/{game}/rankings")]
-        public async Task RebuildRankingHistory([FromRoute] Game game)
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> RebuildRankingHistory([FromRoute] Game game)
         {
             await _rankingProvider
                 .RebuildRankingHistory(game)
                 .ConfigureAwait(false);
+
+            return NoContent();
         }
 
         /// <summary>
@@ -93,22 +107,18 @@ namespace TheEliteExplorer.Controllers
         /// <param name="endDate">End date.</param>
         /// <returns>Collection of untied sweeps.</returns>
         [HttpGet("games/{game}/sweeps")]
-        public async Task<IReadOnlyCollection<StageSweep>> GetSweeps(
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<ActionResult<IReadOnlyCollection<StageSweep>>> GetSweeps(
             [FromRoute] Game game,
             [FromQuery][Required] bool untied,
             [FromQuery] DateTime? startDate,
             [FromQuery] DateTime? endDate)
         {
-            return await _stageSweepProvider
+            var sweeps = await _stageSweepProvider
                 .GetSweepsAsync(game, untied, startDate, endDate)
                 .ConfigureAwait(false);
-        }
 
-        private DateTime ValidateDateParameter(string date)
-        {
-            return DateTime.TryParse(date, out DateTime realDate)
-                ? realDate
-                : ServiceProviderAccessor.ClockProvider.Now;
+            return Ok(sweeps);
         }
     }
 }

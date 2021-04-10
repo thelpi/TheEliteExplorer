@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Converters;
 using TheEliteExplorerCommon;
-using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Providers;
@@ -61,6 +59,7 @@ namespace TheEliteExplorer
                 .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()
                 .AddSingleton<IStageSweepProvider, StageSweepProvider>()
                 .AddSingleton<IRankingProvider, RankingProvider>()
+                .AddSingleton<IIntegrationProvider, IntegrationProvider>()
                 .AddDistributedMemoryCache();
         }
 

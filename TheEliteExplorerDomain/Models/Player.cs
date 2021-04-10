@@ -34,7 +34,7 @@ namespace TheEliteExplorerDomain.Models
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="dto">Player DTO.</param>
+        /// <param name="dto">Instance of <see cref="PlayerDto"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="dto"/> is <c>Null</c>.</exception>
         public Player(PlayerDto dto)
         {

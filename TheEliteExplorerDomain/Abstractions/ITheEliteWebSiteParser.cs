@@ -29,7 +29,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <param name="stageId">Stage identifier.</param>
         /// <returns>List of <see cref="EntryWebDto"/>.</returns>
-        Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntriesAsync(int stageId);
+        Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntriesAsync(long stageId);
 
         /// <summary>
         /// Gets information about a player.

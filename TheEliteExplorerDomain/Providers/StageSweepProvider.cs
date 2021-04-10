@@ -18,7 +18,7 @@ namespace TheEliteExplorerDomain.Providers
         private readonly ISqlContext _sqlContext;
 
         /// <summary>
-        /// Ctor.
+        /// Constructor.
         /// </summary>
         /// <param name="sqlContext">SQL context.</param>
         /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
@@ -28,7 +28,11 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<StageSweep>> GetSweepsAsync(Game game, bool untied, DateTime? startDate, DateTime? endDate)
+        public async Task<IReadOnlyCollection<StageSweep>> GetSweepsAsync(
+            Game game,
+            bool untied,
+            DateTime? startDate,
+            DateTime? endDate)
         {
             if (startDate > endDate)
             {

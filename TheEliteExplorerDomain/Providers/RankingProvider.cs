@@ -28,7 +28,8 @@ namespace TheEliteExplorerDomain.Providers
         /// <param name="sqlContext">Players base list.</param>
         /// <exception cref="ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
-        public RankingProvider(IOptions<RankingConfiguration> configuration,
+        public RankingProvider(
+            IOptions<RankingConfiguration> configuration,
             ISqlContext sqlContext)
         {
             _configuration = configuration?.Value ?? throw new ArgumentNullException(nameof(configuration));
@@ -36,7 +37,9 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<RankingEntry>> GetRankingEntries(Game game, DateTime rankingDate)
+        public async Task<IReadOnlyCollection<RankingEntry>> GetRankingEntries(
+            Game game,
+            DateTime rankingDate)
         {
             rankingDate = rankingDate.Date;
 
@@ -86,7 +89,8 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task RebuildRankingHistory(Game game)
+        public async Task RebuildRankingHistory(
+            Game game)
         {
             var players = await GetPlayers()
                 .ConfigureAwait(false);
@@ -109,7 +113,9 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task RebuildRankingHistory(Stage stage, Level level)
+        public async Task RebuildRankingHistory(
+            Stage stage,
+            Level level)
         {
             if (stage == null)
             {
