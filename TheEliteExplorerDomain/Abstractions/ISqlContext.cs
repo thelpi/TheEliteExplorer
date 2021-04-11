@@ -28,11 +28,11 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, Level level, DateTime? startDate, DateTime? endDate);
 
         /// <summary>
-        /// Gets every entry for a specified game.
+        /// Gets every entry for a specified stage.
         /// </summary>
-        /// <param name="gameId">Game identifier.</param>
+        /// <param name="stageId">Stage identifier.</param>
         /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
-        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long gameId);
+        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId);
 
         /// <summary>
         /// Insert a time entry, or retrieves it if the tuple [playerId / levelId / stageId / time / systemId] already exists.

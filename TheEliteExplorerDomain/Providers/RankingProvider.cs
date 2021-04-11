@@ -138,21 +138,28 @@ namespace TheEliteExplorerDomain.Providers
             (Stage Stage, Level Level)? stageAndLevel,
             IDictionary<long, PlayerDto> players)
         {
-            IReadOnlyCollection<EntryDto> entriesSource;
+            var entriesSource = new List<EntryDto>();
 
             if (stageAndLevel.HasValue)
             {
                 // Gets every entry for the stage and level
-                entriesSource = await _sqlContext
+                var tmpEntriesSource = await _sqlContext
                     .GetEntriesAsync(stageAndLevel.Value.Stage.Id, stageAndLevel.Value.Level, null, null)
                     .ConfigureAwait(false);
+
+                entriesSource.AddRange(tmpEntriesSource);
             }
             else
             {
                 // Gets every entry for the game
-                entriesSource = await _sqlContext
-                    .GetEntriesAsync((long)game.Value)
-                    .ConfigureAwait(false);
+                foreach (var stage in Stage.Get(game.Value))
+                {
+                    var entriesStageSource = await _sqlContext
+                        .GetEntriesAsync(stage.Id)
+                        .ConfigureAwait(false);
+
+                    entriesSource.AddRange(entriesStageSource);
+                }
             }
 
             // Entries not related to players are excluded

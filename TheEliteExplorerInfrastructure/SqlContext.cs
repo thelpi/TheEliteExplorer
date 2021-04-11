@@ -22,7 +22,7 @@ namespace TheEliteExplorerInfrastructure
     {
         private const string _getPlayersCacheKey = "players";
         private const string _getEntriesCacheKeyFormat = "entries_{0}_{1}"; // stageId, levelId
-        private const string _getAllEntriesCacheKeyFormat = "entries_all_{0}"; // gameId
+        private const string _getAllEntriesCacheKeyFormat = "entries_all_{0}"; // stageId
 
         private const string _getRankingsPsName = "select_ranking";
         private const string _getEveryPlayersPsName = "select_player";
@@ -81,17 +81,17 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long gameId)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId)
         {
             if (!_cacheConfiguration.Enabled)
             {
-                return await GetEntriesWithoutCacheAsync(gameId).ConfigureAwait(false);
+                return await GetEntriesWithoutCacheAsync(stageId).ConfigureAwait(false);
             }
 
             return await _cache.GetOrSetFromCacheAsync(
-                string.Format(_getAllEntriesCacheKeyFormat, gameId),
+                string.Format(_getAllEntriesCacheKeyFormat, stageId),
                 GetCacheOptions(),
-                () => GetEntriesWithoutCacheAsync(gameId));
+                () => GetEntriesWithoutCacheAsync(stageId));
         }
 
         /// <inheritdoc />
@@ -478,27 +478,20 @@ namespace TheEliteExplorerInfrastructure
             return entries;
         }
 
-        private async Task<List<EntryDto>> GetEntriesWithoutCacheAsync(long gameId)
+        private async Task<List<EntryDto>> GetEntriesWithoutCacheAsync(long stageId)
         {
-            var entries = new List<EntryDto>();
-
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 var results = await connection.QueryAsync<EntryDto>(
                    ToPsName(_getEntriesByGamePsName),
                    new
                    {
-                       game_id = gameId
+                       stage_id = stageId
                    },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
 
-                if (results != null)
-                {
-                    entries.AddRange(results);
-                }
+                return results.ToList();
             }
-
-            return entries;
         }
 
         private async Task BulkInsertInternalAsync(IReadOnlyCollection<string[]> itemsColumns, string tableName)

@@ -121,11 +121,18 @@ namespace TheEliteExplorerDomain.Providers
 
         private async Task<Dictionary<(long StageId, long LevelId), List<Dtos.EntryDto>>> GetEntriesGroupByStageAndLevel(Game game)
         {
-            var entries = await _sqlContext
-                            .GetEntriesAsync((long)game)
-                            .ConfigureAwait(false);
+            var fullEntries = new List<Dtos.EntryDto>();
 
-            var groupEntries = entries
+            foreach (var stage in Stage.Get(game))
+            {
+                var entries = await _sqlContext
+                    .GetEntriesAsync(stage.Id)
+                    .ConfigureAwait(false);
+
+                fullEntries.AddRange(entries);
+            }
+
+            var groupEntries = fullEntries
                 .Where(e => e.Date.HasValue)
                 .GroupBy(e => (e.StageId, e.LevelId))
                 .ToDictionary(e => e.Key, e => e.ToList());
