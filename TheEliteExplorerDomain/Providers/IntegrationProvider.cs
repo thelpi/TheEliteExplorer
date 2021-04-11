@@ -38,7 +38,7 @@ namespace TheEliteExplorerDomain.Providers
             Game game)
         {
             var players = await _sqlContext
-                .GetPlayersAsync()
+                .GetPlayers()
                 .ConfigureAwait(false);
 
             foreach (var player in  players)
@@ -58,7 +58,7 @@ namespace TheEliteExplorerDomain.Providers
 
                     foreach (var entry in entries)
                     {
-                        await CreateEntryAsync(entry, game)
+                        await CreateEntry(entry, game)
                             .ConfigureAwait(false);
                     }
                 }
@@ -71,7 +71,7 @@ namespace TheEliteExplorerDomain.Providers
             long playerId)
         {
             var players = await _sqlContext
-                .GetPlayersAsync()
+                .GetPlayers()
                 .ConfigureAwait(false);
 
             var player = players.FirstOrDefault(p => p.Id == playerId);
@@ -95,7 +95,7 @@ namespace TheEliteExplorerDomain.Providers
 
                 foreach (var entry in entries)
                 {
-                    await CreateEntryAsync(entry, game)
+                    await CreateEntry(entry, game)
                         .ConfigureAwait(false);
                 }
             }
@@ -106,7 +106,7 @@ namespace TheEliteExplorerDomain.Providers
         {
             // TODO: ignore players permanently without sheet
             var players = await _sqlContext
-                .GetDirtyPlayersAsync()
+                .GetDirtyPlayers()
                 .ConfigureAwait(false);
 
             foreach (var p in players)
@@ -119,7 +119,7 @@ namespace TheEliteExplorerDomain.Providers
                 {
                     pInfo.Id = p.Id;
                     await _sqlContext
-                        .UpdatePlayerInformationAsync(pInfo)
+                        .UpdatePlayerInformation(pInfo)
                         .ConfigureAwait(false);
                 }
             }
@@ -141,7 +141,7 @@ namespace TheEliteExplorerDomain.Providers
 
                 foreach (var entry in results)
                 {
-                    await CreateEntryAsync(entry, game).ConfigureAwait(false);
+                    await CreateEntry(entry, game).ConfigureAwait(false);
                 }
             }
         }
@@ -153,7 +153,7 @@ namespace TheEliteExplorerDomain.Providers
             if (!startDate.HasValue)
             {
                 startDate = await _sqlContext
-                    .GetLatestEntryDateAsync()
+                    .GetLatestEntryDate()
                     .ConfigureAwait(false);
 
                 if (!startDate.HasValue)
@@ -165,16 +165,16 @@ namespace TheEliteExplorerDomain.Providers
             return startDate.Value;
         }
 
-        private async Task CreateEntryAsync(
+        private async Task CreateEntry(
             EntryWebDto entry,
             Game game)
         {
             var playerId = await _sqlContext
-                .InsertOrRetrievePlayerDirtyAsync(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
+                .InsertOrRetrievePlayerDirty(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
                 .ConfigureAwait(false);
 
             await _sqlContext
-                .InsertOrRetrieveTimeEntryAsync(entry.ToEntry(playerId), (long)game)
+                .InsertOrRetrieveTimeEntry(entry.ToEntry(playerId), (long)game)
                 .ConfigureAwait(false);
         }
     }

@@ -145,7 +145,7 @@ namespace TheEliteExplorerDomain.Providers
             {
                 // Gets every entry for the stage and level
                 var tmpEntriesSource = await _sqlContext
-                    .GetEntriesAsync(stageAndLevel.Value.Stage.Id, stageAndLevel.Value.Level, null, null)
+                    .GetEntries(stageAndLevel.Value.Stage.Id, stageAndLevel.Value.Level, null, null)
                     .ConfigureAwait(false);
 
                 entriesSource.AddRange(tmpEntriesSource);
@@ -156,7 +156,7 @@ namespace TheEliteExplorerDomain.Providers
                 foreach (var stage in Stage.Get(game.Value))
                 {
                     var entriesStageSource = await _sqlContext
-                        .GetEntriesAsync(stage.Id)
+                        .GetEntries(stage.Id)
                         .ConfigureAwait(false);
 
                     entriesSource.AddRange(entriesStageSource);
@@ -249,7 +249,7 @@ namespace TheEliteExplorerDomain.Providers
             }
 
             await _sqlContext
-                .BulkInsertRankingsAsync(rankingsToInsert)
+                .BulkInsertRankings(rankingsToInsert)
                 .ConfigureAwait(false);
         }
 
@@ -258,7 +258,7 @@ namespace TheEliteExplorerDomain.Providers
         {
             // TODO: gets also dirty players
             var playersSource = await _sqlContext
-                .GetPlayersAsync()
+                .GetPlayers()
                 .ConfigureAwait(false);
             
             return playersSource.ToDictionary(p => p.Id, p => p);

@@ -39,6 +39,8 @@ namespace TheEliteExplorerInfrastructure
         private const string _deletePlayerEntriesPsName = "delete_player_entry";
         private const string _updatePlayerPsName = "update_player";
         private const string _getEntriesByGamePsName = "select_all_entry";
+        private const string _deleteStageLevelWrPsName = "delete_stage_level_wr";
+        private const string _insertStageLevelWrPsName = "insert_wr";
 
         private const string ColSeparator = ",";
         private const string RowSeparator = "\r\n";
@@ -67,56 +69,56 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId, Level level, DateTime? startDate, DateTime? endDate)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntries(long stageId, Level level, DateTime? startDate, DateTime? endDate)
         {
             if (!_cacheConfiguration.Enabled || startDate.HasValue || endDate.HasValue)
             {
-                return await GetEntriesWithoutCacheAsync(stageId, level, startDate, endDate).ConfigureAwait(false);
+                return await GetEntriesWithoutCache(stageId, level, startDate, endDate).ConfigureAwait(false);
             }
 
-            return await _cache.GetOrSetFromCacheAsync(
+            return await _cache.GetOrSetFromCache(
                 string.Format(_getEntriesCacheKeyFormat, stageId, level),
                 GetCacheOptions(),
-                () => GetEntriesWithoutCacheAsync(stageId, level, null, null));
+                () => GetEntriesWithoutCache(stageId, level, null, null));
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(long stageId)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntries(long stageId)
         {
             if (!_cacheConfiguration.Enabled)
             {
-                return await GetEntriesWithoutCacheAsync(stageId).ConfigureAwait(false);
+                return await GetEntriesWithoutCache(stageId).ConfigureAwait(false);
             }
 
-            return await _cache.GetOrSetFromCacheAsync(
+            return await _cache.GetOrSetFromCache(
                 string.Format(_getAllEntriesCacheKeyFormat, stageId),
                 GetCacheOptions(),
-                () => GetEntriesWithoutCacheAsync(stageId));
+                () => GetEntriesWithoutCache(stageId));
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<PlayerDto>> GetPlayersAsync()
+        public async Task<IReadOnlyCollection<PlayerDto>> GetPlayers()
         {
             if (!_cacheConfiguration.Enabled)
             {
-                return await GetPlayersWithoutCacheAsync(false).ConfigureAwait(false);
+                return await GetPlayersWithoutCache(false).ConfigureAwait(false);
             }
 
-            return await _cache.GetOrSetFromCacheAsync(
+            return await _cache.GetOrSetFromCache(
                 _getPlayersCacheKey,
                 GetCacheOptions(),
-                () => GetPlayersWithoutCacheAsync(false));
+                () => GetPlayersWithoutCache(false));
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertOrRetrieveTimeEntryAsync(EntryDto requestEntry, long gameId)
+        public async Task<long> InsertOrRetrieveTimeEntry(EntryDto requestEntry, long gameId)
         {
             if (requestEntry == null)
             {
                 throw new ArgumentNullException(nameof(requestEntry));
             }
 
-            IReadOnlyCollection<EntryDto> entries = await GetEntriesAsync(
+            IReadOnlyCollection<EntryDto> entries = await GetEntries(
                 requestEntry.StageId,
                 (Level)requestEntry.LevelId,
                 requestEntry.Date?.Date,
@@ -130,7 +132,7 @@ namespace TheEliteExplorerInfrastructure
                 return match.Id;
             }
 
-            long entryid = await InsertAndGetIdAsync(
+            long entryid = await InsertAndGetId(
                 _insertEntryPsName,
                 new
                 {
@@ -154,24 +156,24 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertOrRetrievePlayerAsync(PlayerDto dto)
+        public async Task<long> InsertOrRetrievePlayer(PlayerDto dto)
         {
             if (dto == null)
             {
                 throw new ArgumentNullException(nameof(dto));
             }
 
-            return await InsertOrRetrievePlayerInternalAsync(dto.UrlName, dto.RealName, dto.SurName, dto.Color, dto.ControlStyle, false, dto.JoinDate).ConfigureAwait(false);
+            return await InsertOrRetrievePlayerInternal(dto.UrlName, dto.RealName, dto.SurName, dto.Color, dto.ControlStyle, false, dto.JoinDate).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertOrRetrievePlayerDirtyAsync(string urlName, DateTime? joinDate, string defaultHexColor)
+        public async Task<long> InsertOrRetrievePlayerDirty(string urlName, DateTime? joinDate, string defaultHexColor)
         {
-            return await InsertOrRetrievePlayerInternalAsync(urlName, urlName, urlName, defaultHexColor, null, true, joinDate).ConfigureAwait(false);
+            return await InsertOrRetrievePlayerInternal(urlName, urlName, urlName, defaultHexColor, null, true, joinDate).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<DateTime?> GetLatestEntryDateAsync()
+        public async Task<DateTime?> GetLatestEntryDate()
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -185,7 +187,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task InsertRankingAsync(RankingDto ranking)
+        public async Task InsertRanking(RankingDto ranking)
         {
             if (ranking == null)
             {
@@ -210,7 +212,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task BulkInsertRankingsAsync(IReadOnlyCollection<RankingDto> rankings)
+        public async Task BulkInsertRankings(IReadOnlyCollection<RankingDto> rankings)
         {
             if (rankings == null)
             {
@@ -234,11 +236,11 @@ namespace TheEliteExplorerInfrastructure
                 })
                 .ToList();
 
-            await BulkInsertInternalAsync(itemsColumns, "ranking");
+            await BulkInsertInternal(itemsColumns, "ranking");
         }
 
         /// <inheritdoc />
-        public async Task<DateTime?> GetLatestRankingDateAsync(Game game)
+        public async Task<DateTime?> GetLatestRankingDate(Game game)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -250,7 +252,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<DuplicatePlayerDto>> GetDuplicatePlayersAsync()
+        public async Task<IReadOnlyCollection<DuplicatePlayerDto>> GetDuplicatePlayers()
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -262,7 +264,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task DeletePlayerAsync(long id)
+        public async Task DeletePlayer(long id)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -274,7 +276,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task UpdatePlayerEntriesAsync(long currentPlayerId, long newPlayerId)
+        public async Task UpdatePlayerEntries(long currentPlayerId, long newPlayerId)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -290,7 +292,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task UpdatePlayerInformationAsync(PlayerDto player)
+        public async Task UpdatePlayerInformation(PlayerDto player)
         {
             if (player == null)
             {
@@ -314,9 +316,9 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync()
+        public async Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayers()
         {
-            return await GetPlayersWithoutCacheAsync(true).ConfigureAwait(false);
+            return await GetPlayersWithoutCache(true).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -371,6 +373,43 @@ namespace TheEliteExplorerInfrastructure
             }
         }
 
+        /// <inheritdoc />
+        public async Task InsertWr(long stageId, Level level, long playerId, DateTime date, long time, bool untied, bool firstTied)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection.QueryAsync(
+                    ToPsName(_insertStageLevelWrPsName),
+                    new
+                    {
+                        stage_id = stageId,
+                        level_id = (long)level,
+                        player_id = playerId,
+                        date,
+                        time,
+                        untied,
+                        first_tied = firstTied
+                    },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteStageLevelWr(long stageId, Level level)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection.QueryAsync(
+                    ToPsName(_deleteStageLevelWrPsName),
+                    new
+                    {
+                        stage_id = stageId,
+                        level_id = (long)level
+                    },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+            }
+        }
+
         private string ToPsName(string baseName)
         {
             return $"[dbo].[{baseName}]";
@@ -382,7 +421,7 @@ namespace TheEliteExplorerInfrastructure
                 .SetSlidingExpiration(TimeSpan.FromMinutes(_cacheConfiguration.MinutesBeforeExpiration));
         }
 
-        private async Task<List<PlayerDto>> GetPlayersWithoutCacheAsync(bool isDirty)
+        private async Task<List<PlayerDto>> GetPlayersWithoutCache(bool isDirty)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -398,10 +437,10 @@ namespace TheEliteExplorerInfrastructure
             }
         }
 
-        private async Task<long> InsertOrRetrievePlayerInternalAsync(string urlName, string realName, string surname, string color, string controlStyle, bool isDirty, DateTime? joinDate)
+        private async Task<long> InsertOrRetrievePlayerInternal(string urlName, string realName, string surname, string color, string controlStyle, bool isDirty, DateTime? joinDate)
         {
-            var players = await GetPlayersWithoutCacheAsync(false).ConfigureAwait(false);
-            var dirtyPlayers = await GetPlayersWithoutCacheAsync(true).ConfigureAwait(false);
+            var players = await GetPlayersWithoutCache(false).ConfigureAwait(false);
+            var dirtyPlayers = await GetPlayersWithoutCache(true).ConfigureAwait(false);
 
             var match = players
                 .Concat(dirtyPlayers)
@@ -412,7 +451,7 @@ namespace TheEliteExplorerInfrastructure
                 return match.Id;
             }
 
-            long id = await InsertAndGetIdAsync(
+            long id = await InsertAndGetId(
                 _insertPlayerPsName,
                 new
                 {
@@ -435,7 +474,7 @@ namespace TheEliteExplorerInfrastructure
             return id;
         }
 
-        private async Task<long> InsertAndGetIdAsync(string psNameBase, object lambdaParameters)
+        private async Task<long> InsertAndGetId(string psNameBase, object lambdaParameters)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -452,7 +491,7 @@ namespace TheEliteExplorerInfrastructure
             }
         }
 
-        private async Task<List<EntryDto>> GetEntriesWithoutCacheAsync(long stageId, Level level, DateTime? startDate, DateTime? endDate)
+        private async Task<List<EntryDto>> GetEntriesWithoutCache(long stageId, Level level, DateTime? startDate, DateTime? endDate)
         {
             var entries = new List<EntryDto>();
 
@@ -478,7 +517,7 @@ namespace TheEliteExplorerInfrastructure
             return entries;
         }
 
-        private async Task<List<EntryDto>> GetEntriesWithoutCacheAsync(long stageId)
+        private async Task<List<EntryDto>> GetEntriesWithoutCache(long stageId)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -494,7 +533,7 @@ namespace TheEliteExplorerInfrastructure
             }
         }
 
-        private async Task BulkInsertInternalAsync(IReadOnlyCollection<string[]> itemsColumns, string tableName)
+        private async Task BulkInsertInternal(IReadOnlyCollection<string[]> itemsColumns, string tableName)
         {
             using (var sw = new StreamWriter(DataFilePath))
             {

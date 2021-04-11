@@ -126,7 +126,7 @@ namespace TheEliteExplorerDomain.Providers
             foreach (var stage in Stage.Get(game))
             {
                 var entries = await _sqlContext
-                    .GetEntriesAsync(stage.Id)
+                    .GetEntries(stage.Id)
                     .ConfigureAwait(false);
 
                 fullEntries.AddRange(entries);
@@ -142,7 +142,7 @@ namespace TheEliteExplorerDomain.Providers
         private async Task<Dictionary<long, Dtos.PlayerDto>> GetPlayersDictionary()
         {
             var players = await _sqlContext
-                            .GetPlayersAsync()
+                            .GetPlayers()
                             .ConfigureAwait(false);
 
             var playerKeys = players.ToDictionary(p => p.Id, p => p);

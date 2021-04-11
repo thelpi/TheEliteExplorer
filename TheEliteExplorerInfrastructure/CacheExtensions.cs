@@ -24,21 +24,21 @@ namespace TheEliteExplorerInfrastructure
         /// <param name="options">Cache options.</param>
         /// <param name="getWithoutCacheDelegate">Delegate to retrieve data from the original source.</param>
         /// <returns>The data.</returns>
-        internal static async Task<T> GetOrSetFromCacheAsync<T>(
+        internal static async Task<T> GetOrSetFromCache<T>(
             this IDistributedCache cache,
             string cacheKey,
             DistributedCacheEntryOptions options,
             Func<Task<T>> getWithoutCacheDelegate)
             where T : class, new()
         {
-            T datas = await cache.GetFromCacheAsync<T>(cacheKey).ConfigureAwait(false);
+            T datas = await cache.GetFromCache<T>(cacheKey).ConfigureAwait(false);
             if (datas == null)
             {
                 SemaphoreSlim semaphore = _semaphores.GetOrAdd(cacheKey, new SemaphoreSlim(1, 1));
                 await semaphore.WaitAsync().ConfigureAwait(false);
                 try
                 {
-                    datas = await cache.GetFromCacheAsync<T>(cacheKey).ConfigureAwait(false);
+                    datas = await cache.GetFromCache<T>(cacheKey).ConfigureAwait(false);
                     if (datas == null)
                     {
                         datas = await getWithoutCacheDelegate().ConfigureAwait(false);
@@ -57,7 +57,7 @@ namespace TheEliteExplorerInfrastructure
             return datas;
         }
 
-        private static async Task<T> GetFromCacheAsync<T>(this IDistributedCache cache, string cacheKey) where T : new()
+        private static async Task<T> GetFromCache<T>(this IDistributedCache cache, string cacheKey) where T : new()
         {
             var bytesFromCache = await cache.GetAsync(cacheKey).ConfigureAwait(false);
             if (bytesFromCache != null && bytesFromCache.Length > 0)

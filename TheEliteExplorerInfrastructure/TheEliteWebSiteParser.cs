@@ -85,7 +85,7 @@ namespace TheEliteExplorerInfrastructure
 
             string uri = string.Format(_configuration.HistoryPage, year, month);
 
-            string historyContent = await GetPageStringContentAsync(uri)
+            string historyContent = await GetPageStringContent(uri)
                 .ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(historyContent))
@@ -106,7 +106,7 @@ namespace TheEliteExplorerInfrastructure
 
                 if (useLink)
                 {
-                    var linkValues = await ExtractTimeLinkDetailsAsync(game, link, minimalDateToScan).ConfigureAwait(false);
+                    var linkValues = await ExtractTimeLinkDetails(game, link, minimalDateToScan).ConfigureAwait(false);
                     if (linkValues != null)
                     {
                         linksValues.Add(linkValues);
@@ -123,7 +123,7 @@ namespace TheEliteExplorerInfrastructure
             var entries = new List<EntryWebDto>();
             var logs = new List<string>();
 
-            string pageContent = await GetPageStringContentAsync($"/ajax/stage/{stageId}/{_configuration.AjaxKey}").ConfigureAwait(false);
+            string pageContent = await GetPageStringContent($"/ajax/stage/{stageId}/{_configuration.AjaxKey}").ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(pageContent))
             {
                 throw new FormatException($"Unables to load the page content for stage {stageId}.");
@@ -142,7 +142,7 @@ namespace TheEliteExplorerInfrastructure
             {
                 foreach (long entryId in links[levelKey])
                 {
-                    var entryDetails = await ExtractEntryDetailsAsync(entryId, stageId, levelKey, logs).ConfigureAwait(false);
+                    var entryDetails = await ExtractEntryDetails(entryId, stageId, levelKey, logs).ConfigureAwait(false);
                     entries.AddRange(entryDetails);
                 }
             }
@@ -159,7 +159,7 @@ namespace TheEliteExplorerInfrastructure
             string color = null;
             string controlStyle = null;
 
-            var pageContent = await GetPageStringContentAsync($"/~{urlName.Replace(" ", "+")}", true)
+            var pageContent = await GetPageStringContent($"/~{urlName.Replace(" ", "+")}", true)
                 .ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(pageContent))
@@ -224,7 +224,7 @@ namespace TheEliteExplorerInfrastructure
         {
             var entries = new List<EntryWebDto>();
 
-            var pageContent = await GetPageStringContentAsync($"~{playerUrlName}/{game.GetGameUrlName()}/history", true)
+            var pageContent = await GetPageStringContent($"~{playerUrlName}/{game.GetGameUrlName()}/history", true)
                 .ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(pageContent))
@@ -284,12 +284,12 @@ namespace TheEliteExplorerInfrastructure
             return entries;
         }
 
-        private async Task<List<EntryWebDto>> ExtractEntryDetailsAsync(long entryId, long stageId, Level levelKey, List<string> logs)
+        private async Task<List<EntryWebDto>> ExtractEntryDetails(long entryId, long stageId, Level levelKey, List<string> logs)
         {
             var finalEntries = new List<EntryWebDto>();
 
             // /!\/!\/!\ Any name can go in the URL
-            string linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}")
+            string linkData = await GetPageStringContent($"/~Karl+Jobst/time/{entryId}")
                 .ConfigureAwait(false);
 
             var htmlDocHead = new HtmlDocument();
@@ -449,7 +449,7 @@ namespace TheEliteExplorerInfrastructure
             return entryIdListByLevel;
         }
 
-        private async Task<EntryWebDto> ExtractTimeLinkDetailsAsync(Game game, HtmlNode link, DateTime? minimalDateToScan)
+        private async Task<EntryWebDto> ExtractTimeLinkDetails(Game game, HtmlNode link, DateTime? minimalDateToScan)
         {
             const char linkSeparator = '-';
             const string playerUrlPrefix = "/~";
@@ -520,7 +520,7 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            var system = await ExtractTimeEntryEngineAsync(link).ConfigureAwait(false);
+            var system = await ExtractTimeEntryEngine(link).ConfigureAwait(false);
 
             return new EntryWebDto
             {
@@ -561,12 +561,12 @@ namespace TheEliteExplorerInfrastructure
             return date;
         }
 
-        private async Task<Engine?> ExtractTimeEntryEngineAsync(HtmlNode link)
+        private async Task<Engine?> ExtractTimeEntryEngine(HtmlNode link)
         {
             const string engineStringBeginString = "System:</strong>";
             const string engineStringEndString = "</li>";
 
-            string pageContent = await GetPageStringContentAsync(link.Attributes["href"].Value).ConfigureAwait(false);
+            string pageContent = await GetPageStringContent(link.Attributes["href"].Value).ConfigureAwait(false);
 
             if (!string.IsNullOrWhiteSpace(pageContent))
             {
@@ -595,7 +595,7 @@ namespace TheEliteExplorerInfrastructure
                 .FirstOrDefault(e => e.ToString().Equals(engineString.Trim().Replace("-", "_"), StringComparison.InvariantCultureIgnoreCase));
         }
 
-        private async Task<string> GetPageStringContentAsync(string partUri, bool ignoreNotFound = false)
+        private async Task<string> GetPageStringContent(string partUri, bool ignoreNotFound = false)
         {
             var uri = new Uri(string.Concat(_configuration.BaseUri, partUri));
             
