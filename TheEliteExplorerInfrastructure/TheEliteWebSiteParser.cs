@@ -159,7 +159,8 @@ namespace TheEliteExplorerInfrastructure
             string color = null;
             string controlStyle = null;
 
-            var pageContent = await GetPageStringContentAsync($"/~{urlName.Replace(" ", "+")}").ConfigureAwait(false);
+            var pageContent = await GetPageStringContentAsync($"/~{urlName.Replace(" ", "+")}", true)
+                .ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(pageContent))
             {
@@ -588,7 +589,7 @@ namespace TheEliteExplorerInfrastructure
                 .FirstOrDefault(e => e.ToString().Equals(engineString.Trim().Replace("-", "_"), StringComparison.InvariantCultureIgnoreCase));
         }
 
-        private async Task<string> GetPageStringContentAsync(string partUri)
+        private async Task<string> GetPageStringContentAsync(string partUri, bool ignoreNotFound = false)
         {
             var uri = new Uri(string.Concat(_configuration.BaseUri, partUri));
             
@@ -605,8 +606,12 @@ namespace TheEliteExplorerInfrastructure
                             .ConfigureAwait(false);
                         attemps = _configuration.PageAttemps;
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        if (ignoreNotFound && ex.IsWebNotFound())
+                        {
+                            return data;
+                        }
                         attemps++;
                         if (attemps == _configuration.PageAttemps)
                         {
@@ -618,6 +623,8 @@ namespace TheEliteExplorerInfrastructure
 
             return data;
         }
+
+        
 
         private static string CleanString(string input)
         {

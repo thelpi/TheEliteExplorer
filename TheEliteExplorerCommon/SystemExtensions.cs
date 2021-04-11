@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace TheEliteExplorerCommon
 {
@@ -206,6 +207,21 @@ namespace TheEliteExplorerCommon
                     ? items.Concat(secondItems)
                     : items.Intersect(secondItems))
                 .ToList();
+        }
+
+        /// <summary>
+        /// Checks if an exception is a web exception for status code "404 - Not found".
+        /// </summary>
+        /// <param name="ex">The exception.</param>
+        /// <returns><c>True</c> if webexception NotFound; <c>False</c> otherwise.</returns>
+        public static bool IsWebNotFound(this Exception ex)
+        {
+            if (!(ex is WebException webEx) || !(webEx.Response is HttpWebResponse))
+            {
+                return false;
+            }
+
+            return (webEx.Response as HttpWebResponse).StatusCode == HttpStatusCode.NotFound;
         }
     }
 }
