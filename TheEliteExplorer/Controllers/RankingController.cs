@@ -42,20 +42,22 @@ namespace TheEliteExplorer.Controllers
         /// <param name="date">String representation of date; empty or <c>Null</c> for current date.</param>
         /// <param name="page">page index (starts at <c>1</c>).</param>
         /// <param name="count">Items count by page.</param>
+        /// <param name="full"><c>True</c> to get full details for each ranking entry.</param>
         /// <returns>Paginated collection of <see cref="RankingEntry"/>.</returns>
         [HttpGet("games/{game}/rankings/{date}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<ActionResult<PaginatedCollection<RankingEntry>>> GetRankingAsync(
+        public async Task<ActionResult<PaginatedCollection<RankingEntryLight>>> GetRankingAsync(
             [FromRoute] Game game,
             [FromRoute] DateTime? date,
             [FromQuery] int page,
-            [FromQuery] int count)
+            [FromQuery] int count,
+            [FromQuery] bool full)
         {
             var rankingEntries = await _rankingProvider
-                .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now)
+                .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now, full)
                 .ConfigureAwait(false);
 
-            return Ok(PaginatedCollection<RankingEntry>.CreateInstance(rankingEntries, page, count));
+            return Ok(PaginatedCollection<RankingEntryLight>.CreateInstance(rankingEntries, page, count));
         }
 
         /// <summary>

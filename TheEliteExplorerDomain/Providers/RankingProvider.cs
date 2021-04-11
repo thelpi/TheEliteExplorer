@@ -37,9 +37,10 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<RankingEntry>> GetRankingEntries(
+        public async Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntries(
             Game game,
-            DateTime rankingDate)
+            DateTime rankingDate,
+            bool full)
         {
             rankingDate = rankingDate.Date;
 
@@ -59,7 +60,7 @@ namespace TheEliteExplorerDomain.Providers
 
             var rankingEntries = finalEntries
                 .GroupBy(e => e.PlayerId)
-                .Select(e => new RankingEntry(game, players[e.Key]))
+                .Select(e => full ? new RankingEntry(game, players[e.Key]) : new RankingEntryLight(game, players[e.Key]))
                 .ToList();
 
             foreach (var entryGroup in LoopByStageAndLevel(finalEntries))

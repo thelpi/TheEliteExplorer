@@ -16,11 +16,12 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <param name="game">Game.</param>
         /// <param name="rankingDate">Ranking date.</param>
+        /// <param name="full"><c>True</c> to get details for each ranking entry.</param>
         /// <returns>
-        /// Collection of <see cref="RankingEntry"/>;
-        /// sorted by <see cref="RankingEntry.Points"/> descending.
+        /// Collection of <see cref="RankingEntryLight"/>;
+        /// sorted by <see cref="RankingEntryLight.Points"/> descending.
         /// </returns>
-        Task<IReadOnlyCollection<RankingEntry>> GetRankingEntries(Game game, DateTime rankingDate);
+        Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntries(Game game, DateTime rankingDate, bool full);
 
         /// <summary>
         /// Rebuilds the ranking history for a single stage and level.
