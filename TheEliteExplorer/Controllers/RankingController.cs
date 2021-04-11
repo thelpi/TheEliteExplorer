@@ -46,7 +46,7 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Paginated collection of <see cref="RankingEntry"/>.</returns>
         [HttpGet("games/{game}/rankings/{date}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<ActionResult<PaginatedCollection<RankingEntryLight>>> GetRankingAsync(
+        public async Task<ActionResult<PaginatedCollection<RankingEntryLight>>> GetRanking(
             [FromRoute] Game game,
             [FromRoute] DateTime? date,
             [FromQuery] int page,
@@ -110,7 +110,7 @@ namespace TheEliteExplorer.Controllers
             [FromQuery] DateTime? endDate)
         {
             var sweeps = await _stageSweepProvider
-                .GetSweepsAsync(game, untied, startDate, endDate)
+                .GetSweeps(game, untied, startDate, endDate)
                 .ConfigureAwait(false);
 
             return Ok(sweeps);

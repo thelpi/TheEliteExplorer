@@ -33,12 +33,12 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPost("games/{game}/new-entries")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ScanTimePageAsync(
+        public async Task<IActionResult> ScanTimePage(
             [FromRoute] Game game,
             [FromQuery] DateTime? startDate)
         {
             await _integrationProvider
-                .ScanTimePageAsync(game, startDate)
+                .ScanTimePage(game, startDate)
                 .ConfigureAwait(false);
 
             return NoContent();
@@ -51,7 +51,7 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPut("games/{game}/entries")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ScanAllPlayersTimesAsync(
+        public async Task<IActionResult> ScanAllPlayersTimes(
             [FromRoute] Game game)
         {
             await _integrationProvider
@@ -69,7 +69,7 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPut("games/{game}/players/{playerId}/entries")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ScanPlayerTimesAsync(
+        public async Task<IActionResult> ScanPlayerTimes(
             [FromRoute] Game game,
             [FromRoute] long playerId)
         {
@@ -86,10 +86,10 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPatch("dirty-players")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> CleanDirtyPlayersAsync()
+        public async Task<IActionResult> CleanDirtyPlayers()
         {
             await _integrationProvider
-                .CleanDirtyPlayersAsync()
+                .CleanDirtyPlayers()
                 .ConfigureAwait(false);
 
             return NoContent();

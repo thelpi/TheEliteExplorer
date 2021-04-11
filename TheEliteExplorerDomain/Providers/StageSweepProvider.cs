@@ -28,7 +28,7 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<StageSweep>> GetSweepsAsync(
+        public async Task<IReadOnlyCollection<StageSweep>> GetSweeps(
             Game game,
             bool untied,
             DateTime? startDate,

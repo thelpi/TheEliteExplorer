@@ -102,7 +102,7 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task CleanDirtyPlayersAsync()
+        public async Task CleanDirtyPlayers()
         {
             // TODO: ignore players permanently without sheet
             var players = await _sqlContext
@@ -126,7 +126,7 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task ScanTimePageAsync(
+        public async Task ScanTimePage(
             Game game,
             DateTime? startDate)
         {
@@ -136,7 +136,7 @@ namespace TheEliteExplorerDomain.Providers
             foreach (var loopDate in realStart.LoopBetweenDates(DateStep.Month))
             {
                 var results = await _siteParser
-                    .ExtractTimeEntriesAsync(game, loopDate.Year, loopDate.Month, realStart)
+                    .ExtractTimeEntries(game, loopDate.Year, loopDate.Month, realStart)
                     .ConfigureAwait(false);
 
                 foreach (var entry in results)

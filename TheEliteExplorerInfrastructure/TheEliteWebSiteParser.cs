@@ -79,7 +79,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan)
+        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractTimeEntries(Game game, int year, int month, DateTime? minimalDateToScan)
         {
             var linksValues = new List<EntryWebDto>();
 
@@ -118,7 +118,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntriesAsync(long stageId)
+        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntries(long stageId)
         {
             var entries = new List<EntryWebDto>();
             var logs = new List<string>();

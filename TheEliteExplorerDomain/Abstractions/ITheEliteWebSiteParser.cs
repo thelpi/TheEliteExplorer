@@ -22,14 +22,14 @@ namespace TheEliteExplorerDomain.Abstractions
         /// if <c>Null</c>, the full page will be scanned.
         /// </param>
         /// <returns>List of <see cref="EntryWebDto"/>.</returns>
-        Task<IReadOnlyCollection<EntryWebDto>> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan);
+        Task<IReadOnlyCollection<EntryWebDto>> ExtractTimeEntries(Game game, int year, int month, DateTime? minimalDateToScan);
 
         /// <summary>
         /// Extracts every time for a given stage from the website "the-elite".
         /// </summary>
         /// <param name="stageId">Stage identifier.</param>
         /// <returns>List of <see cref="EntryWebDto"/>.</returns>
-        Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntriesAsync(long stageId);
+        Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntries(long stageId);
 
         /// <summary>
         /// Gets information about a player.

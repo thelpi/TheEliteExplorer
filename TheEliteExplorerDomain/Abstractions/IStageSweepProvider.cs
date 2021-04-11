@@ -20,7 +20,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="endDate">End date.</param>
         /// <returns>Collection of sweeps</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="startDate"/> is greater than <paramref name="endDate"/>.</exception>
-        Task<IReadOnlyCollection<StageSweep>> GetSweepsAsync(
+        Task<IReadOnlyCollection<StageSweep>> GetSweeps(
             Game game,
             bool untied,
             DateTime? startDate,

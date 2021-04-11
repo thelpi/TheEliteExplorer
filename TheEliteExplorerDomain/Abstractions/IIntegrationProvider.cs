@@ -29,7 +29,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// Cleans players flagged as dirty.
         /// </summary>
         /// <returns>Nothing.</returns>
-        Task CleanDirtyPlayersAsync();
+        Task CleanDirtyPlayers();
 
         /// <summary>
         /// Scans and inserts time entries
@@ -40,6 +40,6 @@ namespace TheEliteExplorerDomain.Abstractions
         /// Date is rounded to the full month.
         /// </param>
         /// <returns>Nothing.</returns>
-        Task ScanTimePageAsync(Game game, DateTime? startDate);
+        Task ScanTimePage(Game game, DateTime? startDate);
     }
 }
