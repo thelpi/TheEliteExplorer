@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Abstractions;
@@ -33,6 +34,39 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
+        public async Task ScanPlayerEntriesHistory(
+            Game game,
+            long playerId)
+        {
+            var players = await _sqlContext
+                .GetPlayersAsync()
+                .ConfigureAwait(false);
+
+            var player = players.FirstOrDefault(p => p.Id == playerId);
+            if (player == null)
+            {
+                throw new ArgumentException($"invalid {nameof(playerId)}.", nameof(playerId));
+            }
+
+            foreach (var stage in Stage.Get(game))
+            {
+                await _sqlContext
+                    .DeletePlayerStageEntries(stage.Id, playerId)
+                    .ConfigureAwait(false);
+            }
+
+            var entries = await _siteParser
+                .GetPlayerEntriesHistory(game, player.UrlName)
+                .ConfigureAwait(false);
+
+            foreach (var entry in entries)
+            {
+                await CreateEntryAsync(entry, game)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
         public async Task CleanDirtyPlayersAsync()
         {
             var players = await _sqlContext
@@ -56,7 +90,9 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task ScanStageTimesAsync(Stage stage, bool clear)
+        public async Task ScanStageTimesAsync(
+            Stage stage,
+            bool clear)
         {
             if (stage == null)
             {

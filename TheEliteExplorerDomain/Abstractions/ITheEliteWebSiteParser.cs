@@ -38,5 +38,13 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="defaultHexPlayer">Default hexadecimal player color.</param>
         /// <returns>Instance of <see cref="PlayerDto"/>; <c>Null</c> if not found.</returns>
         Task<PlayerDto> GetPlayerInformation(string urlName, string defaultHexPlayer);
+
+        /// <summary>
+        /// Gets entries history for a single player.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="playerUrlName">Player URL name.</param>
+        /// <returns>Collection of entries.</returns>
+        Task<IReadOnlyCollection<EntryWebDto>> GetPlayerEntriesHistory(Game game, string playerUrlName);
     }
 }

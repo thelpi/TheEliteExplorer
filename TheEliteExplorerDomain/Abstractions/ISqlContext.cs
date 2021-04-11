@@ -136,6 +136,14 @@ namespace TheEliteExplorerDomain.Abstractions
         Task DeleteStageLevelEntries(long stageId, Level level);
 
         /// <summary>
+        /// Deletes every entry for a player for a stage.
+        /// </summary>
+        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="playerId">Player identifier.</param>
+        /// <returns>Nothing.</returns>
+        Task DeletePlayerStageEntries(long stageId, long playerId);
+
+        /// <summary>
         /// Deletes ranking history for a specific stage and level.
         /// </summary>
         /// <param name="stageId">Stage identifier.</param>

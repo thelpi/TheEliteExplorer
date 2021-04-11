@@ -11,6 +11,14 @@ namespace TheEliteExplorerDomain.Abstractions
     public interface IIntegrationProvider
     {
         /// <summary>
+        /// Scans and inserts time entries for a single player; previous entries are removed.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="playerId">Player identifier.</param>
+        /// <returns>Nothing.</returns>
+        Task ScanPlayerEntriesHistory(Game game, long playerId);
+
+        /// <summary>
         /// Scans and inserts time entries for a stage.
         /// </summary>
         /// <param name="stage">Stage.</param>

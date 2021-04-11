@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Enums;
 
@@ -15,6 +16,11 @@ namespace TheEliteExplorerDomain
         /// </summary>
         public const string DefaultLabel = "Unknown";
 
+        private static readonly Dictionary<Game, string> _eliteUrlName = new Dictionary<Game, string>
+        {
+            { Game.GoldenEye, "goldeneye" },
+            { Game.PerfectDark, "perfect-dark" } 
+        };
         private static readonly Dictionary<Game, DateTime> _eliteBeginDate = new Dictionary<Game, DateTime>
         {
             { Game.GoldenEye, new DateTime(1998, 07, 26) },
@@ -40,6 +46,34 @@ namespace TheEliteExplorerDomain
             { "2.3", ControlStyle.TwoPointThree },
             { "2.4", ControlStyle.TwoPointFour }
         };
+
+        /// <summary>
+        /// Tries to get a stage from its label.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="levelLabel">Stage label.</param>
+        /// <returns>Stage or <c>Null</c>.</returns>
+        public static Models.Stage GetStageFromLabel(this Game game, string levelLabel)
+        {
+            var stages = Models.Stage.Get(game);
+
+            return stages.FirstOrDefault(s =>
+                s.Name.Equals(levelLabel, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        /// <summary>
+        /// Tries to get a level from its label.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="levelLabel">Level label.</param>
+        /// <returns>Level or <c>Null</c>.</returns>
+        public static Level? GetLevelFromLabel(this Game game, string levelLabel)
+        {
+            var matches = _levelLabels.Where(_ =>
+                _.Value.Equals(levelLabel, StringComparison.InvariantCultureIgnoreCase));
+
+            return matches.Any() ? matches.First().Key.Item1 : default(Level?);
+        }
 
         /// <summary>
         /// Gets the label associated to a level for specified game.
@@ -72,6 +106,16 @@ namespace TheEliteExplorerDomain
         public static DateTime GetEliteFirstDate(this Game game)
         {
             return _eliteBeginDate[game];
+        }
+
+        /// <summary>
+        /// Gets the elite URL name part for the specified game.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <returns>URL name part.</returns>
+        public static string GetGameUrlName(this Game game)
+        {
+            return _eliteUrlName[game];
         }
 
         /// <summary>

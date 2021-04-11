@@ -36,6 +36,7 @@ namespace TheEliteExplorerInfrastructure
         private const string _selectDuplicatePlayersPsName = "select_duplicate_players";
         private const string _deletePlayerPsName = "delete_player";
         private const string _deleteRankingPsName = "delete_ranking";
+        private const string _deletePlayerEntriesPsName = "delete_player_entry";
         private const string _updatePlayerPsName = "update_player";
         private const string _getEntriesByGamePsName = "select_all_entry";
         private const string _deleteStageLevelEntriesPsName = "delete_entry";
@@ -370,6 +371,22 @@ namespace TheEliteExplorerInfrastructure
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
                 return rankings.ToList();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task DeletePlayerStageEntries(long stageId, long playerId)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection.QueryAsync(
+                    ToPsName(_deletePlayerEntriesPsName),
+                    new
+                    {
+                        stage_id = stageId,
+                        player_id = playerId
+                    },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
             }
         }
 

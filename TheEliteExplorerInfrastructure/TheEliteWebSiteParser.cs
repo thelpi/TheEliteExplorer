@@ -20,6 +20,52 @@ namespace TheEliteExplorerInfrastructure
     /// <seealso cref="ITheEliteWebSiteParser"/>
     public class TheEliteWebSiteParser : ITheEliteWebSiteParser
     {
+        private static readonly IReadOnlyDictionary<string, int> _stageNames = new Dictionary<string, int>
+        {
+            { "dam", 1 },
+            { "facility", 2 },
+            { "runway", 3 },
+            { "surface1", 4 },
+            { "bunker1", 5 },
+            { "silo", 6 },
+            { "frigate", 7 },
+            { "surface2", 8 },
+            { "bunker2", 9 },
+            { "statue", 10 },
+            { "archives", 11 },
+            { "streets", 12 },
+            { "depot", 13 },
+            { "train", 14 },
+            { "jungle", 15 },
+            { "control", 16 },
+            { "caverns", 17 },
+            { "cradle", 18 },
+            { "aztec", 19 },
+            { "egypt", 20 },
+            { "defection", 21 },
+            { "investigation", 22 },
+            { "extraction", 23 },
+            { "villa", 24 },
+            { "chicago", 25 },
+            { "g5", 26 },
+            { "infiltration", 27 },
+            { "rescue", 28 },
+            { "escape", 29 },
+            { "airbase", 30 },
+            { "airforceone", 31 },
+            { "crashsite", 32 },
+            { "pelagicii", 33 },
+            { "deepsea", 34 },
+            { "ci", 35 },
+            { "attackship", 36 },
+            { "skedarruins", 37 },
+            { "mbr", 38 },
+            { "maiansos", 39 },
+            { "war!", 40 }
+        };
+        private const string _duelStageName = "duel";
+        private const int _firstPdId = 21;
+
         private readonly TheEliteWebsiteConfiguration _configuration;
 
         /// <summary>
@@ -172,24 +218,72 @@ namespace TheEliteExplorerInfrastructure
             return p;
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<EntryWebDto>> GetPlayerEntriesHistory(Game game, string playerUrlName)
+        {
+            var entries = new List<EntryWebDto>();
+
+            var pageContent = await GetPageStringContentAsync($"~{playerUrlName}/{game.GetGameUrlName()}/history")
+                .ConfigureAwait(false);
+
+            var doc = new HtmlDocument();
+            doc.LoadHtml(pageContent);
+
+            foreach (var row in doc.DocumentNode.SelectNodes("//tr[td]"))
+            {
+                var rowDatas = row.SelectNodes("td").Select(td => td.InnerText).ToArray();
+
+                var stage = game.GetStageFromLabel(rowDatas[1]);
+                if (stage == null)
+                {
+                    continue;
+                }
+
+                var level = game.GetLevelFromLabel(rowDatas[2]);
+                if (!level.HasValue)
+                {
+                    continue;
+                }
+
+                var engine = ToEngine(rowDatas[4]);
+                if (!engine.HasValue)
+                {
+
+                }
+
+                var date = ParseDateFromString(rowDatas[0], out bool failToExtractDate, true);
+                if (failToExtractDate)
+                {
+
+                }
+
+                var time = ExtractTime(rowDatas[3], out bool failToExtractTime);
+                if (failToExtractTime || !time.HasValue)
+                {
+                    continue;
+                }
+
+                entries.Add(new EntryWebDto
+                {
+                    Date = date,
+                    LevelId = (long)level.Value,
+                    PlayerUrlName = playerUrlName,
+                    StageId = stage.Id,
+                    SystemId = engine.HasValue ? (long)engine : default(long?),
+                    Time = time.Value
+                });
+            }
+
+            return entries;
+        }
+
         private async Task<List<EntryWebDto>> ExtractEntryDetailsAsync(long entryId, long stageId, Level levelKey, List<string> logs)
         {
             var finalEntries = new List<EntryWebDto>();
 
             // /!\/!\/!\ Any name can go in the URL
-            string linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}").ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(linkData))
-            {
-                // This case occurs, for the most part, because of a temporary security issue
-                // So we wait one second and retry
-                System.Threading.Thread.Sleep(1000);
-                linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}").ConfigureAwait(false);
-            }
-
-            if (string.IsNullOrWhiteSpace(linkData))
-            {
-                return finalEntries;
-            }
+            string linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}")
+                .ConfigureAwait(false);
 
             var htmlDocHead = new HtmlDocument();
             htmlDocHead.LoadHtml(linkData);
@@ -584,10 +678,14 @@ namespace TheEliteExplorerInfrastructure
             return null;
         }
 
-        private static DateTime? ParseDateFromString(string dateString, out bool failToExtractDate)
+        private static DateTime? ParseDateFromString(
+            string dateString,
+            out bool failToExtractDate,
+            bool partialMonthName = false)
         {
             const char separator = ' ';
-            IReadOnlyDictionary<string, int> monthsLabel = new Dictionary<string, int>
+
+            var monthsLabel = new Dictionary<string, int>
             {
                 { "January", 1 },
                 { "February", 2 },
@@ -603,6 +701,22 @@ namespace TheEliteExplorerInfrastructure
                 { "December", 12 }
             };
 
+            var monthsPartialLabel = new Dictionary<string, int>
+            {
+                { "Jan", 1 },
+                { "Feb", 2 },
+                { "Mar", 3 },
+                { "Apr", 4 },
+                { "May", 5 },
+                { "Jun", 6 },
+                { "Jul", 7 },
+                { "Aug", 8 },
+                { "Sep", 9 },
+                { "Oct", 10 },
+                { "Nov", 11 },
+                { "Dec", 12 }
+            };
+
             failToExtractDate = false;
 
             dateString = dateString?.Trim();
@@ -616,11 +730,23 @@ namespace TheEliteExplorerInfrastructure
                     failToExtractDate = true;
                     return null;
                 }
-                if (!monthsLabel.ContainsKey(dateComponents[1]))
+                if (partialMonthName)
                 {
-                    //logs.Add("No date found !");
-                    failToExtractDate = true;
-                    return null;
+                    if (!monthsPartialLabel.ContainsKey(dateComponents[1]))
+                    {
+                        //logs.Add("No date found !");
+                        failToExtractDate = true;
+                        return null;
+                    }
+                }
+                else
+                {
+                    if (!monthsLabel.ContainsKey(dateComponents[1]))
+                    {
+                        //logs.Add("No date found !");
+                        failToExtractDate = true;
+                        return null;
+                    }
                 }
                 if (!int.TryParse(dateComponents[0], out int day))
                 {
@@ -634,56 +760,10 @@ namespace TheEliteExplorerInfrastructure
                     failToExtractDate = true;
                     return null;
                 }
-                return new DateTime(year, monthsLabel[dateComponents[1]], day);
+                return new DateTime(year, partialMonthName ? monthsPartialLabel[dateComponents[1]] : monthsLabel[dateComponents[1]], day);
             }
 
             return null;
         }
-
-        private static readonly IReadOnlyDictionary<string, int> _stageNames = new Dictionary<string, int>
-        {
-            { "dam", 1 },
-            { "facility", 2 },
-            { "runway", 3 },
-            { "surface1", 4 },
-            { "bunker1", 5 },
-            { "silo", 6 },
-            { "frigate", 7 },
-            { "surface2", 8 },
-            { "bunker2", 9 },
-            { "statue", 10 },
-            { "archives", 11 },
-            { "streets", 12 },
-            { "depot", 13 },
-            { "train", 14 },
-            { "jungle", 15 },
-            { "control", 16 },
-            { "caverns", 17 },
-            { "cradle", 18 },
-            { "aztec", 19 },
-            { "egypt", 20 },
-            { "defection", 21 },
-            { "investigation", 22 },
-            { "extraction", 23 },
-            { "villa", 24 },
-            { "chicago", 25 },
-            { "g5", 26 },
-            { "infiltration", 27 },
-            { "rescue", 28 },
-            { "escape", 29 },
-            { "airbase", 30 },
-            { "airforceone", 31 },
-            { "crashsite", 32 },
-            { "pelagicii", 33 },
-            { "deepsea", 34 },
-            { "ci", 35 },
-            { "attackship", 36 },
-            { "skedarruins", 37 },
-            { "mbr", 38 },
-            { "maiansos", 39 },
-            { "war!", 40 }
-        };
-        private const string _duelStageName = "duel";
-        private const int _firstPdId = 21;
     }
 }
