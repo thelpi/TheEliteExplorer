@@ -17,21 +17,21 @@ namespace TheEliteExplorer.Controllers
     /// <seealso cref="Controller"/>
     public class RankingController : Controller
     {
-        private readonly IStageSweepProvider _stageSweepProvider;
+        private readonly IWorldRecordProvider _wrProvider;
         private readonly IRankingProvider _rankingProvider;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="stageSweepProvider">Instance of <see cref="IStageSweepProvider"/>.</param>
+        /// <param name="wrProvider">Instance of <see cref="IWorldRecordProvider"/>.</param>
         /// <param name="rankingProvider">Instance of <see cref="IRankingProvider"/>.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="stageSweepProvider"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="wrProvider"/> is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="rankingProvider"/> is <c>Null</c>.</exception>
         public RankingController(
-            IStageSweepProvider stageSweepProvider,
+            IWorldRecordProvider wrProvider,
             IRankingProvider rankingProvider)
         {
-            _stageSweepProvider = stageSweepProvider ?? throw new ArgumentNullException(nameof(stageSweepProvider));
+            _wrProvider = wrProvider ?? throw new ArgumentNullException(nameof(wrProvider));
             _rankingProvider = rankingProvider ?? throw new ArgumentNullException(nameof(rankingProvider));
         }
 
@@ -109,7 +109,7 @@ namespace TheEliteExplorer.Controllers
             [FromQuery] DateTime? startDate,
             [FromQuery] DateTime? endDate)
         {
-            var sweeps = await _stageSweepProvider
+            var sweeps = await _wrProvider
                 .GetSweeps(game, untied, startDate, endDate)
                 .ConfigureAwait(false);
 

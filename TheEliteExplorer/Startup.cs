@@ -57,7 +57,6 @@ namespace TheEliteExplorer
                 .Configure<TheEliteWebsiteConfiguration>(_configuration.GetSection(_theEliteWebsiteSection))
                 .AddSingleton<ISqlContext, SqlContext>()
                 .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()
-                .AddSingleton<IStageSweepProvider, StageSweepProvider>()
                 .AddSingleton<IRankingProvider, RankingProvider>()
                 .AddSingleton<IIntegrationProvider, IntegrationProvider>()
                 .AddSingleton<IWorldRecordProvider, WorldRecordProvider>()
