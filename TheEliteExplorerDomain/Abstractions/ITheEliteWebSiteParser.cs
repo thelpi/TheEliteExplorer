@@ -44,7 +44,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <param name="game">Game.</param>
         /// <param name="playerUrlName">Player URL name.</param>
-        /// <returns>Collection of entries.</returns>
+        /// <returns>Collection of entries; <c>Null</c> if the player history is not accessible.</returns>
         Task<IReadOnlyCollection<EntryWebDto>> GetPlayerEntriesHistory(Game game, string playerUrlName);
     }
 }

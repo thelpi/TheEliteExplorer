@@ -34,6 +34,38 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
+        public async Task ScanAllPlayersEntriesHistory(
+            Game game)
+        {
+            var players = await _sqlContext
+                .GetPlayersAsync()
+                .ConfigureAwait(false);
+
+            foreach (var player in  players)
+            {
+                var entries = await _siteParser
+                    .GetPlayerEntriesHistory(game, player.UrlName)
+                    .ConfigureAwait(false);
+
+                if (entries != null)
+                {
+                    foreach (var stage in Stage.Get(game))
+                    {
+                        await _sqlContext
+                            .DeletePlayerStageEntries(stage.Id, player.Id)
+                            .ConfigureAwait(false);
+                    }
+
+                    foreach (var entry in entries)
+                    {
+                        await CreateEntryAsync(entry, game)
+                            .ConfigureAwait(false);
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc />
         public async Task ScanPlayerEntriesHistory(
             Game game,
             long playerId)
@@ -48,21 +80,24 @@ namespace TheEliteExplorerDomain.Providers
                 throw new ArgumentException($"invalid {nameof(playerId)}.", nameof(playerId));
             }
 
-            foreach (var stage in Stage.Get(game))
-            {
-                await _sqlContext
-                    .DeletePlayerStageEntries(stage.Id, playerId)
-                    .ConfigureAwait(false);
-            }
-
             var entries = await _siteParser
                 .GetPlayerEntriesHistory(game, player.UrlName)
                 .ConfigureAwait(false);
 
-            foreach (var entry in entries)
+            if (entries != null)
             {
-                await CreateEntryAsync(entry, game)
-                    .ConfigureAwait(false);
+                foreach (var stage in Stage.Get(game))
+                {
+                    await _sqlContext
+                        .DeletePlayerStageEntries(stage.Id, playerId)
+                        .ConfigureAwait(false);
+                }
+
+                foreach (var entry in entries)
+                {
+                    await CreateEntryAsync(entry, game)
+                        .ConfigureAwait(false);
+                }
             }
         }
 

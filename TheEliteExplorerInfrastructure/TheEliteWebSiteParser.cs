@@ -224,8 +224,14 @@ namespace TheEliteExplorerInfrastructure
         {
             var entries = new List<EntryWebDto>();
 
-            var pageContent = await GetPageStringContentAsync($"~{playerUrlName}/{game.GetGameUrlName()}/history")
+            var pageContent = await GetPageStringContentAsync($"~{playerUrlName}/{game.GetGameUrlName()}/history", true)
                 .ConfigureAwait(false);
+
+            if (string.IsNullOrWhiteSpace(pageContent))
+            {
+                // Do not return an empty list here.
+                return null;
+            }
 
             var doc = new HtmlDocument();
             doc.LoadHtml(pageContent);
@@ -623,9 +629,7 @@ namespace TheEliteExplorerInfrastructure
 
             return data;
         }
-
         
-
         private static string CleanString(string input)
         {
             return input.Replace("\t", "").Replace("\n", "").Replace("\r", "");

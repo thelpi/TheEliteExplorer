@@ -45,6 +45,23 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
+        /// Scans the site to get every time for a every player on a game.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <returns>Nothing.</returns>
+        [HttpPut("games/{game}/entries")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> ScanAllPlayersTimesAsync(
+            [FromRoute] Game game)
+        {
+            await _integrationProvider
+                .ScanAllPlayersEntriesHistory(game)
+                .ConfigureAwait(false);
+
+            return NoContent();
+        }
+
+        /// <summary>
         /// Scans the site to get every time for a single player on a game.
         /// </summary>
         /// <param name="game">Game.</param>
