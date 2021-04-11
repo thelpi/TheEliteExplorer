@@ -39,7 +39,6 @@ namespace TheEliteExplorerInfrastructure
         private const string _deletePlayerEntriesPsName = "delete_player_entry";
         private const string _updatePlayerPsName = "update_player";
         private const string _getEntriesByGamePsName = "select_all_entry";
-        private const string _deleteStageLevelEntriesPsName = "delete_entry";
 
         private const string ColSeparator = ",";
         private const string RowSeparator = "\r\n";
@@ -65,24 +64,6 @@ namespace TheEliteExplorerInfrastructure
             _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
             _cacheConfiguration = cacheConfiguration?.Value ?? throw new ArgumentNullException(nameof(cacheConfiguration));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-        }
-
-        /// <inheritdoc />
-        public async Task DeleteStageLevelEntries(long stageId, Level level)
-        {
-            using (var connection = _connectionProvider.TheEliteConnection)
-            {
-                await connection
-                    .QueryAsync(
-                        ToPsName(_deleteStageLevelEntriesPsName),
-                        new
-                        {
-                            stage_id = stageId,
-                            level_id = (long)level
-                        },
-                        commandType: CommandType.StoredProcedure)
-                    .ConfigureAwait(false);
-            }
         }
 
         /// <inheritdoc />

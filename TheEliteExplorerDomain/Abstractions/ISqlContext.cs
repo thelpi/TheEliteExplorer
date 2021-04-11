@@ -128,14 +128,6 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync();
 
         /// <summary>
-        /// Deletes every entry for a stage and level.
-        /// </summary>
-        /// <param name="stageId">Stage identifier.</param>
-        /// <param name="level">Level.</param>
-        /// <returns>Nothing.</returns>
-        Task DeleteStageLevelEntries(long stageId, Level level);
-
-        /// <summary>
         /// Deletes every entry for a player for a stage.
         /// </summary>
         /// <param name="stageId">Stage identifier.</param>

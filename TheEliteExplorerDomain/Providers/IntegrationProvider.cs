@@ -69,6 +69,7 @@ namespace TheEliteExplorerDomain.Providers
         /// <inheritdoc />
         public async Task CleanDirtyPlayersAsync()
         {
+            // TODO: ignore players permanently without sheet
             var players = await _sqlContext
                 .GetDirtyPlayersAsync()
                 .ConfigureAwait(false);
@@ -86,30 +87,6 @@ namespace TheEliteExplorerDomain.Providers
                         .UpdatePlayerInformationAsync(pInfo)
                         .ConfigureAwait(false);
                 }
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task ScanStageTimesAsync(
-            Stage stage,
-            bool clear)
-        {
-            if (stage == null)
-            {
-                throw new ArgumentNullException(nameof(stage));
-            }
-
-            await CheckExistentEntries(stage, clear)
-                .ConfigureAwait(false);
-
-            var entries = await _siteParser
-                .ExtractStageAllTimeEntriesAsync(stage.Id)
-                .ConfigureAwait(false);
-
-            foreach (var entry in entries)
-            {
-                await CreateEntryAsync(entry, stage.Game)
-                    .ConfigureAwait(false);
             }
         }
 
@@ -153,23 +130,6 @@ namespace TheEliteExplorerDomain.Providers
             return startDate.Value;
         }
 
-        private async Task<bool> CheckForExistingEntries(
-            Stage stage)
-        {
-            foreach (var level in SystemExtensions.Enumerate<Level>())
-            {
-                var levelEntries = await _sqlContext
-                    .GetEntriesAsync(stage.Id, level, null, null)
-                    .ConfigureAwait(false);
-                if (levelEntries.Count > 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private async Task CreateEntryAsync(
             EntryWebDto entry,
             Game game)
@@ -181,27 +141,6 @@ namespace TheEliteExplorerDomain.Providers
             await _sqlContext
                 .InsertOrRetrieveTimeEntryAsync(entry.ToEntry(playerId), (long)game)
                 .ConfigureAwait(false);
-        }
-
-        private async Task CheckExistentEntries(Stage stage, bool clear)
-        {
-            var haveEntries = await CheckForExistingEntries(stage)
-                            .ConfigureAwait(false);
-
-            if (haveEntries)
-            {
-                if (!clear)
-                {
-                    throw new InvalidOperationException("Unables to scan a stage already scanned.");
-                }
-
-                foreach (var level in SystemExtensions.Enumerate<Level>())
-                {
-                    await _sqlContext
-                        .DeleteStageLevelEntries(stage.Id, level)
-                        .ConfigureAwait(false);
-                }
-            }
         }
     }
 }

@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Enums;
-using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorer.Controllers
 {
@@ -60,32 +58,6 @@ namespace TheEliteExplorer.Controllers
         {
             await _integrationProvider
                 .ScanPlayerEntriesHistory(game, playerId)
-                .ConfigureAwait(false);
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Scans the site to get every time for a single stage.
-        /// </summary>
-        /// <param name="stageId">Stage identifier.</param>
-        /// <param name="clear">Clears previous entries y/n.</param>
-        /// <returns>Nothing.</returns>
-        [HttpPut("stages/{stageId}/entries")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> ScanStageTimesAsync(
-            [FromRoute] long stageId,
-            [FromQuery] bool clear)
-        {
-            var stage = Stage.Get(stageId);
-            if (stage == null)
-            {
-                return BadRequest();
-            }
-
-            await _integrationProvider
-                .ScanStageTimesAsync(stage, clear)
                 .ConfigureAwait(false);
 
             return NoContent();
