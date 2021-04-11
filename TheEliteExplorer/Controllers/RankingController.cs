@@ -68,17 +68,10 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPost("stages/{stageId}/levels/{level}/rankings")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> RebuildRankingHistory([FromRoute] long stageId, [FromRoute] Level level)
         {
-            var stage = Stage.Get(stageId);
-            if (stage == null)
-            {
-                return BadRequest();
-            }
-
             await _rankingProvider
-                .RebuildRankingHistory(stage, level)
+                .RebuildRankingHistory(Stage.Get(stageId), level)
                 .ConfigureAwait(false);
 
             return NoContent();

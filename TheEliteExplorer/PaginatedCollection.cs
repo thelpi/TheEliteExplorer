@@ -35,7 +35,8 @@ namespace TheEliteExplorer
         /// <param name="count">Items count by page.</param>
         /// <returns>Instance of <see cref="PaginatedCollection{T}"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is <c>Null</c>.</exception>
-        public static PaginatedCollection<T> CreateInstance(IReadOnlyCollection<T> source,
+        public static PaginatedCollection<T> CreateInstance(
+            IReadOnlyCollection<T> source,
             int page, int count)
         {
             return new PaginatedCollection<T>(
@@ -55,8 +56,11 @@ namespace TheEliteExplorer
         /// <returns>Instance of <see cref="PaginatedCollection{T}"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="transformationCallback"/> is <c>Null</c>.</exception>
-        public static PaginatedCollection<T> CreateInstance<TSource>(IReadOnlyCollection<TSource> source,
-            Func<TSource, T> transformationCallback, int page, int count)
+        public static PaginatedCollection<T> CreateInstance<TSource>(
+            IReadOnlyCollection<TSource> source,
+            Func<TSource, T> transformationCallback,
+            int page,
+            int count)
         {
             if (transformationCallback == null)
             {
@@ -69,7 +73,10 @@ namespace TheEliteExplorer
             );
         }
 
-        private static IEnumerable<TSource> PaginateSourceList<TSource>(IReadOnlyCollection<TSource> source, int page, int count)
+        private static IEnumerable<TSource> PaginateSourceList<TSource>(
+            IReadOnlyCollection<TSource> source,
+            int page,
+            int count)
         {
             if (source == null)
             {
@@ -82,7 +89,9 @@ namespace TheEliteExplorer
             return source.Skip(count * (page - 1)).Take(count);
         }
 
-        private PaginatedCollection(List<T> sourceList, int totalItemsCount)
+        private PaginatedCollection(
+            List<T> sourceList,
+            int totalItemsCount)
         {
             _sourceList = sourceList;
             TotalItemsCount = totalItemsCount;
