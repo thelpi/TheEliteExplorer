@@ -58,10 +58,6 @@ namespace TheEliteExplorerDomain.Models
 
         internal virtual int AddStageAndLevelDatas(RankingDto ranking, bool untied)
         {
-            var stage = (Stage)ranking.StageId;
-
-            Level level = (Level)ranking.LevelId;
-
             int points = (100 - ranking.Rank) - 2;
             if (points < 0)
             {

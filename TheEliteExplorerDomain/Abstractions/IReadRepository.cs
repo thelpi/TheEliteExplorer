@@ -49,13 +49,6 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<DateTime?> GetLatestEntryDate();
 
         /// <summary>
-        /// Gets the date of the latest ranking.
-        /// </summary>
-        /// <param name="game">Game.</param>
-        /// <returns>Date of the latest ranking; <c>Null</c> if no ranking.</returns>
-        Task<DateTime?> GetLatestRankingDate(Game game);
-
-        /// <summary>
         /// Gets duplicate players.
         /// </summary>
         /// <returns>A collection of <see cref="DuplicatePlayerDto"/>.</returns>

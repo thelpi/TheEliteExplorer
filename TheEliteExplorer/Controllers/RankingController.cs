@@ -68,7 +68,9 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPost("stages/{stageId}/levels/{level}/rankings")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> RebuildRankingHistory([FromRoute] Stage stage, [FromRoute] Level level)
+        public async Task<IActionResult> RebuildRankingHistory(
+            [FromRoute] Stage stage,
+            [FromRoute] Level level)
         {
             await _rankingProvider
                 .RebuildRankingHistory(stage, level)
@@ -84,7 +86,8 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPost("games/{game}/rankings")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> RebuildRankingHistory([FromRoute] Game game)
+        public async Task<IActionResult> RebuildRankingHistory(
+            [FromRoute] Game game)
         {
             await _rankingProvider
                 .RebuildRankingHistory(game)

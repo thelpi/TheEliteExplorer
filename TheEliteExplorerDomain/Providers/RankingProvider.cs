@@ -109,7 +109,7 @@ namespace TheEliteExplorerDomain.Providers
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
                     var filteredEntries = entries
-                        .Where(e => e.StageId == (long)stage && e.LevelId == (long)level)
+                        .Where(e => e.Stage == stage && e.Level == level)
                         .ToList();
 
                     await RebuildRankingHistoryInternal(filteredEntries, players, stage, level)
@@ -237,10 +237,10 @@ namespace TheEliteExplorerDomain.Providers
                     var ranking = new RankingDto
                     {
                         Date = rankingDate,
-                        LevelId = entry.LevelId,
+                        Level = entry.Level,
                         PlayerId = entry.PlayerId,
                         Rank = pos,
-                        StageId = entry.StageId,
+                        Stage = entry.Stage,
                         Time = entry.Time
                     };
 
@@ -256,12 +256,15 @@ namespace TheEliteExplorerDomain.Providers
         // Gets every player keyed by ID
         private async Task<IDictionary<long, PlayerDto>> GetPlayers()
         {
-            // TODO: gets also dirty players
-            var playersSource = await _readRepository
+            var playersSourceClean = await _readRepository
                 .GetPlayers()
                 .ConfigureAwait(false);
-            
-            return playersSource.ToDictionary(p => p.Id, p => p);
+
+            var playersSourceDirty = await _readRepository
+                .GetDirtyPlayers()
+                .ConfigureAwait(false);
+
+            return playersSourceClean.Concat(playersSourceDirty).ToDictionary(p => p.Id, p => p);
         }
 
         // Sets a fake date on emtries without it
@@ -289,11 +292,11 @@ namespace TheEliteExplorerDomain.Providers
                     }
 
                     // Same time with a known date (possible for another engine/system)
-                    var sameEntry = dateMinMaxPlayer[entry.PlayerId].Entries.FirstOrDefault(e => e.StageId == entry.StageId && e.LevelId == entry.LevelId && e.Time == entry.Time && e.Date.HasValue);
+                    var sameEntry = dateMinMaxPlayer[entry.PlayerId].Entries.FirstOrDefault(e => e.Stage == entry.Stage && e.Level == entry.Level && e.Time == entry.Time && e.Date.HasValue);
                     // Better time (closest to current) with a known date
-                    var betterEntry = dateMinMaxPlayer[entry.PlayerId].Entries.OrderBy(e => e.Time).FirstOrDefault(e => e.StageId == entry.StageId && e.LevelId == entry.LevelId && e.Time < entry.Time && e.Date.HasValue);
+                    var betterEntry = dateMinMaxPlayer[entry.PlayerId].Entries.OrderBy(e => e.Time).FirstOrDefault(e => e.Stage == entry.Stage && e.Level == entry.Level && e.Time < entry.Time && e.Date.HasValue);
                     // Worse time (closest to current) with a known date
-                    var worseEntry = dateMinMaxPlayer[entry.PlayerId].Entries.OrderByDescending(e => e.Time).FirstOrDefault(e => e.StageId == entry.StageId && e.LevelId == entry.LevelId && e.Time < entry.Time && e.Date.HasValue);
+                    var worseEntry = dateMinMaxPlayer[entry.PlayerId].Entries.OrderByDescending(e => e.Time).FirstOrDefault(e => e.Stage == entry.Stage && e.Level == entry.Level && e.Time < entry.Time && e.Date.HasValue);
 
                     if (sameEntry != null)
                     {
@@ -347,12 +350,12 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         // Loops on every stages and levels of a list of entries
-        private static IEnumerable<(long, long, IEnumerable<RankingDto>)> LoopByStageAndLevel(
+        private static IEnumerable<(Stage, Level, IEnumerable<RankingDto>)> LoopByStageAndLevel(
             IEnumerable<RankingDto> rankings)
         {
-            foreach (var group in rankings.GroupBy(r => new { r.StageId, r.LevelId }))
+            foreach (var group in rankings.GroupBy(r => new { r.Stage, r.Level }))
             {
-                yield return (group.Key.StageId, group.Key.LevelId, group);
+                yield return (group.Key.Stage, group.Key.Level, group);
             }
         }
     }

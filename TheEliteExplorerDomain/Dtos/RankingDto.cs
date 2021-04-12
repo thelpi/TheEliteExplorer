@@ -1,4 +1,5 @@
 ﻿using System;
+using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerDomain.Dtos
 {
@@ -12,13 +13,13 @@ namespace TheEliteExplorerDomain.Dtos
         /// </summary>
         public long PlayerId { get; set; }
         /// <summary>
-        /// Stage identifier.
+        /// Stage.
         /// </summary>
-        public long StageId { get; set; }
+        public Stage Stage { get; set; }
         /// <summary>
-        /// Level identifier.
+        /// Leve.
         /// </summary>
-        public long LevelId { get; set; }
+        public Level Level { get; set; }
         /// <summary>
         /// Date.
         /// </summary>

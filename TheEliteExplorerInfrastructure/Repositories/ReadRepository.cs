@@ -30,7 +30,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _getEveryPlayersPsName = "select_player";
         private const string _getEntriesByCriteriaPsName = "select_entry";
         private const string _getLatestEntryDatePsName = "select_latest_entry_date";
-        private const string _getLatestRankingDatePsName = "select_latest_ranking_date";
         private const string _getDuplicatePlayersPsName = "select_duplicate_players";
         private const string _getEntriesByGamePsName = "select_all_entry";
 
@@ -110,18 +109,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
                 return datas.FirstOrDefault();
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task<DateTime?> GetLatestRankingDate(Game game)
-        {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                DateTime? data = await connection.QuerySingleAsync<DateTime?>(
-                    ToPsName(_getLatestRankingDatePsName), new { game_id = (int)game },
-                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
-                return data;
             }
         }
 

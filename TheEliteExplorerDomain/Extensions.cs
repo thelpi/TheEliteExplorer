@@ -18,6 +18,11 @@ namespace TheEliteExplorerDomain
         /// </summary>
         public const string DefaultLabel = "Unknown";
 
+        /// <summary>
+        /// Formated name of the Perfect Dark special stage "Duel".
+        /// </summary>
+        public const string PerfectDarkDuelStageFormatedName = "duel";
+
         private static readonly Dictionary<Game, string> _eliteUrlName = new Dictionary<Game, string>
         {
             { Game.GoldenEye, "goldeneye" },
@@ -26,7 +31,7 @@ namespace TheEliteExplorerDomain
         private static readonly Dictionary<Game, DateTime> _eliteBeginDate = new Dictionary<Game, DateTime>
         {
             { Game.GoldenEye, new DateTime(1998, 07, 26) },
-            { Game.PerfectDark, new DateTime(1998, 07, 26) } // TODO !
+            { Game.PerfectDark, new DateTime(2000, 01, 01) }
         };
         private static readonly Dictionary<(Level, Game), string> _levelLabels = new Dictionary<(Level, Game), string>
         {
@@ -70,7 +75,6 @@ namespace TheEliteExplorerDomain
             { Stage.Cradle, "Cradle" },
             { Stage.Aztec, "Aztec" },
             { Stage.Egypt, "Egypt" },
-            // TODO: might be invalid from here
             { Stage.Defection, "dataDyne Central - Defection" },
             { Stage.Investigation, "dataDyne Research - Investigation" },
             { Stage.Extraction, "dataDyne Central - Extraction" },
@@ -91,6 +95,53 @@ namespace TheEliteExplorerDomain
             { Stage.MBR, "Mr. Blonde's Revenge" },
             { Stage.MaianSOS, "Maian SOS" },
             { Stage.War, "WAR!" },
+        };
+
+        /// <summary>
+        /// Formated names for stages of both games.
+        /// </summary>
+        public static readonly IReadOnlyDictionary<string, Stage> StageFormatedNames = new Dictionary<string, Stage>
+        {
+            { "dam", Stage.Dam },
+            { "facility", Stage.Facility },
+            { "runway", Stage.Runway },
+            { "surface1", Stage.Surface1 },
+            { "bunker1", Stage.Bunker1 },
+            { "silo", Stage.Silo },
+            { "frigate", Stage.Frigate },
+            { "surface2", Stage.Surface2 },
+            { "bunker2", Stage.Bunker2 },
+            { "statue", Stage.Statue },
+            { "archives", Stage.Archives },
+            { "streets", Stage.Streets },
+            { "depot", Stage.Depot },
+            { "train", Stage.Train },
+            { "jungle", Stage.Jungle },
+            { "control", Stage.Control },
+            { "caverns", Stage.Caverns },
+            { "cradle", Stage.Cradle },
+            { "aztec", Stage.Aztec },
+            { "egypt", Stage.Egypt },
+            { "defection", Stage.Defection },
+            { "investigation", Stage.Investigation },
+            { "extraction", Stage.Extraction },
+            { "villa", Stage.Villa },
+            { "chicago", Stage.Chicago },
+            { "g5", Stage.G5 },
+            { "infiltration", Stage.Infiltration },
+            { "rescue", Stage.Rescue },
+            { "escape", Stage.Escape },
+            { "airbase", Stage.AirBase },
+            { "airforceone", Stage.AirForceOne },
+            { "crashsite", Stage.CrashSite },
+            { "pelagicii", Stage.PelagicII },
+            { "deepsea", Stage.DeepSea },
+            { "ci", Stage.CI },
+            { "attackship", Stage.AttackShip },
+            { "skedarruins", Stage.SkedarRuins },
+            { "mbr", Stage.MBR },
+            { "maiansos", Stage.MaianSOS },
+            { "war!", Stage.War }
         };
 
         /// <summary>

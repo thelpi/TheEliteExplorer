@@ -20,52 +20,6 @@ namespace TheEliteExplorerInfrastructure
     /// <seealso cref="ITheEliteWebSiteParser"/>
     public class TheEliteWebSiteParser : ITheEliteWebSiteParser
     {
-        private static readonly IReadOnlyDictionary<string, int> _stageNames = new Dictionary<string, int>
-        {
-            { "dam", 1 },
-            { "facility", 2 },
-            { "runway", 3 },
-            { "surface1", 4 },
-            { "bunker1", 5 },
-            { "silo", 6 },
-            { "frigate", 7 },
-            { "surface2", 8 },
-            { "bunker2", 9 },
-            { "statue", 10 },
-            { "archives", 11 },
-            { "streets", 12 },
-            { "depot", 13 },
-            { "train", 14 },
-            { "jungle", 15 },
-            { "control", 16 },
-            { "caverns", 17 },
-            { "cradle", 18 },
-            { "aztec", 19 },
-            { "egypt", 20 },
-            { "defection", 21 },
-            { "investigation", 22 },
-            { "extraction", 23 },
-            { "villa", 24 },
-            { "chicago", 25 },
-            { "g5", 26 },
-            { "infiltration", 27 },
-            { "rescue", 28 },
-            { "escape", 29 },
-            { "airbase", 30 },
-            { "airforceone", 31 },
-            { "crashsite", 32 },
-            { "pelagicii", 33 },
-            { "deepsea", 34 },
-            { "ci", 35 },
-            { "attackship", 36 },
-            { "skedarruins", 37 },
-            { "mbr", 38 },
-            { "maiansos", 39 },
-            { "war!", 40 }
-        };
-        private const string _duelStageName = "duel";
-        private const int _firstPdId = 21;
-
         private readonly TheEliteWebsiteConfiguration _configuration;
 
         /// <summary>
@@ -273,10 +227,10 @@ namespace TheEliteExplorerInfrastructure
                 entries.Add(new EntryWebDto
                 {
                     Date = date,
-                    LevelId = (long)level.Value,
+                    Level = level.Value,
                     PlayerUrlName = playerUrlName,
-                    StageId = (long)stage,
-                    SystemId = engine.HasValue ? (long)engine : default(long?),
+                    Stage = stage.Value,
+                    Engine = engine,
                     Time = time.Value
                 });
             }
@@ -367,14 +321,14 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            var system = ToEngine(versionFromHead);
+            var engine = ToEngine(versionFromHead);
             return new EntryWebDto
             {
                 Date = date,
-                LevelId = (int)levelKey,
+                Level = levelKey,
                 PlayerUrlName = playerUrlName,
-                StageId = (long)stage,
-                SystemId = system.HasValue ? (int)system.Value : (int?)null,
+                Stage = stage,
+                Engine = engine,
                 Time = time.Value
             };
         }
@@ -396,14 +350,14 @@ namespace TheEliteExplorerInfrastructure
                     DateTime? date = ParseDateFromString(rowDatas[0], out failToExtract);
                     if (!failToExtract)
                     {
-                        var system = ToEngine(rowDatas[3]);
+                        var engine = ToEngine(rowDatas[3]);
                         yield return new EntryWebDto
                         {
                             Date = date,
-                            LevelId = (int)levelKey,
+                            Level = levelKey,
                             PlayerUrlName = playerUrlName,
-                            StageId = (long)stage,
-                            SystemId = system.HasValue ? (int)system.Value : (int?)null,
+                            Stage = stage,
+                            Engine = engine,
                             Time = time.Value
                         };
                     }
@@ -471,19 +425,15 @@ namespace TheEliteExplorerInfrastructure
             }
 
             string stageName = linkParts[0].ToLowerInvariant().Replace(" ", string.Empty);
-            if (!_stageNames.ContainsKey(stageName))
+            if (!Extensions.StageFormatedNames.ContainsKey(stageName))
             {
-                if (stageName != _duelStageName)
+                if (stageName != Extensions.PerfectDarkDuelStageFormatedName)
                 {
                     throw new FormatException($"Unable to extract the stage ID.");
                 }
                 return null;
             }
-            else if (game == Game.GoldenEye && _stageNames[stageName] >= _firstPdId)
-            {
-                return null;
-            }
-            else if (game == Game.PerfectDark && _stageNames[stageName] < _firstPdId)
+            else if (game != Extensions.StageFormatedNames[stageName].GetGame())
             {
                 return null;
             }
@@ -520,15 +470,13 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            var system = await ExtractTimeEntryEngine(link).ConfigureAwait(false);
-
             return new EntryWebDto
             {
                 Date = date,
-                LevelId = (int)level.Value,
+                Level = level.Value,
                 PlayerUrlName = playerUrl,
-                StageId = _stageNames[stageName],
-                SystemId = system.HasValue ? (int)system.Value : (int?)null,
+                Stage = Extensions.StageFormatedNames[stageName],
+                Engine = await ExtractTimeEntryEngine(link).ConfigureAwait(false),
                 Time = time.Value
             };
         }

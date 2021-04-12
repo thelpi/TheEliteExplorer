@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TheEliteExplorerDomain.Dtos
+﻿namespace TheEliteExplorerDomain.Dtos
 {
     /// <summary>
     /// Represents a time entry to process from the web datas.
@@ -17,11 +15,11 @@ namespace TheEliteExplorerDomain.Dtos
             return new EntryDto
             {
                 PlayerId = playerId,
-                StageId = StageId,
-                LevelId = LevelId,
+                Stage = Stage,
+                Level = Level,
                 Date = Date,
                 Time = Time,
-                SystemId = SystemId
+                Engine = Engine
             };
         }
     }

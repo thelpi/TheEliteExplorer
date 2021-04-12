@@ -1,4 +1,5 @@
 ﻿using System;
+using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerDomain.Dtos
 {
@@ -8,13 +9,13 @@ namespace TheEliteExplorerDomain.Dtos
     public class EntryBaseDto
     {
         /// <summary>
-        /// Stage identifier.
+        /// Stage.
         /// </summary>
-        public long StageId { get; set; }
+        public Stage Stage { get; set; }
         /// <summary>
-        /// Level identifier.
+        /// Level.
         /// </summary>
-        public long LevelId { get; set; }
+        public Level Level { get; set; }
         /// <summary>
         /// Entry time, in seconds.
         /// </summary>
@@ -24,8 +25,8 @@ namespace TheEliteExplorerDomain.Dtos
         /// </summary>
         public DateTime? Date { get; set; }
         /// <summary>
-        /// Engine/system identifier.
+        /// Engine.
         /// </summary>
-        public long? SystemId { get; set; }
+        public Engine? Engine { get; set; }
     }
 }

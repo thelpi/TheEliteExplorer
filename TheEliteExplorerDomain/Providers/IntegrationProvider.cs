@@ -109,7 +109,6 @@ namespace TheEliteExplorerDomain.Providers
         /// <inheritdoc />
         public async Task CleanDirtyPlayers()
         {
-            // TODO: ignore players permanently without sheet
             var players = await _readRepository
                 .GetDirtyPlayers()
                 .ConfigureAwait(false);
@@ -201,15 +200,15 @@ namespace TheEliteExplorerDomain.Providers
             var requestEntry = entry.ToEntry(playerId);
 
             var entries = await _readRepository.GetEntries(
-               (Stage)requestEntry.StageId,
-               (Level)requestEntry.LevelId,
+               requestEntry.Stage,
+               requestEntry.Level,
                requestEntry.Date?.Date,
                requestEntry.Date?.Date.AddDays(1));
 
             var matchEntry = entries.FirstOrDefault(e =>
                 e.PlayerId == requestEntry.PlayerId
                 && e.Time == requestEntry.Time
-                && e.SystemId == requestEntry.SystemId);
+                && e.Engine == requestEntry.Engine);
 
             if (match == null)
             {

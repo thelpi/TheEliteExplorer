@@ -69,16 +69,16 @@ namespace TheEliteExplorerInfrastructure.Repositories
                 new
                 {
                     player_id = requestEntry.PlayerId,
-                    level_id = requestEntry.LevelId,
-                    stage_id = requestEntry.StageId,
+                    level_id = (long)requestEntry.Level,
+                    stage_id = (long)requestEntry.Stage,
                     requestEntry.Date,
                     requestEntry.Time,
-                    system_id = requestEntry.SystemId
+                    system_id = requestEntry.Engine.HasValue ? (long)requestEntry.Engine.Value : default(long?)
                 }).ConfigureAwait(false);
 
             // invalidates caches
             await _cache
-                .RemoveAsync(string.Format(_getEntriesCacheKeyFormat, requestEntry.StageId, requestEntry.LevelId))
+                .RemoveAsync(string.Format(_getEntriesCacheKeyFormat, (long)requestEntry.Stage, (long)requestEntry.Level))
                 .ConfigureAwait(false);
             await _cache
                 .RemoveAsync(string.Format(_getAllEntriesCacheKeyFormat, (long)game))
@@ -119,10 +119,10 @@ namespace TheEliteExplorerInfrastructure.Repositories
                    new
                    {
                        date = ranking.Date,
-                       level_id = ranking.LevelId,
+                       level_id = (long)ranking.Level,
                        player_id = ranking.PlayerId,
                        rank = ranking.Rank,
-                       stage_id = ranking.StageId,
+                       stage_id = (long)ranking.Stage,
                        time = ranking.Time
                    },
                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
@@ -145,8 +145,8 @@ namespace TheEliteExplorerInfrastructure.Repositories
             var itemsColumns = rankings
                 .Select(r => new[]
                 {
-                    r.StageId.ToString(),
-                    r.LevelId.ToString(),
+                    ((long)r.Stage).ToString(),
+                    ((long)r.Level).ToString(),
                     r.Date.ToString("yyyy-MM-dd hh:mm:ss"),
                     r.PlayerId.ToString(),
                     r.Time.ToString(),
@@ -255,8 +255,8 @@ namespace TheEliteExplorerInfrastructure.Repositories
                     ToPsName(_insertStageLevelWrPsName),
                     new
                     {
-                        stage_id = wr.StageId,
-                        level_id = wr.LevelId,
+                        stage_id = (long)wr.Stage,
+                        level_id = (long)wr.Level,
                         player_id = wr.PlayerId,
                         date = wr.Date,
                         time = wr.Time,

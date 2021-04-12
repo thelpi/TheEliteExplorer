@@ -59,26 +59,22 @@ namespace TheEliteExplorerDomain.Models
         {
             var points = base.AddStageAndLevelDatas(ranking, untied);
 
-            var stage = (Stage)ranking.StageId;
-
-            Level level = (Level)ranking.LevelId;
-
             if (ranking.Rank == 1)
             {
-                _levelRecordsCount[level]++;
+                _levelRecordsCount[ranking.Level]++;
                 if (untied)
                 {
-                    _levelUntiedRecordsCount[level]++;
+                    _levelUntiedRecordsCount[ranking.Level]++;
                 }
             }
             
-            _levelPoints[level] += points;
+            _levelPoints[ranking.Level] += points;
             
-            GetDetailsByLevel(stage).Add(level, (ranking.Rank, points, ranking.Time));
+            GetDetailsByLevel(ranking.Stage).Add(ranking.Level, (ranking.Rank, points, ranking.Time));
 
             if (ranking.Time < UnsetTimeValueSeconds)
             {
-                _levelCumuledTime[level] -= UnsetTimeValueSeconds - ranking.Time;
+                _levelCumuledTime[ranking.Level] -= UnsetTimeValueSeconds - ranking.Time;
             }
 
             return points;

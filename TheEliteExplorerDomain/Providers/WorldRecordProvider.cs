@@ -52,7 +52,7 @@ namespace TheEliteExplorerDomain.Providers
                     var entriesDone = new List<(long, long)>();
 
                     var levelEntries = entries
-                        .Where(e => e.LevelId == (long)level && e.Date.HasValue)
+                        .Where(e => e.Level == level && e.Date.HasValue)
                         .GroupBy(e => e.Date.Value)
                         .OrderBy(e => e.Key)
                         .ToDictionary(e => e.Key, e => e.ToList());
@@ -73,7 +73,7 @@ namespace TheEliteExplorerDomain.Providers
 
                             currentlyUntied = await AddEntriesAsWorldRecords(
                                     bestTimesAtDate,
-                                    (long)stage,
+                                    stage,
                                     level,
                                     true,
                                     false,
@@ -84,7 +84,7 @@ namespace TheEliteExplorerDomain.Providers
                         {
                             await AddEntriesAsWorldRecords(
                                     bestTimesAtDate,
-                                    (long)stage,
+                                    stage,
                                     level,
                                     false,
                                     currentlyUntied,
@@ -134,7 +134,7 @@ namespace TheEliteExplorerDomain.Providers
 
         private async Task<bool> AddEntriesAsWorldRecords(
             IEnumerable<EntryDto> bestTimesAtDate,
-            long stageId,
+            Stage stage,
             Level level,
             bool untied,
             bool firstTied,
@@ -151,10 +151,10 @@ namespace TheEliteExplorerDomain.Providers
 
                 var dto = new WrDto
                 {
-                    StageId = stageId,
+                    Stage = stage,
                     Date = times.Date.Value,
                     FirstTied = firstTied,
-                    LevelId = (long)level,
+                    Level = level,
                     PlayerId = times.PlayerId,
                     Time = times.Time,
                     Untied = untied
@@ -179,7 +179,7 @@ namespace TheEliteExplorerDomain.Providers
 
         private static IEnumerable<(long, DateTime, Stage)> GetPotentialSweep(
             bool untied,
-            Dictionary<(long, long), List<EntryDto>> entriesGroups,
+            Dictionary<(Stage, Level), List<EntryDto>> entriesGroups,
             DateTime currentDate,
             Stage stage)
         {
@@ -187,7 +187,7 @@ namespace TheEliteExplorerDomain.Providers
             long? untiedSweepPlayerId = null;
             foreach (var level in SystemExtensions.Enumerate<Level>())
             {
-                var stageLevelDateWrs = entriesGroups[((long)stage, (int)level)]
+                var stageLevelDateWrs = entriesGroups[(stage, level)]
                     .Where(e => e.Date.Value.Date <= currentDate.Date)
                     .GroupBy(e => e.Time)
                     .OrderBy(e => e.Key)
@@ -235,7 +235,7 @@ namespace TheEliteExplorerDomain.Providers
                 : Enumerable.Empty<(long, DateTime, Stage)>();
         }
 
-        private async Task<Dictionary<(long StageId, long LevelId), List<EntryDto>>> GetEntriesGroupByStageAndLevel(Game game)
+        private async Task<Dictionary<(Stage Stage, Level Level), List<EntryDto>>> GetEntriesGroupByStageAndLevel(Game game)
         {
             var fullEntries = new List<EntryDto>();
 
@@ -250,7 +250,7 @@ namespace TheEliteExplorerDomain.Providers
 
             var groupEntries = fullEntries
                 .Where(e => e.Date.HasValue)
-                .GroupBy(e => (e.StageId, e.LevelId))
+                .GroupBy(e => (e.Stage, e.Level))
                 .ToDictionary(e => e.Key, e => e.ToList());
             return groupEntries;
         }
