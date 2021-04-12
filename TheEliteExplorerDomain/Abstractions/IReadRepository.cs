@@ -1,0 +1,79 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Enums;
+
+namespace TheEliteExplorerDomain.Abstractions
+{
+    /// <summary>
+    /// Read operations in repository (interface).
+    /// </summary>
+    public interface IReadRepository
+    {
+        /// <summary>
+        /// Gets world records for a stage and a level.
+        /// </summary>
+        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="level">Level.</param>
+        /// <returns>Collection of world records.</returns>
+        Task<IReadOnlyCollection<WrDto>> GetStageLevelWrs(long stageId, Level level);
+
+        /// <summary>
+        /// Gets every players from the database.
+        /// </summary>
+        /// <returns>Collection of <see cref="PlayerDto"/>; can't be <c>Null</c>.</returns>
+        Task<IReadOnlyCollection<PlayerDto>> GetPlayers();
+
+        /// <summary>
+        /// Gets every entries for a specified stage and level, between two dates.
+        /// </summary>
+        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="level">Level.</param>
+        /// <param name="startDate">Start date (inclusive).</param>
+        /// <param name="endDate">End date (exclusive).</param>
+        /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
+        Task<IReadOnlyCollection<EntryDto>> GetEntries(long stageId, Level level, DateTime? startDate, DateTime? endDate);
+
+        /// <summary>
+        /// Gets every entry for a specified stage.
+        /// </summary>
+        /// <param name="stageId">Stage identifier.</param>
+        /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
+        Task<IReadOnlyCollection<EntryDto>> GetEntries(long stageId);
+
+        /// <summary>
+        /// Gets the most recent entry date.
+        /// </summary>
+        /// <returns>Most recent entry date</returns>
+        Task<DateTime?> GetLatestEntryDate();
+
+        /// <summary>
+        /// Gets the date of the latest ranking.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <returns>Date of the latest ranking; <c>Null</c> if no ranking.</returns>
+        Task<DateTime?> GetLatestRankingDate(Game game);
+
+        /// <summary>
+        /// Gets duplicate players.
+        /// </summary>
+        /// <returns>A collection of <see cref="DuplicatePlayerDto"/>.</returns>
+        Task<IReadOnlyCollection<DuplicatePlayerDto>> GetDuplicatePlayers();
+
+        /// <summary>
+        /// Gets every dirty player.
+        /// </summary>
+        /// <returns>Collection of <see cref="PlayerDto"/>.</returns>
+        Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayers();
+
+        /// <summary>
+        /// Gets rankings for a specified stage and level a a specified date.
+        /// </summary>
+        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="level">Level.</param>
+        /// <param name="date">Date.</param>
+        /// <returns>Collection of rankings.</returns>
+        Task<IReadOnlyCollection<RankingDto>> GetStageLevelDateRankings(long stageId, Level level, DateTime date);
+    }
+}

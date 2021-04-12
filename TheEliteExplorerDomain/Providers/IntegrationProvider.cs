@@ -15,21 +15,26 @@ namespace TheEliteExplorerDomain.Providers
     /// <seealso cref="IIntegrationProvider"/>
     public sealed class IntegrationProvider : IIntegrationProvider
     {
-        private readonly ISqlContext _sqlContext;
+        private readonly IWriteRepository _writeRepository;
+        private readonly IReadRepository _readRepository;
         private readonly ITheEliteWebSiteParser _siteParser;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="sqlContext">Instance of <see cref="ISqlContext"/>.</param>
+        /// <param name="writeRepository">Instance of <see cref="IWriteRepository"/>.</param>
+        /// <param name="readRepository">Instance of <see cref="IReadRepository"/>.</param>
         /// <param name="siteParser">Instance of <see cref="ITheEliteWebSiteParser"/>.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writeRepository"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="siteParser"/> is <c>Null</c>.</exception>
         public IntegrationProvider(
-            ISqlContext sqlContext,
+            IWriteRepository writeRepository,
+            IReadRepository readRepository,
             ITheEliteWebSiteParser siteParser)
         {
-            _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
+            _writeRepository = writeRepository ?? throw new ArgumentNullException(nameof(writeRepository));
+            _readRepository = readRepository ?? throw new ArgumentNullException(nameof(readRepository));
             _siteParser = siteParser ?? throw new ArgumentNullException(nameof(siteParser));
         }
 
@@ -37,7 +42,7 @@ namespace TheEliteExplorerDomain.Providers
         public async Task ScanAllPlayersEntriesHistory(
             Game game)
         {
-            var players = await _sqlContext
+            var players = await _readRepository
                 .GetPlayers()
                 .ConfigureAwait(false);
 
@@ -51,7 +56,7 @@ namespace TheEliteExplorerDomain.Providers
                 {
                     foreach (var stage in Stage.Get(game))
                     {
-                        await _sqlContext
+                        await _writeRepository
                             .DeletePlayerStageEntries(stage.Id, player.Id)
                             .ConfigureAwait(false);
                     }
@@ -70,7 +75,7 @@ namespace TheEliteExplorerDomain.Providers
             Game game,
             long playerId)
         {
-            var players = await _sqlContext
+            var players = await _readRepository
                 .GetPlayers()
                 .ConfigureAwait(false);
 
@@ -88,7 +93,7 @@ namespace TheEliteExplorerDomain.Providers
             {
                 foreach (var stage in Stage.Get(game))
                 {
-                    await _sqlContext
+                    await _writeRepository
                         .DeletePlayerStageEntries(stage.Id, playerId)
                         .ConfigureAwait(false);
                 }
@@ -105,7 +110,7 @@ namespace TheEliteExplorerDomain.Providers
         public async Task CleanDirtyPlayers()
         {
             // TODO: ignore players permanently without sheet
-            var players = await _sqlContext
+            var players = await _readRepository
                 .GetDirtyPlayers()
                 .ConfigureAwait(false);
 
@@ -118,7 +123,7 @@ namespace TheEliteExplorerDomain.Providers
                 if (pInfo != null)
                 {
                     pInfo.Id = p.Id;
-                    await _sqlContext
+                    await _writeRepository
                         .UpdatePlayerInformation(pInfo)
                         .ConfigureAwait(false);
                 }
@@ -152,7 +157,7 @@ namespace TheEliteExplorerDomain.Providers
         {
             if (!startDate.HasValue)
             {
-                startDate = await _sqlContext
+                startDate = await _readRepository
                     .GetLatestEntryDate()
                     .ConfigureAwait(false);
 
@@ -169,11 +174,11 @@ namespace TheEliteExplorerDomain.Providers
             EntryWebDto entry,
             Game game)
         {
-            var playerId = await _sqlContext
+            var playerId = await _writeRepository
                 .InsertOrRetrievePlayerDirty(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
                 .ConfigureAwait(false);
 
-            await _sqlContext
+            await _writeRepository
                 .InsertOrRetrieveTimeEntry(entry.ToEntry(playerId), (long)game)
                 .ConfigureAwait(false);
         }

@@ -10,6 +10,7 @@ using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Providers;
 using TheEliteExplorerInfrastructure;
 using TheEliteExplorerInfrastructure.Configuration;
+using TheEliteExplorerInfrastructure.Repositories;
 
 namespace TheEliteExplorer
 {
@@ -55,7 +56,8 @@ namespace TheEliteExplorer
                 .Configure<CacheConfiguration>(_configuration.GetSection(_cacheSection))
                 .Configure<RankingConfiguration>(_configuration.GetSection(_rankingSection))
                 .Configure<TheEliteWebsiteConfiguration>(_configuration.GetSection(_theEliteWebsiteSection))
-                .AddSingleton<ISqlContext, SqlContext>()
+                .AddSingleton<IReadRepository, ReadRepository>()
+                .AddSingleton<IWriteRepository, WriteRepository>()
                 .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()
                 .AddSingleton<IRankingProvider, RankingProvider>()
                 .AddSingleton<IIntegrationProvider, IntegrationProvider>()

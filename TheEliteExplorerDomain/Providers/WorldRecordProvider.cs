@@ -16,16 +16,22 @@ namespace TheEliteExplorerDomain.Providers
     /// <seealso cref="IWorldRecordProvider"/>
     public sealed class WorldRecordProvider : IWorldRecordProvider
     {
-        private readonly ISqlContext _sqlContext;
+        private readonly IReadRepository _readRepository;
+        private readonly IWriteRepository _writeRepository;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="sqlContext">Instance of <see cref="ISqlContext"/>.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
-        public WorldRecordProvider(ISqlContext sqlContext)
+        /// <param name="readRepository">Instance of <see cref="IReadRepository"/>.</param>
+        /// <param name="writeRepository">Instance of <see cref="IWriteRepository"/>.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writeRepository"/> is <c>Null</c>.</exception>
+        public WorldRecordProvider(
+            IReadRepository readRepository,
+            IWriteRepository writeRepository)
         {
-            _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
+            _readRepository = readRepository ?? throw new ArgumentNullException(nameof(readRepository));
+            _writeRepository = writeRepository ?? throw new ArgumentNullException(nameof(writeRepository));
         }
 
         /// <inheritdoc />
@@ -33,13 +39,13 @@ namespace TheEliteExplorerDomain.Providers
         {
             foreach (var stage in Stage.Get(game))
             {
-                var entries = await _sqlContext
+                var entries = await _readRepository
                     .GetEntries(stage.Id)
                     .ConfigureAwait(false);
 
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
-                    await _sqlContext
+                    await _writeRepository
                         .DeleteStageLevelWr(stage.Id, level)
                         .ConfigureAwait(false);
 
@@ -143,8 +149,19 @@ namespace TheEliteExplorerDomain.Providers
                 }
                 entriesDone.Add((times.PlayerId, times.Time));
 
-                await _sqlContext
-                    .InsertWr(stageId, level, times.PlayerId, times.Date.Value, times.Time, untied, firstTied)
+                var dto = new WrDto
+                {
+                    StageId = stageId,
+                    Date = times.Date.Value,
+                    FirstTied = firstTied,
+                    LevelId = (long)level,
+                    PlayerId = times.PlayerId,
+                    Time = times.Time,
+                    Untied = untied
+                };
+
+                await _writeRepository
+                    .InsertWr(dto)
                     .ConfigureAwait(false);
                 if (untied)
                 {
@@ -224,7 +241,7 @@ namespace TheEliteExplorerDomain.Providers
 
             foreach (var stage in Stage.Get(game))
             {
-                var entries = await _sqlContext
+                var entries = await _readRepository
                     .GetEntries(stage.Id)
                     .ConfigureAwait(false);
 
@@ -240,7 +257,7 @@ namespace TheEliteExplorerDomain.Providers
 
         private async Task<Dictionary<long, Dtos.PlayerDto>> GetPlayersDictionary()
         {
-            var players = await _sqlContext
+            var players = await _readRepository
                             .GetPlayers()
                             .ConfigureAwait(false);
 

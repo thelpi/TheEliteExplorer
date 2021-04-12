@@ -19,21 +19,26 @@ namespace TheEliteExplorerDomain.Providers
     public sealed class RankingProvider : IRankingProvider
     {
         private readonly RankingConfiguration _configuration;
-        private readonly ISqlContext _sqlContext;
+        private readonly IReadRepository _readRepository;
+        private readonly IWriteRepository _writeRepository;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Ranking configuration.</param>
-        /// <param name="sqlContext">Players base list.</param>
+        /// <param name="readRepository">Instance of <see cref="IReadRepository"/>.</param>
+        /// <param name="writeRepository">Instance of <see cref="IWriteRepository"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="sqlContext"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writeRepository"/> is <c>Null</c>.</exception>
         public RankingProvider(
             IOptions<RankingConfiguration> configuration,
-            ISqlContext sqlContext)
+            IReadRepository readRepository,
+            IWriteRepository writeRepository)
         {
             _configuration = configuration?.Value ?? throw new ArgumentNullException(nameof(configuration));
-            _sqlContext = sqlContext ?? throw new ArgumentNullException(nameof(sqlContext));
+            _readRepository = readRepository ?? throw new ArgumentNullException(nameof(readRepository));
+            _writeRepository = writeRepository ?? throw new ArgumentNullException(nameof(writeRepository));
         }
 
         /// <inheritdoc />
@@ -51,7 +56,7 @@ namespace TheEliteExplorerDomain.Providers
             {
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
-                    var stageLevelRankings = await _sqlContext
+                    var stageLevelRankings = await _readRepository
                         .GetStageLevelDateRankings(stage.Id, level, rankingDate)
                         .ConfigureAwait(false);
                     finalEntries.AddRange(stageLevelRankings);
@@ -144,7 +149,7 @@ namespace TheEliteExplorerDomain.Providers
             if (stageAndLevel.HasValue)
             {
                 // Gets every entry for the stage and level
-                var tmpEntriesSource = await _sqlContext
+                var tmpEntriesSource = await _readRepository
                     .GetEntries(stageAndLevel.Value.Stage.Id, stageAndLevel.Value.Level, null, null)
                     .ConfigureAwait(false);
 
@@ -155,7 +160,7 @@ namespace TheEliteExplorerDomain.Providers
                 // Gets every entry for the game
                 foreach (var stage in Stage.Get(game.Value))
                 {
-                    var entriesStageSource = await _sqlContext
+                    var entriesStageSource = await _readRepository
                         .GetEntries(stage.Id)
                         .ConfigureAwait(false);
 
@@ -180,7 +185,7 @@ namespace TheEliteExplorerDomain.Providers
             Level level)
         {
             // Removes previous ranking history
-            await _sqlContext
+            await _writeRepository
                 .DeleteStageLevelRankingHistory(stage.Id, level)
                 .ConfigureAwait(false);
 
@@ -248,7 +253,7 @@ namespace TheEliteExplorerDomain.Providers
                 }
             }
 
-            await _sqlContext
+            await _writeRepository
                 .BulkInsertRankings(rankingsToInsert)
                 .ConfigureAwait(false);
         }
@@ -257,7 +262,7 @@ namespace TheEliteExplorerDomain.Providers
         private async Task<IDictionary<long, PlayerDto>> GetPlayers()
         {
             // TODO: gets also dirty players
-            var playersSource = await _sqlContext
+            var playersSource = await _readRepository
                 .GetPlayers()
                 .ConfigureAwait(false);
             
