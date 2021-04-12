@@ -45,7 +45,7 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
-        /// Scans the site to get every time for a every player on a game.
+        /// Scans the site to get every time for every player on a game.
         /// </summary>
         /// <param name="game">Game.</param>
         /// <returns>Nothing.</returns>
