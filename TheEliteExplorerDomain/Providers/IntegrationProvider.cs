@@ -54,10 +54,10 @@ namespace TheEliteExplorerDomain.Providers
 
                 if (entries != null)
                 {
-                    foreach (var stage in Stage.Get(game))
+                    foreach (var stage in game.GetStages())
                     {
                         await _writeRepository
-                            .DeletePlayerStageEntries(stage.Id, player.Id)
+                            .DeletePlayerStageEntries((long)stage, player.Id)
                             .ConfigureAwait(false);
                     }
 
@@ -91,10 +91,10 @@ namespace TheEliteExplorerDomain.Providers
 
             if (entries != null)
             {
-                foreach (var stage in Stage.Get(game))
+                foreach (var stage in game.GetStages())
                 {
                     await _writeRepository
-                        .DeletePlayerStageEntries(stage.Id, playerId)
+                        .DeletePlayerStageEntries((long)stage, playerId)
                         .ConfigureAwait(false);
                 }
 

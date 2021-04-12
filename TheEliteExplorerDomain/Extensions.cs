@@ -11,6 +11,8 @@ namespace TheEliteExplorerDomain
     /// </summary>
     public static class Extensions
     {
+        private const int GoldeneyeStagesCount = 20;
+
         /// <summary>
         /// Default label for unknown data.
         /// </summary>
@@ -46,19 +48,63 @@ namespace TheEliteExplorerDomain
             { "2.3", ControlStyle.TwoPointThree },
             { "2.4", ControlStyle.TwoPointFour }
         };
+        private static readonly Dictionary<Stage, string> _stageLabels = new Dictionary<Stage, string>
+        {
+            { Stage.Dam, "Dam" },
+            { Stage.Facility, "Facility" },
+            { Stage.Runway, "Runway" },
+            { Stage.Surface1, "Surface 1" },
+            { Stage.Bunker1, "Bunker 1" },
+            { Stage.Silo, "Silo" },
+            { Stage.Frigate, "Frigate" },
+            { Stage.Surface2, "Surface 2" },
+            { Stage.Bunker2, "Bunker 2" },
+            { Stage.Statue, "Statue" },
+            { Stage.Archives, "Archives" },
+            { Stage.Streets, "Streets" },
+            { Stage.Depot, "Depot" },
+            { Stage.Train, "Train" },
+            { Stage.Jungle, "Jungle" },
+            { Stage.Control, "Control" },
+            { Stage.Caverns, "Caverns" },
+            { Stage.Cradle, "Cradle" },
+            { Stage.Aztec, "Aztec" },
+            { Stage.Egypt, "Egypt" },
+            // TODO: might be invalid from here
+            { Stage.Defection, "dataDyne Central - Defection" },
+            { Stage.Investigation, "dataDyne Research - Investigation" },
+            { Stage.Extraction, "dataDyne Central - Extraction" },
+            { Stage.Villa, "Carrington Villa - Hostage One" },
+            { Stage.Chicago, "Chicago - Stealth" },
+            { Stage.G5, "G5 Building - Reconnaissance" },
+            { Stage.Infiltration, "Area 51 - Infiltration" },
+            { Stage.Rescue, "Area 51 - Rescue" },
+            { Stage.Escape, "Area 51 - Escape" },
+            { Stage.AirBase, "Air Base - Espionage" },
+            { Stage.AirForceOne, "Air Force One - Antiterrorism" },
+            { Stage.CrashSite, "Crash Site - Confrontation" },
+            { Stage.PelagicII, "Pelagic II - Exploration" },
+            { Stage.DeepSea, "Deep Sea - Nullify Threat" },
+            { Stage.CI, "Carrington Institute - Defense" },
+            { Stage.AttackShip, "Attack Ship - Covert Assault" },
+            { Stage.SkedarRuins, "Skedar Ruins - Battle Shrine" },
+            { Stage.MBR, "Mr. Blonde's Revenge" },
+            { Stage.MaianSOS, "Maian SOS" },
+            { Stage.War, "WAR!" },
+        };
 
         /// <summary>
         /// Tries to get a stage from its label.
         /// </summary>
         /// <param name="game">Game.</param>
-        /// <param name="levelLabel">Stage label.</param>
+        /// <param name="stageLabel">Stage label.</param>
         /// <returns>Stage or <c>Null</c>.</returns>
-        public static Models.Stage GetStageFromLabel(this Game game, string levelLabel)
+        public static Stage? GetStageFromLabel(this Game game, string stageLabel)
         {
-            var stages = Models.Stage.Get(game);
+            var matches = _stageLabels.Where(_ =>
+                _.Value.Equals(stageLabel, StringComparison.InvariantCultureIgnoreCase));
 
-            return stages.FirstOrDefault(s =>
-                s.Name.Equals(levelLabel, StringComparison.InvariantCultureIgnoreCase));
+            return matches.Any() ? matches.First().Key : default(Stage?);
         }
 
         /// <summary>
@@ -130,6 +176,39 @@ namespace TheEliteExplorerDomain
                 date?.Date <= ServiceProviderAccessor.ClockProvider.Now.Date
                 && date?.Date >= game.GetEliteFirstDate()
             );
+        }
+
+        /// <summary>
+        /// Gets every stages of the specified game.
+        /// </summary>
+        /// <param name="game">The <see cref="Game"/>.</param>
+        /// <returns>Collection of <see cref="Stage"/>.</returns>
+        public static IReadOnlyCollection<Stage> GetStages(this Game game)
+        {
+            if (game == Game.GoldenEye)
+            {
+                return SystemExtensions.Enumerate<Stage>()
+                    .Where(s => (int)s <= GoldeneyeStagesCount)
+                    .ToList();
+            }
+            else
+            {
+                return SystemExtensions.Enumerate<Stage>()
+                    .Where(s => (int)s > GoldeneyeStagesCount)
+                    .ToList();
+            }
+        }
+
+        /// <summary>
+        /// Gets the game related to a stage.
+        /// </summary>
+        /// <param name="stage">Stage.</param>
+        /// <returns>Game.</returns>
+        public static Game GetGame(this Stage stage)
+        {
+            return ((int)stage) <= GoldeneyeStagesCount
+                ? Game.GoldenEye
+                : Game.PerfectDark;
         }
     }
 }

@@ -53,12 +53,12 @@ namespace TheEliteExplorerDomain.Models
             UntiedRecordsCount = 0;
             RecordsCount = 0;
 
-            CumuledTime = (UnsetTimeValueSeconds * Stage.Get(Game).Count) * SystemExtensions.Count<Level>();
+            CumuledTime = (UnsetTimeValueSeconds * Game.GetStages().Count) * SystemExtensions.Count<Level>();
         }
 
         internal virtual int AddStageAndLevelDatas(RankingDto ranking, bool untied)
         {
-            var stage = Stage.Get(ranking.StageId);
+            var stage = (Stage)ranking.StageId;
 
             Level level = (Level)ranking.LevelId;
 

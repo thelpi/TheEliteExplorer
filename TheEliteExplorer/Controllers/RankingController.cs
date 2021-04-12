@@ -63,15 +63,15 @@ namespace TheEliteExplorer.Controllers
         /// <summary>
         /// Builds or rebuilds the ranking history for a single stage and a single level.
         /// </summary>
-        /// <param name="stageId">The stage identifier.</param>
+        /// <param name="stage">The stage.</param>
         /// <param name="level">The level.</param>
         /// <returns>Nothing.</returns>
         [HttpPost("stages/{stageId}/levels/{level}/rankings")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> RebuildRankingHistory([FromRoute] long stageId, [FromRoute] Level level)
+        public async Task<IActionResult> RebuildRankingHistory([FromRoute] Stage stage, [FromRoute] Level level)
         {
             await _rankingProvider
-                .RebuildRankingHistory(Stage.Get(stageId), level)
+                .RebuildRankingHistory(stage, level)
                 .ConfigureAwait(false);
 
             return NoContent();

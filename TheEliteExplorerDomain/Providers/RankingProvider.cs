@@ -52,12 +52,12 @@ namespace TheEliteExplorerDomain.Providers
             var players = await GetPlayers().ConfigureAwait(false);
 
             var finalEntries = new List<RankingDto>();
-            foreach (var stage in Stage.Get(game))
+            foreach (var stage in game.GetStages())
             {
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
                     var stageLevelRankings = await _readRepository
-                        .GetStageLevelDateRankings(stage.Id, level, rankingDate)
+                        .GetStageLevelDateRankings((long)stage, level, rankingDate)
                         .ConfigureAwait(false);
                     finalEntries.AddRange(stageLevelRankings);
                 }
@@ -104,12 +104,12 @@ namespace TheEliteExplorerDomain.Providers
             var entries = await GetEntriesInternal(game, null, players)
                 .ConfigureAwait(false);
 
-            foreach (var stage in Stage.Get(game))
+            foreach (var stage in game.GetStages())
             {
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
                     var filteredEntries = entries
-                        .Where(e => e.StageId == stage.Id && e.LevelId == (long)level)
+                        .Where(e => e.StageId == (long)stage && e.LevelId == (long)level)
                         .ToList();
 
                     await RebuildRankingHistoryInternal(filteredEntries, players, stage, level)
@@ -123,11 +123,6 @@ namespace TheEliteExplorerDomain.Providers
             Stage stage,
             Level level)
         {
-            if (stage == null)
-            {
-                throw new ArgumentNullException(nameof(stage));
-            }
-
             var players = await GetPlayers()
                 .ConfigureAwait(false);
 
@@ -150,7 +145,7 @@ namespace TheEliteExplorerDomain.Providers
             {
                 // Gets every entry for the stage and level
                 var tmpEntriesSource = await _readRepository
-                    .GetEntries(stageAndLevel.Value.Stage.Id, stageAndLevel.Value.Level, null, null)
+                    .GetEntries((long)stageAndLevel.Value.Stage, stageAndLevel.Value.Level, null, null)
                     .ConfigureAwait(false);
 
                 entriesSource.AddRange(tmpEntriesSource);
@@ -158,10 +153,10 @@ namespace TheEliteExplorerDomain.Providers
             else
             {
                 // Gets every entry for the game
-                foreach (var stage in Stage.Get(game.Value))
+                foreach (var stage in game.Value.GetStages())
                 {
                     var entriesStageSource = await _readRepository
-                        .GetEntries(stage.Id)
+                        .GetEntries((long)stage)
                         .ConfigureAwait(false);
 
                     entriesSource.AddRange(entriesStageSource);
@@ -186,7 +181,7 @@ namespace TheEliteExplorerDomain.Providers
         {
             // Removes previous ranking history
             await _writeRepository
-                .DeleteStageLevelRankingHistory(stage.Id, level)
+                .DeleteStageLevelRankingHistory((long)stage, level)
                 .ConfigureAwait(false);
 
             // Groups and sorts by date
@@ -199,7 +194,7 @@ namespace TheEliteExplorerDomain.Providers
 
             // Ranking is generated every day
             // if the current day of the loop has at least one new time
-            var eligiblesDates = stage.Game.GetEliteFirstDate()
+            var eligiblesDates = stage.GetGame().GetEliteFirstDate()
                 .LoopBetweenDates(DateStep.Day)
                 .Where(d => entriesDateGroup.ContainsKey(d))
                 .ToList();

@@ -52,14 +52,14 @@ namespace TheEliteExplorerDomain.Models
             _levelUntiedRecordsCount = ToLevelDictionary(0);
             _levelRecordsCount = ToLevelDictionary(0);
 
-            _levelCumuledTime = ToLevelDictionary(UnsetTimeValueSeconds * Stage.Get(Game).Count);
+            _levelCumuledTime = ToLevelDictionary(UnsetTimeValueSeconds * Game.GetStages().Count);
         }
 
         internal override int AddStageAndLevelDatas(RankingDto ranking, bool untied)
         {
             var points = base.AddStageAndLevelDatas(ranking, untied);
 
-            var stage = Stage.Get(ranking.StageId);
+            var stage = (Stage)ranking.StageId;
 
             Level level = (Level)ranking.LevelId;
 

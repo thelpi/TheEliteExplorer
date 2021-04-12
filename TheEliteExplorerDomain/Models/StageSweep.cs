@@ -1,4 +1,5 @@
 ﻿using System;
+using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerDomain.Models
 {

@@ -275,7 +275,7 @@ namespace TheEliteExplorerInfrastructure
                     Date = date,
                     LevelId = (long)level.Value,
                     PlayerUrlName = playerUrlName,
-                    StageId = stage.Id,
+                    StageId = (long)stage,
                     SystemId = engine.HasValue ? (long)engine : default(long?),
                     Time = time.Value
                 });

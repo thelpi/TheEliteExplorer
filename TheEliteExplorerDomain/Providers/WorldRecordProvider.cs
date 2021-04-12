@@ -37,16 +37,16 @@ namespace TheEliteExplorerDomain.Providers
         /// <inheritdoc />
         public async Task GenerateWorldRecords(Game game)
         {
-            foreach (var stage in Stage.Get(game))
+            foreach (var stage in game.GetStages())
             {
                 var entries = await _readRepository
-                    .GetEntries(stage.Id)
+                    .GetEntries((long)stage)
                     .ConfigureAwait(false);
 
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
                     await _writeRepository
-                        .DeleteStageLevelWr(stage.Id, level)
+                        .DeleteStageLevelWr((long)stage, level)
                         .ConfigureAwait(false);
 
                     var entriesDone = new List<(long, long)>();
@@ -73,7 +73,7 @@ namespace TheEliteExplorerDomain.Providers
 
                             currentlyUntied = await AddEntriesAsWorldRecords(
                                     bestTimesAtDate,
-                                    stage.Id,
+                                    (long)stage,
                                     level,
                                     true,
                                     false,
@@ -84,7 +84,7 @@ namespace TheEliteExplorerDomain.Providers
                         {
                             await AddEntriesAsWorldRecords(
                                     bestTimesAtDate,
-                                    stage.Id,
+                                    (long)stage,
                                     level,
                                     false,
                                     currentlyUntied,
@@ -122,7 +122,7 @@ namespace TheEliteExplorerDomain.Providers
                 endDate ?? ServiceProviderAccessor.ClockProvider.Now,
                 DateStep.Day))
             {
-                foreach (var stage in Stage.Get(game))
+                foreach (var stage in game.GetStages())
                 {
                     var sweeps = GetPotentialSweep(untied, entriesGroups, currentDate, stage);
                     sweepsRaw.AddRange(sweeps);
@@ -179,7 +179,7 @@ namespace TheEliteExplorerDomain.Providers
 
         private static IEnumerable<(long, DateTime, Stage)> GetPotentialSweep(
             bool untied,
-            Dictionary<(long, long), List<Dtos.EntryDto>> entriesGroups,
+            Dictionary<(long, long), List<EntryDto>> entriesGroups,
             DateTime currentDate,
             Stage stage)
         {
@@ -187,7 +187,7 @@ namespace TheEliteExplorerDomain.Providers
             long? untiedSweepPlayerId = null;
             foreach (var level in SystemExtensions.Enumerate<Level>())
             {
-                var stageLevelDateWrs = entriesGroups[(stage.Id, (int)level)]
+                var stageLevelDateWrs = entriesGroups[((long)stage, (int)level)]
                     .Where(e => e.Date.Value.Date <= currentDate.Date)
                     .GroupBy(e => e.Time)
                     .OrderBy(e => e.Key)
@@ -235,14 +235,14 @@ namespace TheEliteExplorerDomain.Providers
                 : Enumerable.Empty<(long, DateTime, Stage)>();
         }
 
-        private async Task<Dictionary<(long StageId, long LevelId), List<Dtos.EntryDto>>> GetEntriesGroupByStageAndLevel(Game game)
+        private async Task<Dictionary<(long StageId, long LevelId), List<EntryDto>>> GetEntriesGroupByStageAndLevel(Game game)
         {
-            var fullEntries = new List<Dtos.EntryDto>();
+            var fullEntries = new List<EntryDto>();
 
-            foreach (var stage in Stage.Get(game))
+            foreach (var stage in game.GetStages())
             {
                 var entries = await _readRepository
-                    .GetEntries(stage.Id)
+                    .GetEntries((long)stage)
                     .ConfigureAwait(false);
 
                 fullEntries.AddRange(entries);
@@ -255,7 +255,7 @@ namespace TheEliteExplorerDomain.Providers
             return groupEntries;
         }
 
-        private async Task<Dictionary<long, Dtos.PlayerDto>> GetPlayersDictionary()
+        private async Task<Dictionary<long, PlayerDto>> GetPlayersDictionary()
         {
             var players = await _readRepository
                             .GetPlayers()
@@ -266,7 +266,7 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         private static IReadOnlyCollection<StageSweep> ConsolidateSweeps(
-            Dictionary<long, Dtos.PlayerDto> playerKeys,
+            Dictionary<long, PlayerDto> playerKeys,
             List<(long playerId, DateTime date, Stage stage)> sweepsRaw)
         {
             var sweeps = new List<StageSweep>();
