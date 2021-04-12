@@ -174,13 +174,49 @@ namespace TheEliteExplorerDomain.Providers
             EntryWebDto entry,
             Game game)
         {
-            var playerId = await _writeRepository
-                .InsertOrRetrievePlayerDirty(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
+            var players = await _readRepository
+                .GetPlayers()
+                .ConfigureAwait(false);
+            var dirtyPlayers = await _readRepository
+                .GetDirtyPlayers()
                 .ConfigureAwait(false);
 
-            await _writeRepository
-                .InsertOrRetrieveTimeEntry(entry.ToEntry(playerId), (long)game)
-                .ConfigureAwait(false);
+            var match = players
+                .Concat(dirtyPlayers)
+                .FirstOrDefault(p =>
+                    p.UrlName.Equals(entry.PlayerUrlName, StringComparison.InvariantCultureIgnoreCase));
+
+            long playerId;
+            if (match == null)
+            {
+                playerId = await _writeRepository
+                    .InsertPlayer(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                playerId = match.Id;
+            }
+
+            var requestEntry = entry.ToEntry(playerId);
+
+            var entries = await _readRepository.GetEntries(
+               requestEntry.StageId,
+               (Level)requestEntry.LevelId,
+               requestEntry.Date?.Date,
+               requestEntry.Date?.Date.AddDays(1));
+
+            var matchEntry = entries.FirstOrDefault(e =>
+                e.PlayerId == requestEntry.PlayerId
+                && e.Time == requestEntry.Time
+                && e.SystemId == requestEntry.SystemId);
+
+            if (match == null)
+            {
+                await _writeRepository
+                    .InsertTimeEntry(requestEntry, (long)game)
+                    .ConfigureAwait(false);
+            }
         }
     }
 }

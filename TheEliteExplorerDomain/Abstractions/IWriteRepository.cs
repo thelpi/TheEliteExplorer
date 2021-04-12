@@ -12,32 +12,23 @@ namespace TheEliteExplorerDomain.Abstractions
     public interface IWriteRepository
     {
         /// <summary>
-        /// Insert a time entry, or retrieves it if the tuple [playerId / levelId / stageId / time / systemId] already exists.
+        /// Insert a time entry.
         /// </summary>
         /// <param name="requestEntry">Entry to insert.</param>
         /// <param name="gameId">Game identifier.</param>
         /// <returns>Time entry identifier.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="requestEntry"/> is <c>Null</c>.</exception>
-        Task<long> InsertOrRetrieveTimeEntry(EntryDto requestEntry, long gameId);
+        Task<long> InsertTimeEntry(EntryDto requestEntry, long gameId);
 
         /// <summary>
-        /// Inserts a player, or retrieves him if <see cref="PlayerDto.UrlName"/> already exists.
-        /// </summary>
-        /// <remarks>If <see cref="PlayerDto.JoinDate"/> is specified, it will be rounded without the time part.</remarks>
-        /// <param name="dto">The player DTO.</param>
-        /// <returns>Player identifier.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="dto"/> is <c>Null</c>.</exception>
-        Task<long> InsertOrRetrievePlayer(PlayerDto dto);
-
-        /// <summary>
-        /// Inserts a player, or retrieves him if <paramref name="urlName"/> already exists.
+        /// Inserts a player; player will be flagged dirty.
         /// </summary>
         /// <remarks>If <paramref name="joinDate"/> is specified, it will be rounded without the time part.</remarks>
         /// <param name="urlName">Player URL name.</param>
         /// <param name="joinDate">Date of joining the elite.</param>
         /// <param name="defaultHexColor">Default hexadecimal color.</param>
         /// <returns>Player identifier.</returns>
-        Task<long> InsertOrRetrievePlayerDirty(string urlName, DateTime? joinDate, string defaultHexColor);
+        Task<long> InsertPlayer(string urlName, DateTime? joinDate, string defaultHexColor);
 
         /// <summary>
         /// Inserts a ranking into the database.
