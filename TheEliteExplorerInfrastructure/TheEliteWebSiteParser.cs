@@ -118,15 +118,15 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntries(long stageId)
+        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntries(Stage stage)
         {
             var entries = new List<EntryWebDto>();
             var logs = new List<string>();
 
-            string pageContent = await GetPageStringContent($"/ajax/stage/{stageId}/{_configuration.AjaxKey}").ConfigureAwait(false);
+            string pageContent = await GetPageStringContent($"/ajax/stage/{(long)stage}/{_configuration.AjaxKey}").ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(pageContent))
             {
-                throw new FormatException($"Unables to load the page content for stage {stageId}.");
+                throw new FormatException($"Unables to load the page content for stage {stage}.");
             }
 
             var jsonContent = Newtonsoft.Json.JsonConvert.DeserializeObject<IReadOnlyCollection<IReadOnlyCollection<object>>>(pageContent);
@@ -142,7 +142,7 @@ namespace TheEliteExplorerInfrastructure
             {
                 foreach (long entryId in links[levelKey])
                 {
-                    var entryDetails = await ExtractEntryDetails(entryId, stageId, levelKey, logs).ConfigureAwait(false);
+                    var entryDetails = await ExtractEntryDetails(entryId, stage, levelKey, logs).ConfigureAwait(false);
                     entries.AddRange(entryDetails);
                 }
             }
@@ -284,7 +284,7 @@ namespace TheEliteExplorerInfrastructure
             return entries;
         }
 
-        private async Task<List<EntryWebDto>> ExtractEntryDetails(long entryId, long stageId, Level levelKey, List<string> logs)
+        private async Task<List<EntryWebDto>> ExtractEntryDetails(long entryId, Stage stage, Level levelKey, List<string> logs)
         {
             var finalEntries = new List<EntryWebDto>();
 
@@ -314,7 +314,7 @@ namespace TheEliteExplorerInfrastructure
                 string timeFromHead = indexOfDoubleDot < 0 ? N_A : string.Join(string.Empty,
                     Enumerable.Range(-2, 5).Select(i => headTitleText[indexOfDoubleDot + i]));
 
-                var entryRequest = ExtractEntryFromHead(stageId, levelKey, timeFromHead, playerUrlName, htmlParts[0], logs);
+                var entryRequest = ExtractEntryFromHead(stage, levelKey, timeFromHead, playerUrlName, htmlParts[0], logs);
                 if (entryRequest != null)
                 {
                     finalEntries.Add(entryRequest);
@@ -322,13 +322,13 @@ namespace TheEliteExplorerInfrastructure
             }
             else
             {
-                finalEntries.AddRange(ExtractEntriesFromTable(stageId, levelKey, playerUrlName, htmlParts[1], logs));
+                finalEntries.AddRange(ExtractEntriesFromTable(stage, levelKey, playerUrlName, htmlParts[1], logs));
             }
 
             return finalEntries;
         }
 
-        private EntryWebDto ExtractEntryFromHead(long stageId, Level levelKey, string timeFromhead, string playerUrlName, string content, List<string> logs)
+        private EntryWebDto ExtractEntryFromHead(Stage stage, Level levelKey, string timeFromhead, string playerUrlName, string content, List<string> logs)
         {
             var versionFromHead = "Unknown";
             var dateFromHead = "Unknown";
@@ -373,13 +373,13 @@ namespace TheEliteExplorerInfrastructure
                 Date = date,
                 LevelId = (int)levelKey,
                 PlayerUrlName = playerUrlName,
-                StageId = stageId,
+                StageId = (long)stage,
                 SystemId = system.HasValue ? (int)system.Value : (int?)null,
                 Time = time.Value
             };
         }
 
-        private IEnumerable<EntryWebDto> ExtractEntriesFromTable(long stageId, Level levelKey, string playerUrlName, string content, List<string> logs)
+        private IEnumerable<EntryWebDto> ExtractEntriesFromTable(Stage stage, Level levelKey, string playerUrlName, string content, List<string> logs)
         {
             string tableContent = string.Concat("<table>", content, "</table>");
 
@@ -402,7 +402,7 @@ namespace TheEliteExplorerInfrastructure
                             Date = date,
                             LevelId = (int)levelKey,
                             PlayerUrlName = playerUrlName,
-                            StageId = stageId,
+                            StageId = (long)stage,
                             SystemId = system.HasValue ? (int)system.Value : (int?)null,
                             Time = time.Value
                         };

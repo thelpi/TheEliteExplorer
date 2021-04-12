@@ -15,10 +15,10 @@ namespace TheEliteExplorerDomain.Abstractions
         /// Insert a time entry.
         /// </summary>
         /// <param name="requestEntry">Entry to insert.</param>
-        /// <param name="gameId">Game identifier.</param>
+        /// <param name="game">Game.</param>
         /// <returns>Time entry identifier.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="requestEntry"/> is <c>Null</c>.</exception>
-        Task<long> InsertTimeEntry(EntryDto requestEntry, long gameId);
+        Task<long> InsertTimeEntry(EntryDto requestEntry, Game game);
 
         /// <summary>
         /// Inserts a player; player will be flagged dirty.
@@ -73,18 +73,18 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <summary>
         /// Deletes every entry for a player for a stage.
         /// </summary>
-        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="stage">Stage.</param>
         /// <param name="playerId">Player identifier.</param>
         /// <returns>Nothing.</returns>
-        Task DeletePlayerStageEntries(long stageId, long playerId);
+        Task DeletePlayerStageEntries(Stage stage, long playerId);
 
         /// <summary>
         /// Deletes ranking history for a specific stage and level.
         /// </summary>
-        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="stage">Stage.</param>
         /// <param name="level">Level.</param>
         /// <returns>Nothing.</returns>
-        Task DeleteStageLevelRankingHistory(long stageId, Level level);
+        Task DeleteStageLevelRankingHistory(Stage stage, Level level);
 
         /// <summary>
         /// Inserts a WR for a stage and level.
@@ -97,9 +97,9 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <summary>
         /// Deletes every WR for a stage and level.
         /// </summary>
-        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="stage">Stage.</param>
         /// <param name="level">Level.</param>
         /// <returns>Nothing.</returns>
-        Task DeleteStageLevelWr(long stageId, Level level);
+        Task DeleteStageLevelWr(Stage stage, Level level);
     }
 }

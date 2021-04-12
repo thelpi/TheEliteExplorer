@@ -58,31 +58,31 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntries(long stageId, Level level, DateTime? startDate, DateTime? endDate)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntries(Stage stage, Level level, DateTime? startDate, DateTime? endDate)
         {
             if (!_cacheConfiguration.Enabled || startDate.HasValue || endDate.HasValue)
             {
-                return await GetEntriesWithoutCache(stageId, level, startDate, endDate).ConfigureAwait(false);
+                return await GetEntriesWithoutCache(stage, level, startDate, endDate).ConfigureAwait(false);
             }
 
             return await _cache.GetOrSetFromCache(
-                string.Format(_getEntriesCacheKeyFormat, stageId, level),
+                string.Format(_getEntriesCacheKeyFormat, (long)stage, level),
                 GetCacheOptions(),
-                () => GetEntriesWithoutCache(stageId, level, null, null));
+                () => GetEntriesWithoutCache(stage, level, null, null));
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntries(long stageId)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntries(Stage stage)
         {
             if (!_cacheConfiguration.Enabled)
             {
-                return await GetEntriesWithoutCache(stageId).ConfigureAwait(false);
+                return await GetEntriesWithoutCache(stage).ConfigureAwait(false);
             }
 
             return await _cache.GetOrSetFromCache(
-                string.Format(_getAllEntriesCacheKeyFormat, stageId),
+                string.Format(_getAllEntriesCacheKeyFormat, (long)stage),
                 GetCacheOptions(),
-                () => GetEntriesWithoutCache(stageId));
+                () => GetEntriesWithoutCache(stage));
         }
 
         /// <inheritdoc />
@@ -144,7 +144,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<RankingDto>> GetStageLevelDateRankings(long stageId, Level level, DateTime date)
+        public async Task<IReadOnlyCollection<RankingDto>> GetStageLevelDateRankings(Stage stage, Level level, DateTime date)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -153,7 +153,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                         ToPsName(_getRankingsPsName),
                         new
                         {
-                            stage_id = stageId,
+                            stage_id = (long)stage,
                             level_id = (long)level,
                             date
                         },
@@ -164,7 +164,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<WrDto>> GetStageLevelWrs(long stageId, Level level)
+        public async Task<IReadOnlyCollection<WrDto>> GetStageLevelWrs(Stage stage, Level level)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -172,7 +172,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                     ToPsName(_getStageLevelWr),
                     new
                     {
-                        stage_id = stageId,
+                        stage_id = (long)stage,
                         level_id = (long)level
                     },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
@@ -202,7 +202,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
-        private async Task<List<EntryDto>> GetEntriesWithoutCache(long stageId, Level level, DateTime? startDate, DateTime? endDate)
+        private async Task<List<EntryDto>> GetEntriesWithoutCache(Stage stage, Level level, DateTime? startDate, DateTime? endDate)
         {
             var entries = new List<EntryDto>();
 
@@ -212,7 +212,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                    ToPsName(_getEntriesByCriteriaPsName),
                    new
                    {
-                       stage_id = stageId,
+                       stage_id = (long)stage,
                        level_id = (int)level,
                        start_date = startDate,
                        end_date = endDate
@@ -228,7 +228,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
             return entries;
         }
 
-        private async Task<List<EntryDto>> GetEntriesWithoutCache(long stageId)
+        private async Task<List<EntryDto>> GetEntriesWithoutCache(Stage stage)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -236,7 +236,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                    ToPsName(_getEntriesByGamePsName),
                    new
                    {
-                       stage_id = stageId
+                       stage_id = (long)stage
                    },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
 

@@ -57,7 +57,7 @@ namespace TheEliteExplorerDomain.Providers
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
                     var stageLevelRankings = await _readRepository
-                        .GetStageLevelDateRankings((long)stage, level, rankingDate)
+                        .GetStageLevelDateRankings(stage, level, rankingDate)
                         .ConfigureAwait(false);
                     finalEntries.AddRange(stageLevelRankings);
                 }
@@ -145,7 +145,7 @@ namespace TheEliteExplorerDomain.Providers
             {
                 // Gets every entry for the stage and level
                 var tmpEntriesSource = await _readRepository
-                    .GetEntries((long)stageAndLevel.Value.Stage, stageAndLevel.Value.Level, null, null)
+                    .GetEntries(stageAndLevel.Value.Stage, stageAndLevel.Value.Level, null, null)
                     .ConfigureAwait(false);
 
                 entriesSource.AddRange(tmpEntriesSource);
@@ -156,7 +156,7 @@ namespace TheEliteExplorerDomain.Providers
                 foreach (var stage in game.Value.GetStages())
                 {
                     var entriesStageSource = await _readRepository
-                        .GetEntries((long)stage)
+                        .GetEntries(stage)
                         .ConfigureAwait(false);
 
                     entriesSource.AddRange(entriesStageSource);
@@ -181,7 +181,7 @@ namespace TheEliteExplorerDomain.Providers
         {
             // Removes previous ranking history
             await _writeRepository
-                .DeleteStageLevelRankingHistory((long)stage, level)
+                .DeleteStageLevelRankingHistory(stage, level)
                 .ConfigureAwait(false);
 
             // Groups and sorts by date

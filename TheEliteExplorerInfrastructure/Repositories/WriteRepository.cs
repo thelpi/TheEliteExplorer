@@ -57,7 +57,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertTimeEntry(EntryDto requestEntry, long gameId)
+        public async Task<long> InsertTimeEntry(EntryDto requestEntry, Game game)
         {
             if (requestEntry == null)
             {
@@ -81,7 +81,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                 .RemoveAsync(string.Format(_getEntriesCacheKeyFormat, requestEntry.StageId, requestEntry.LevelId))
                 .ConfigureAwait(false);
             await _cache
-                .RemoveAsync(string.Format(_getAllEntriesCacheKeyFormat, gameId))
+                .RemoveAsync(string.Format(_getAllEntriesCacheKeyFormat, (long)game))
                 .ConfigureAwait(false);
 
             return entryid;
@@ -210,7 +210,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task DeleteStageLevelRankingHistory(long stageId, Level level)
+        public async Task DeleteStageLevelRankingHistory(Stage stage, Level level)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -218,7 +218,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                     ToPsName(_deleteRankingPsName),
                     new
                     {
-                        stage_id = stageId,
+                        stage_id = (long)stage,
                         level_id = (long)level
                     },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
@@ -226,7 +226,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task DeletePlayerStageEntries(long stageId, long playerId)
+        public async Task DeletePlayerStageEntries(Stage stage, long playerId)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -234,7 +234,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                     ToPsName(_deletePlayerEntriesPsName),
                     new
                     {
-                        stage_id = stageId,
+                        stage_id = (long)stage,
                         player_id = playerId
                     },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
@@ -268,7 +268,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task DeleteStageLevelWr(long stageId, Level level)
+        public async Task DeleteStageLevelWr(Stage stage, Level level)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -276,7 +276,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                     ToPsName(_deleteStageLevelWrPsName),
                     new
                     {
-                        stage_id = stageId,
+                        stage_id = (long)stage,
                         level_id = (long)level
                     },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);

@@ -27,9 +27,9 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <summary>
         /// Extracts every time for a given stage from the website "the-elite".
         /// </summary>
-        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="stage">Stage.</param>
         /// <returns>List of <see cref="EntryWebDto"/>.</returns>
-        Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntries(long stageId);
+        Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntries(Stage stage);
 
         /// <summary>
         /// Gets information about a player.

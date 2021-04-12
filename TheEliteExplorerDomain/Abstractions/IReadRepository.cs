@@ -14,10 +14,10 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <summary>
         /// Gets world records for a stage and a level.
         /// </summary>
-        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="stage">Stage.</param>
         /// <param name="level">Level.</param>
         /// <returns>Collection of world records.</returns>
-        Task<IReadOnlyCollection<WrDto>> GetStageLevelWrs(long stageId, Level level);
+        Task<IReadOnlyCollection<WrDto>> GetStageLevelWrs(Stage stage, Level level);
 
         /// <summary>
         /// Gets every players from the database.
@@ -28,19 +28,19 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <summary>
         /// Gets every entries for a specified stage and level, between two dates.
         /// </summary>
-        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="stage">Stage.</param>
         /// <param name="level">Level.</param>
         /// <param name="startDate">Start date (inclusive).</param>
         /// <param name="endDate">End date (exclusive).</param>
         /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
-        Task<IReadOnlyCollection<EntryDto>> GetEntries(long stageId, Level level, DateTime? startDate, DateTime? endDate);
+        Task<IReadOnlyCollection<EntryDto>> GetEntries(Stage stage, Level level, DateTime? startDate, DateTime? endDate);
 
         /// <summary>
         /// Gets every entry for a specified stage.
         /// </summary>
-        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="stage">Stage.</param>
         /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
-        Task<IReadOnlyCollection<EntryDto>> GetEntries(long stageId);
+        Task<IReadOnlyCollection<EntryDto>> GetEntries(Stage stage);
 
         /// <summary>
         /// Gets the most recent entry date.
@@ -70,10 +70,10 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <summary>
         /// Gets rankings for a specified stage and level a a specified date.
         /// </summary>
-        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="stage">Stage.</param>
         /// <param name="level">Level.</param>
         /// <param name="date">Date.</param>
         /// <returns>Collection of rankings.</returns>
-        Task<IReadOnlyCollection<RankingDto>> GetStageLevelDateRankings(long stageId, Level level, DateTime date);
+        Task<IReadOnlyCollection<RankingDto>> GetStageLevelDateRankings(Stage stage, Level level, DateTime date);
     }
 }

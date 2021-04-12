@@ -57,7 +57,7 @@ namespace TheEliteExplorerDomain.Providers
                     foreach (var stage in game.GetStages())
                     {
                         await _writeRepository
-                            .DeletePlayerStageEntries((long)stage, player.Id)
+                            .DeletePlayerStageEntries(stage, player.Id)
                             .ConfigureAwait(false);
                     }
 
@@ -94,7 +94,7 @@ namespace TheEliteExplorerDomain.Providers
                 foreach (var stage in game.GetStages())
                 {
                     await _writeRepository
-                        .DeletePlayerStageEntries((long)stage, playerId)
+                        .DeletePlayerStageEntries(stage, playerId)
                         .ConfigureAwait(false);
                 }
 
@@ -201,7 +201,7 @@ namespace TheEliteExplorerDomain.Providers
             var requestEntry = entry.ToEntry(playerId);
 
             var entries = await _readRepository.GetEntries(
-               requestEntry.StageId,
+               (Stage)requestEntry.StageId,
                (Level)requestEntry.LevelId,
                requestEntry.Date?.Date,
                requestEntry.Date?.Date.AddDays(1));
@@ -214,7 +214,7 @@ namespace TheEliteExplorerDomain.Providers
             if (match == null)
             {
                 await _writeRepository
-                    .InsertTimeEntry(requestEntry, (long)game)
+                    .InsertTimeEntry(requestEntry, game)
                     .ConfigureAwait(false);
             }
         }

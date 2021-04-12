@@ -40,13 +40,13 @@ namespace TheEliteExplorerDomain.Providers
             foreach (var stage in game.GetStages())
             {
                 var entries = await _readRepository
-                    .GetEntries((long)stage)
+                    .GetEntries(stage)
                     .ConfigureAwait(false);
 
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
                     await _writeRepository
-                        .DeleteStageLevelWr((long)stage, level)
+                        .DeleteStageLevelWr(stage, level)
                         .ConfigureAwait(false);
 
                     var entriesDone = new List<(long, long)>();
@@ -242,7 +242,7 @@ namespace TheEliteExplorerDomain.Providers
             foreach (var stage in game.GetStages())
             {
                 var entries = await _readRepository
-                    .GetEntries((long)stage)
+                    .GetEntries(stage)
                     .ConfigureAwait(false);
 
                 fullEntries.AddRange(entries);
