@@ -12,6 +12,14 @@ namespace TheEliteExplorerDomain.Abstractions
     public interface ISqlContext
     {
         /// <summary>
+        /// Gets world records for a stage and a level.
+        /// </summary>
+        /// <param name="stageId">Stage identifier.</param>
+        /// <param name="level">Level.</param>
+        /// <returns>Collection of world records.</returns>
+        Task<IReadOnlyCollection<WrDto>> GetStageLevelWrs(long stageId, Level level);
+
+        /// <summary>
         /// Gets every players from the database.
         /// </summary>
         /// <returns>Collection of <see cref="PlayerDto"/>; can't be <c>Null</c>.</returns>

@@ -24,6 +24,7 @@ namespace TheEliteExplorerInfrastructure
         private const string _getEntriesCacheKeyFormat = "entries_{0}_{1}"; // stageId, levelId
         private const string _getAllEntriesCacheKeyFormat = "entries_all_{0}"; // stageId
 
+        private const string _selectStageLevelWr = "select_stage_level_wr";
         private const string _getRankingsPsName = "select_ranking";
         private const string _getEveryPlayersPsName = "select_player";
         private const string _getEntriesByCriteriaPsName = "select_entry";
@@ -407,6 +408,23 @@ namespace TheEliteExplorerInfrastructure
                         level_id = (long)level
                     },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<WrDto>> GetStageLevelWrs(long stageId, Level level)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                var wrs = await connection.QueryAsync<WrDto>(
+                    ToPsName(_selectStageLevelWr),
+                    new
+                    {
+                        stage_id = stageId,
+                        level_id = (long)level
+                    },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+                return wrs.ToList();
             }
         }
 
