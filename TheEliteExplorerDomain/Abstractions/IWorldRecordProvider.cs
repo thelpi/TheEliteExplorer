@@ -32,5 +32,17 @@ namespace TheEliteExplorerDomain.Abstractions
             bool untied,
             DateTime? startDate,
             DateTime? endDate);
+
+        /// <summary>
+        /// Gets longest standing world records.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="untied"><c>True</c> to only get untied world records.</param>
+        /// <param name="stillStanding"><c>True</c> to get only world records currently standing.</param>
+        /// <returns>Collection of longest standing world records; sorted by the most days.</returns>
+        Task<IReadOnlyCollection<StageWrStanding>> GetLongestStandingWrs(
+            Game game,
+            bool untied,
+            bool stillStanding);
     }
 }

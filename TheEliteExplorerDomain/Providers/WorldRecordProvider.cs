@@ -132,6 +132,72 @@ namespace TheEliteExplorerDomain.Providers
             return ConsolidateSweeps(playerKeys, sweepsRaw);
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<StageWrStanding>> GetLongestStandingWrs(
+            Game game,
+            bool untied,
+            bool stillStanding)
+        {
+            var players = await GetPlayersDictionary().ConfigureAwait(false);
+
+            var allWrDto = await GetAllWrs(game).ConfigureAwait(false);
+
+            // TODO: as long as we can't separate times from a single day, untieds are first
+            allWrDto = allWrDto
+                .OrderBy(wr => wr.Date)
+                .ThenByDescending(wr => wr.Untied)
+                .ToList();
+
+            var wrs = new List<StageWrStanding>();
+
+            foreach (var wrDto in allWrDto)
+            {
+                if (wrDto.Untied)
+                {
+                    StopStanding(players, wrs, wrDto);
+                    wrs.Add(new StageWrStanding(wrDto, players));
+                }
+                else if (untied)
+                {
+                    StopStanding(players, wrs, wrDto);
+                }
+            }
+
+            return wrs
+                .OrderByDescending(wr => wr.Days)
+                .Where(wr => !stillStanding || wr.StillWr)
+                .ToList();
+        }
+
+        private static void StopStanding(Dictionary<long, PlayerDto> players, List<StageWrStanding> wrs, WrDto wrDto)
+        {
+            var currentWr = wrs.LastOrDefault(wr =>
+                wr.Stage == wrDto.Stage
+                && wr.Level == wrDto.Level
+                && wr.StillWr);
+
+            if (currentWr != null)
+            {
+                currentWr.StopStanding(wrDto, players);
+            }
+        }
+
+        private async Task<List<WrDto>> GetAllWrs(Game game)
+        {
+            var wrs = new List<WrDto>();
+            foreach (var stage in game.GetStages())
+            {
+                foreach (var level in SystemExtensions.Enumerate<Level>())
+                {
+                    var stageLevelWrs = await _readRepository
+                        .GetStageLevelWrs(stage, level)
+                        .ConfigureAwait(false);
+                    wrs.AddRange(stageLevelWrs);
+                }
+            }
+            return wrs;
+        }
+
         private async Task<bool> AddEntriesAsWorldRecords(
             IEnumerable<EntryDto> bestTimesAtDate,
             Stage stage,
@@ -258,11 +324,13 @@ namespace TheEliteExplorerDomain.Providers
         private async Task<Dictionary<long, PlayerDto>> GetPlayersDictionary()
         {
             var players = await _readRepository
-                            .GetPlayers()
-                            .ConfigureAwait(false);
+                .GetPlayers()
+                .ConfigureAwait(false);
+            var dirtyPlayers = await _readRepository
+                .GetDirtyPlayers()
+                .ConfigureAwait(false);
 
-            var playerKeys = players.ToDictionary(p => p.Id, p => p);
-            return playerKeys;
+            return players.Concat(dirtyPlayers).ToDictionary(p => p.Id, p => p);
         }
 
         private static IReadOnlyCollection<StageSweep> ConsolidateSweeps(

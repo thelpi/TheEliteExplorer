@@ -45,7 +45,7 @@ namespace TheEliteExplorer.Controllers
         /// <param name="full"><c>True</c> to get full details for each ranking entry.</param>
         /// <returns>Paginated collection of <see cref="RankingEntry"/>.</returns>
         [HttpGet("games/{game}/rankings/{date}")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(PaginatedCollection<RankingEntryLight>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<PaginatedCollection<RankingEntryLight>>> GetRanking(
             [FromRoute] Game game,
             [FromRoute] DateTime? date,
@@ -105,7 +105,7 @@ namespace TheEliteExplorer.Controllers
         /// <param name="endDate">End date.</param>
         /// <returns>Collection of untied sweeps.</returns>
         [HttpGet("games/{game}/sweeps")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IReadOnlyCollection<StageSweep>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<IReadOnlyCollection<StageSweep>>> GetSweeps(
             [FromRoute] Game game,
             [FromQuery][Required] bool untied,
