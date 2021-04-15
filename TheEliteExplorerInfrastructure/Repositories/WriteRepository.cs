@@ -98,7 +98,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                         real_name = urlName,
                         surname = urlName,
                         color = defaultHexColor,
-                        control_style = DBNull.Value,
+                        control_style = default(string),
                         is_dirty = 1,
                         join_date = joinDate?.Date
                     })
