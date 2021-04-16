@@ -169,6 +169,35 @@ namespace TheEliteExplorerDomain.Providers
                 .ToList();
         }
 
+        /// <inheritdoc />
+        public async Task<StageAllTimeLeaderboard> GetStageAllTimeLeaderboard(
+            Stage stage,
+            int limit)
+        {
+            var players = await GetPlayersDictionary()
+                .ConfigureAwait(false);
+
+            var leaderboard = new StageAllTimeLeaderboard(limit);
+
+            foreach (var level in SystemExtensions.Enumerate<Level>())
+            {
+                var wrs = await _readRepository
+                    .GetStageLevelWrs(stage, level)
+                    .ConfigureAwait(false);
+
+                wrs = wrs.OrderBy(wr => wr.Date).ThenByDescending(wr => wr.Untied).ToList();
+
+                foreach (var wr in wrs)
+                {
+                    leaderboard.SetEntry(wr, players);
+                }
+
+                leaderboard.SetTodayForEntries();
+            }
+
+            return leaderboard;
+        }
+
         private static void StopStanding(Dictionary<long, PlayerDto> players, List<StageWrStanding> wrs, WrDto wrDto)
         {
             var currentWr = wrs.LastOrDefault(wr =>

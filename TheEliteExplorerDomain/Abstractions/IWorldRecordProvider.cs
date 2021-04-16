@@ -44,5 +44,15 @@ namespace TheEliteExplorerDomain.Abstractions
             Game game,
             bool untied,
             bool stillStanding);
+
+        /// <summary>
+        /// Gets the all-time leaderboard for a single stage.
+        /// </summary>
+        /// <param name="stage">Stage.</param>
+        /// <param name="limit">Players count limit.</param>
+        /// <returns>Leaderboard.</returns>
+        Task<StageAllTimeLeaderboard> GetStageAllTimeLeaderboard(
+            Stage stage,
+            int limit);
     }
 }

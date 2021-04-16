@@ -52,7 +52,7 @@ namespace TheEliteExplorer.Controllers
         /// <param name="stillStanding"><c>True</c> to get only world records currently standing.</param>
         /// <returns>Collection of longest standing world records.</returns>
         [HttpGet("games/{game}/longest-standing-world-records")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IReadOnlyCollection<StageWrStanding>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<IReadOnlyCollection<StageWrStanding>>> GetLongestStandingWrs(
             [FromRoute] Game game,
             [FromQuery] bool untied,
@@ -60,6 +60,25 @@ namespace TheEliteExplorer.Controllers
         {
             var results = await _worldRecordProvider
                 .GetLongestStandingWrs(game, untied, stillStanding)
+                .ConfigureAwait(false);
+
+            return Ok(results);
+        }
+
+        /// <summary>
+        /// Gets the all-time leaderboard for a single stage.
+        /// </summary>
+        /// <param name="stage">Stage.</param>
+        /// <param name="limit">Players count limit.</param>
+        /// <returns>All-time leaderboard for the stage.</returns>
+        [HttpGet("stages/{stage}/alltime-leaderboards")]
+        [ProducesResponseType(typeof(StageAllTimeLeaderboard), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<StageAllTimeLeaderboard>> GetStageAllTimeLeaderboard(
+            [FromRoute] Stage stage,
+            [FromQuery] int limit)
+        {
+            var results = await _worldRecordProvider
+                .GetStageAllTimeLeaderboard(stage, limit)
                 .ConfigureAwait(false);
 
             return Ok(results);
