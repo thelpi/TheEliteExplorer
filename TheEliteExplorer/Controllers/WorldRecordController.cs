@@ -83,5 +83,24 @@ namespace TheEliteExplorer.Controllers
 
             return Ok(results);
         }
+
+        /// <summary>
+        /// Gets an history of every current "longest standing" world record (tied or not depending on <paramref name="untied"/>).
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="untied"><c>True</c> to only get untied world records.</param>
+        /// <returns>Collection of standing world record.</returns>
+        [HttpGet("games/{game}/current-longest-standing-history")]
+        [ProducesResponseType(typeof(IReadOnlyCollection<StageWrStanding>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<IReadOnlyCollection<StageWrStanding>>> GetCurrentLongestStandingWrsHistory(
+            [FromRoute] Game game,
+            [FromQuery] bool untied)
+        {
+            var results = await _worldRecordProvider
+                .GetCurrentLongestStandingWrsHistory(game, untied)
+                .ConfigureAwait(false);
+
+            return Ok(results);
+        }
     }
 }

@@ -54,5 +54,15 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<StageAllTimeLeaderboard> GetStageAllTimeLeaderboard(
             Stage stage,
             int limit);
+
+        /// <summary>
+        /// Gets an history of every current "longest standing" world record (tied or not depending on <paramref name="untied"/>).
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="untied"><c>True</c> to get untied history.</param>
+        /// <returns>Collection of longest standing world records; sorted by ascending date.</returns>
+        Task<IReadOnlyCollection<StageWrStanding>> GetCurrentLongestStandingWrsHistory(
+            Game game,
+            bool untied);
     }
 }

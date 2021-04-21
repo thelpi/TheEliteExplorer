@@ -25,6 +25,10 @@ namespace TheEliteExplorerDomain.Models
         /// </summary>
         public DateTime StartDate { get; }
         /// <summary>
+        /// Date when the world record has become the longest standing.
+        /// </summary>
+        public DateTime? StandingStartDate { get; internal set; }
+        /// <summary>
         /// Date whent he WR has been beaten.
         /// </summary>
         public DateTime? EndDate { get; protected set; }
@@ -45,6 +49,12 @@ namespace TheEliteExplorerDomain.Models
         /// Days while being the WR.
         /// </summary>
         public int Days => (int)(EndDate.GetValueOrDefault(ServiceProviderAccessor.ClockProvider.Now) - StartDate).TotalDays;
+        /// <summary>
+        /// Days while being the WR standing.
+        /// </summary>
+        public int StandingDays => StandingStartDate.HasValue
+            ? (int)(EndDate.GetValueOrDefault(ServiceProviderAccessor.ClockProvider.Now) - StandingStartDate.Value).TotalDays
+            : 0;
         /// <summary>
         /// Entry still the WR y/n.
         /// </summary>

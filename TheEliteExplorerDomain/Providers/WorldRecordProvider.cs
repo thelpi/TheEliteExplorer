@@ -142,26 +142,7 @@ namespace TheEliteExplorerDomain.Providers
 
             var allWrDto = await GetAllWrs(game).ConfigureAwait(false);
 
-            // TODO: as long as we can't separate times from a single day, untieds are first
-            allWrDto = allWrDto
-                .OrderBy(wr => wr.Date)
-                .ThenByDescending(wr => wr.Untied)
-                .ToList();
-
-            var wrs = new List<StageWrStanding>();
-
-            foreach (var wrDto in allWrDto)
-            {
-                if (wrDto.Untied)
-                {
-                    StopStanding(players, wrs, wrDto);
-                    wrs.Add(new StageWrStanding(wrDto, players));
-                }
-                else if (untied)
-                {
-                    StopStanding(players, wrs, wrDto);
-                }
-            }
+            var wrs = GetEveryStageWrStanding(untied, players, allWrDto);
 
             return wrs
                 .OrderByDescending(wr => wr.Days)
@@ -198,6 +179,90 @@ namespace TheEliteExplorerDomain.Providers
             return leaderboard;
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<StageWrStanding>> GetCurrentLongestStandingWrsHistory(Game game, bool untied)
+        {
+            var players = await GetPlayersDictionary().ConfigureAwait(false);
+
+            var allWrDto = await GetAllWrs(game).ConfigureAwait(false);
+
+            var wrs = GetEveryStageWrStanding(untied, players, allWrDto)
+                .OrderBy(wr => wr.StartDate)
+                .ToList();
+
+            var finalStandingList = new List<StageWrStanding>();
+            var finalStandingListDateWrs = new List<DateTime>();
+
+            // gets every wr the first day
+            var firstDayWrs = wrs
+                .Where(wr => wr.StartDate == wrs.First().StartDate)
+                .ToList();
+
+            // gets the best wr of the first day
+            var dayWrPick = firstDayWrs.First(wr => wr.Days == firstDayWrs.Max(wrd => wrd.Days));
+            var dayWrPickDate = dayWrPick.StartDate;
+            finalStandingList.Add(dayWrPick);
+
+            while (dayWrPick.EndDate.HasValue)
+            {
+                // gets wr that started before (or the same day) the current standing is over
+                // and that finished after the current standing (or still active)
+                var wrsAtDate = wrs
+                    .Where(wr =>
+                        wr.StartDate > dayWrPickDate
+                        && wr.StartDate <= dayWrPick.EndDate
+                        && (wr.EndDate > dayWrPick.EndDate || !wr.EndDate.HasValue))
+                    .ToList();
+
+                if (wrsAtDate.Count > 0)
+                {
+                    // for those wr, gets the longest
+                    var bestWrAtDate = wrsAtDate.FirstOrDefault(wr => wr.Days == wrsAtDate.Max(wrd => wrd.Days));
+                    finalStandingListDateWrs.Add(dayWrPick.EndDate.Value);
+                    finalStandingList.Add(bestWrAtDate);
+                    dayWrPick = bestWrAtDate;
+                    dayWrPickDate = dayWrPick.StartDate;
+                }
+                else
+                {
+                    // this weird case may happen for untieds
+                    // when there are no untied at all at some point
+                    dayWrPickDate.AddDays(1);
+                }
+            }
+
+            // sets the date when the wr has started as standing
+            for (int i = 0; i < finalStandingListDateWrs.Count; i++)
+            {
+                finalStandingList[i].StandingStartDate = finalStandingListDateWrs[i];
+            }
+
+            return finalStandingList;
+        }
+
+        private static List<StageWrStanding> GetEveryStageWrStanding(
+            bool untied,
+            Dictionary<long, PlayerDto> players,
+            List<WrDto> allWrDto)
+        {
+            var wrs = new List<StageWrStanding>();
+
+            foreach (var wrDto in allWrDto)
+            {
+                if (wrDto.Untied)
+                {
+                    StopStanding(players, wrs, wrDto);
+                    wrs.Add(new StageWrStanding(wrDto, players));
+                }
+                else if (untied)
+                {
+                    StopStanding(players, wrs, wrDto);
+                }
+            }
+
+            return wrs;
+        }
+
         private static void StopStanding(Dictionary<long, PlayerDto> players, List<StageWrStanding> wrs, WrDto wrDto)
         {
             var currentWr = wrs.LastOrDefault(wr =>
@@ -214,6 +279,7 @@ namespace TheEliteExplorerDomain.Providers
         private async Task<List<WrDto>> GetAllWrs(Game game)
         {
             var wrs = new List<WrDto>();
+
             foreach (var stage in game.GetStages())
             {
                 foreach (var level in SystemExtensions.Enumerate<Level>())
@@ -224,7 +290,11 @@ namespace TheEliteExplorerDomain.Providers
                     wrs.AddRange(stageLevelWrs);
                 }
             }
-            return wrs;
+
+            return wrs
+                .OrderBy(wr => wr.Date)
+                .ThenByDescending(wr => wr.Untied)
+                .ToList();
         }
 
         private async Task<bool> AddEntriesAsWorldRecords(
