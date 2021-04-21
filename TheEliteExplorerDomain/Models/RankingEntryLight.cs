@@ -23,9 +23,13 @@ namespace TheEliteExplorerDomain.Models
         /// </summary>
         public long PlayerId { get; }
         /// <summary>
-        /// Player name (surname).
+        /// Player name (real name).
         /// </summary>
         public string PlayerName { get; }
+        /// <summary>
+        /// Player color.
+        /// </summary>
+        public string PlayerColor { get; }
         /// <summary>
         /// Points.
         /// </summary>
@@ -48,6 +52,7 @@ namespace TheEliteExplorerDomain.Models
             Game = game;
             PlayerId = player.Id;
             PlayerName = player.RealName;
+            PlayerColor = player.Color;
 
             Points = 0;
             UntiedRecordsCount = 0;
