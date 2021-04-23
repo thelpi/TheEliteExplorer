@@ -88,10 +88,19 @@ namespace TheEliteExplorerDomain.Providers
                 }
             }
 
-            return rankingEntries
+            var finalRankings = rankingEntries
                 .OrderByDescending(r => r.Points)
-                .ThenBy(r => r.CumuledTime)
                 .ToList();
+
+            var cumulAtRank = 0;
+            RankingEntryLight previousRankingEntry = null;
+            foreach (var rankingEntry in finalRankings)
+            {
+                cumulAtRank = rankingEntry.SetRank(previousRankingEntry, cumulAtRank);
+                previousRankingEntry = rankingEntry;
+            }
+
+            return finalRankings;
         }
 
         /// <inheritdoc />

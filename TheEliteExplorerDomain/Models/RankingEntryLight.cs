@@ -1,4 +1,5 @@
-﻿using TheEliteExplorerCommon;
+﻿using System.Collections.Generic;
+using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 
@@ -30,6 +31,10 @@ namespace TheEliteExplorerDomain.Models
         /// Player color.
         /// </summary>
         public string PlayerColor { get; }
+        /// <summary>
+        /// Rank.
+        /// </summary>
+        public int Rank { get; private set; }
         /// <summary>
         /// Points.
         /// </summary>
@@ -90,6 +95,24 @@ namespace TheEliteExplorerDomain.Models
             }
 
             return points;
+        }
+
+        internal int SetRank(RankingEntryLight previousRankingEntry, int rankAggregate)
+        {
+            int rank = 1;
+            if (previousRankingEntry != null)
+            {
+                rankAggregate++;
+                rank = previousRankingEntry.Rank;
+                if (previousRankingEntry.Points != Points)
+                {
+                    rank += rankAggregate;
+                    rankAggregate = 0;
+                }
+            }
+
+            Rank = rank;
+            return rankAggregate;
         }
     }
 }
