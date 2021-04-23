@@ -136,13 +136,14 @@ namespace TheEliteExplorerDomain.Providers
         public async Task<IReadOnlyCollection<StageWrStanding>> GetLongestStandingWrs(
             Game game,
             bool untied,
-            bool stillStanding)
+            bool stillStanding,
+            DateTime? atDate)
         {
             var players = await GetPlayersDictionary().ConfigureAwait(false);
 
-            var allWrDto = await GetAllWrs(game).ConfigureAwait(false);
+            var allWrDto = await GetAllWrs(game, atDate).ConfigureAwait(false);
 
-            var wrs = GetEveryStageWrStanding(untied, players, allWrDto);
+            var wrs = GetEveryStageWrStanding(untied, players, allWrDto, atDate);
 
             return wrs
                 .OrderByDescending(wr => wr.Days)
@@ -184,9 +185,9 @@ namespace TheEliteExplorerDomain.Providers
         {
             var players = await GetPlayersDictionary().ConfigureAwait(false);
 
-            var allWrDto = await GetAllWrs(game).ConfigureAwait(false);
+            var allWrDto = await GetAllWrs(game, null).ConfigureAwait(false);
 
-            var wrs = GetEveryStageWrStanding(untied, players, allWrDto)
+            var wrs = GetEveryStageWrStanding(untied, players, allWrDto, null)
                 .OrderBy(wr => wr.StartDate)
                 .ToList();
 
@@ -243,7 +244,8 @@ namespace TheEliteExplorerDomain.Providers
         private static List<StageWrStanding> GetEveryStageWrStanding(
             bool untied,
             Dictionary<long, PlayerDto> players,
-            List<WrDto> allWrDto)
+            List<WrDto> allWrDto,
+            DateTime? atDate)
         {
             var wrs = new List<StageWrStanding>();
 
@@ -252,7 +254,7 @@ namespace TheEliteExplorerDomain.Providers
                 if (wrDto.Untied)
                 {
                     StopStanding(players, wrs, wrDto);
-                    wrs.Add(new StageWrStanding(wrDto, players));
+                    wrs.Add(new StageWrStanding(wrDto, players, atDate));
                 }
                 else if (untied)
                 {
@@ -276,7 +278,7 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
-        private async Task<List<WrDto>> GetAllWrs(Game game)
+        private async Task<List<WrDto>> GetAllWrs(Game game, DateTime? atDate)
         {
             var wrs = new List<WrDto>();
 
@@ -292,6 +294,7 @@ namespace TheEliteExplorerDomain.Providers
             }
 
             return wrs
+                .Where(wr => !atDate.HasValue || wr.Date <= atDate)
                 .OrderBy(wr => wr.Date)
                 .ThenByDescending(wr => wr.Untied)
                 .ToList();

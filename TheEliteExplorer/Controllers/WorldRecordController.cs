@@ -50,19 +50,25 @@ namespace TheEliteExplorer.Controllers
         /// <param name="game">Game.</param>
         /// <param name="untied"><c>True</c> to only get untied world records.</param>
         /// <param name="stillStanding"><c>True</c> to get only world records currently standing.</param>
+        /// <param name="atDate">Snapshot at a specified date; <c>Null</c> for current date.</param>
+        /// <param name="page">page index (starts at <c>1</c>).</param>
+        /// <param name="count">Items count by page.</param>
         /// <returns>Collection of longest standing world records.</returns>
         [HttpGet("games/{game}/longest-standing-world-records")]
-        [ProducesResponseType(typeof(IReadOnlyCollection<StageWrStanding>), (int)HttpStatusCode.OK)]
-        public async Task<ActionResult<IReadOnlyCollection<StageWrStanding>>> GetLongestStandingWrs(
+        [ProducesResponseType(typeof(PaginatedCollection<StageWrStanding>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<PaginatedCollection<StageWrStanding>>> GetLongestStandingWrs(
             [FromRoute] Game game,
             [FromQuery] bool untied,
-            [FromQuery] bool stillStanding)
+            [FromQuery] bool stillStanding,
+            [FromQuery] DateTime? atDate,
+            [FromQuery] int page,
+            [FromQuery] int count)
         {
             var results = await _worldRecordProvider
-                .GetLongestStandingWrs(game, untied, stillStanding)
+                .GetLongestStandingWrs(game, untied, stillStanding, atDate)
                 .ConfigureAwait(false);
 
-            return Ok(results);
+            return Ok(PaginatedCollection<StageWrStanding>.CreateInstance(results, page, count));
         }
 
         /// <summary>

@@ -38,12 +38,14 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <param name="game">Game.</param>
         /// <param name="untied"><c>True</c> to only get untied world records.</param>
-        /// <param name="stillStanding"><c>True</c> to get only world records currently standing.</param>
+        /// <param name="stillStanding"><c>True</c> to get only world records currently standing (at the specified date).</param>
+        /// <param name="atDate">Gets a snapshot at the specified date; <c>Null</c> is current date.</param>
         /// <returns>Collection of longest standing world records; sorted by the most days.</returns>
         Task<IReadOnlyCollection<StageWrStanding>> GetLongestStandingWrs(
             Game game,
             bool untied,
-            bool stillStanding);
+            bool stillStanding,
+            DateTime? atDate);
 
         /// <summary>
         /// Gets the all-time leaderboard for a single stage.

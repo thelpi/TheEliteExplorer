@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
@@ -12,6 +11,8 @@ namespace TheEliteExplorerDomain.Models
     /// </summary>
     public class StageWrStanding
     {
+        private readonly DateTime _atDate;
+
         /// <summary>
         /// Level.
         /// </summary>
@@ -48,25 +49,26 @@ namespace TheEliteExplorerDomain.Models
         /// <summary>
         /// Days while being the WR.
         /// </summary>
-        public int Days => (int)(EndDate.GetValueOrDefault(ServiceProviderAccessor.ClockProvider.Now) - StartDate).TotalDays;
+        public int Days => (int)(EndDate.GetValueOrDefault(_atDate) - StartDate).TotalDays;
         /// <summary>
         /// Days while being the WR standing.
         /// </summary>
         public int StandingDays => StandingStartDate.HasValue
-            ? (int)(EndDate.GetValueOrDefault(ServiceProviderAccessor.ClockProvider.Now) - StandingStartDate.Value).TotalDays
+            ? (int)(EndDate.GetValueOrDefault(_atDate) - StandingStartDate.Value).TotalDays
             : 0;
         /// <summary>
         /// Entry still the WR y/n.
         /// </summary>
         public bool StillWr => !EndDate.HasValue;
 
-        internal StageWrStanding(WrDto dto, IDictionary<long, PlayerDto> players)
+        internal StageWrStanding(WrDto dto, IDictionary<long, PlayerDto> players, DateTime? atDate)
         {
             Level = dto.Level;
             Stage = dto.Stage;
             Time = dto.Time;
             StartDate = dto.Date;
             StartPlayerName = players[dto.PlayerId].RealName;
+            _atDate = atDate ?? ServiceProviderAccessor.ClockProvider.Now;
         }
 
         internal virtual void StopStanding(WrDto dto, IDictionary<long, PlayerDto> players)
