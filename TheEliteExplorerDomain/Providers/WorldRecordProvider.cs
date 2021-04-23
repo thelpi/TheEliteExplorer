@@ -145,10 +145,20 @@ namespace TheEliteExplorerDomain.Providers
 
             var wrs = GetEveryStageWrStanding(untied, players, allWrDto, atDate);
 
-            return wrs
+            var finalWrs = wrs
                 .OrderByDescending(wr => wr.Days)
                 .Where(wr => !stillStanding || wr.StillWr)
                 .ToList();
+
+            var cumulAtRank = 0;
+            StageWrStanding previousWrEntry = null;
+            foreach (var wrEntry in finalWrs)
+            {
+                cumulAtRank = wrEntry.SetRank(previousWrEntry, cumulAtRank);
+                previousWrEntry = wrEntry;
+            }
+
+            return finalWrs;
         }
 
         /// <inheritdoc />
