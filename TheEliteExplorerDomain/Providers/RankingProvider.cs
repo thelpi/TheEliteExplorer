@@ -88,18 +88,10 @@ namespace TheEliteExplorerDomain.Providers
                 }
             }
 
-            var finalRankings = rankingEntries
+            return rankingEntries
                 .OrderByDescending(r => r.Points)
-                .ToList();
-
-            for (int i = 0; i < finalRankings.Count; i++)
-            {
-                finalRankings[i].SetRank(
-                    i == 0 ? null : finalRankings[i - 1],
-                    r => (r as RankingEntryLight).Points);
-            }
-
-            return finalRankings;
+                .ToList()
+                .WithRanks(r => r.Points);
         }
 
         /// <inheritdoc />
