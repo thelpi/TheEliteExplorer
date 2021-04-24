@@ -9,7 +9,8 @@ namespace TheEliteExplorerDomain.Models
     /// <summary>
     /// Represents a world record standing.
     /// </summary>
-    public class StageWrStanding
+    /// <seealso cref="Ranking"/>
+    public class StageWrStanding : Ranking
     {
         private readonly DateTime _atDate;
 
@@ -45,10 +46,6 @@ namespace TheEliteExplorerDomain.Models
         /// Player who beats the WR; <c>Null</c> if no one.
         /// </summary>
         public string EndPlayerName { get; protected set; }
-        /// <summary>
-        /// Rank.
-        /// </summary>
-        public int Rank { get; private set; }
 
         /// <summary>
         /// Days while being the WR.
@@ -79,24 +76,6 @@ namespace TheEliteExplorerDomain.Models
         {
             EndDate = dto.Date;
             EndPlayerName = players[dto.PlayerId].RealName;
-        }
-
-        internal int SetRank(StageWrStanding previousWrEntry, int rankAggregate)
-        {
-            int rank = 1;
-            if (previousWrEntry != null)
-            {
-                rankAggregate++;
-                rank = previousWrEntry.Rank;
-                if (previousWrEntry.Days != Days)
-                {
-                    rank += rankAggregate;
-                    rankAggregate = 0;
-                }
-            }
-
-            Rank = rank;
-            return rankAggregate;
         }
     }
 }

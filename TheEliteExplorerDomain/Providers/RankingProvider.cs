@@ -92,12 +92,11 @@ namespace TheEliteExplorerDomain.Providers
                 .OrderByDescending(r => r.Points)
                 .ToList();
 
-            var cumulAtRank = 0;
-            RankingEntryLight previousRankingEntry = null;
-            foreach (var rankingEntry in finalRankings)
+            for (int i = 0; i < finalRankings.Count; i++)
             {
-                cumulAtRank = rankingEntry.SetRank(previousRankingEntry, cumulAtRank);
-                previousRankingEntry = rankingEntry;
+                finalRankings[i].SetRank(
+                    i == 0 ? null : finalRankings[i - 1],
+                    r => (r as RankingEntryLight).Points);
             }
 
             return finalRankings;

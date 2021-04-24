@@ -150,12 +150,11 @@ namespace TheEliteExplorerDomain.Providers
                 .Where(wr => !stillStanding || wr.StillWr)
                 .ToList();
 
-            var cumulAtRank = 0;
-            StageWrStanding previousWrEntry = null;
-            foreach (var wrEntry in finalWrs)
+            for (int i = 0; i < finalWrs.Count; i++)
             {
-                cumulAtRank = wrEntry.SetRank(previousWrEntry, cumulAtRank);
-                previousWrEntry = wrEntry;
+                finalWrs[i].SetRank(
+                    i == 0 ? null : finalWrs[i - 1],
+                    r => (r as StageWrStanding).Days);
             }
 
             return finalWrs;

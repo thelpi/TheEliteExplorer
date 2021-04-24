@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using TheEliteExplorerCommon;
+﻿using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
 
@@ -8,7 +7,8 @@ namespace TheEliteExplorerDomain.Models
     /// <summary>
     /// Represents a ranking entry.
     /// </summary>
-    public class RankingEntryLight
+    /// <seealso cref="Ranking"/>
+    public class RankingEntryLight : Ranking
     {
         /// <summary>
         /// When a time is unknown, the value used is <c>20</c> minutes.
@@ -31,10 +31,6 @@ namespace TheEliteExplorerDomain.Models
         /// Player color.
         /// </summary>
         public string PlayerColor { get; }
-        /// <summary>
-        /// Rank.
-        /// </summary>
-        public int Rank { get; private set; }
         /// <summary>
         /// Points.
         /// </summary>
@@ -95,24 +91,6 @@ namespace TheEliteExplorerDomain.Models
             }
 
             return points;
-        }
-
-        internal int SetRank(RankingEntryLight previousRankingEntry, int rankAggregate)
-        {
-            int rank = 1;
-            if (previousRankingEntry != null)
-            {
-                rankAggregate++;
-                rank = previousRankingEntry.Rank;
-                if (previousRankingEntry.Points != Points)
-                {
-                    rank += rankAggregate;
-                    rankAggregate = 0;
-                }
-            }
-
-            Rank = rank;
-            return rankAggregate;
         }
     }
 }
