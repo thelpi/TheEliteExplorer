@@ -43,9 +43,17 @@ namespace TheEliteExplorerDomain.Models
         /// </summary>
         public string StartPlayerName { get; }
         /// <summary>
+        /// <see cref="StartPlayerName"/> color.
+        /// </summary>
+        public string StartPlayerColor { get; }
+        /// <summary>
         /// Player who beats the WR; <c>Null</c> if no one.
         /// </summary>
         public string EndPlayerName { get; protected set; }
+        /// <summary>
+        /// <see cref="EndPlayerName"/> color.
+        /// </summary>
+        public string EndPlayerColor { get; protected set; }
 
         /// <summary>
         /// Days while being the WR.
@@ -69,6 +77,7 @@ namespace TheEliteExplorerDomain.Models
             Time = dto.Time;
             StartDate = dto.Date;
             StartPlayerName = players[dto.PlayerId].RealName;
+            StartPlayerColor = players[dto.PlayerId].Color;
             _atDate = atDate ?? ServiceProviderAccessor.ClockProvider.Now;
         }
 
@@ -76,6 +85,7 @@ namespace TheEliteExplorerDomain.Models
         {
             EndDate = dto.Date;
             EndPlayerName = players[dto.PlayerId].RealName;
+            EndPlayerColor = players[dto.PlayerId].Color;
         }
     }
 }
