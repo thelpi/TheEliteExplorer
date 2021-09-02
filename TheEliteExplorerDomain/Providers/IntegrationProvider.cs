@@ -210,7 +210,7 @@ namespace TheEliteExplorerDomain.Providers
                 && e.Time == requestEntry.Time
                 && e.Engine == requestEntry.Engine);
 
-            if (match == null)
+            if (matchEntry == null)
             {
                 await _writeRepository
                     .InsertTimeEntry(requestEntry, game)
