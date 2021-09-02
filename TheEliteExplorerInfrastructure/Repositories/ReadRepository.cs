@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -32,6 +31,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _getLatestEntryDatePsName = "select_latest_entry_date";
         private const string _getDuplicatePlayersPsName = "select_duplicate_players";
         private const string _getEntriesByGamePsName = "select_all_entry";
+        private const string _getEntriesCountPsName = "select_entry_count";
 
         private readonly IConnectionProvider _connectionProvider;
         private readonly CacheConfiguration _cacheConfiguration;
@@ -164,6 +164,24 @@ namespace TheEliteExplorerInfrastructure.Repositories
                     },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
                 return wrs.ToList();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<int> GetEntriesCount(Stage stage, Level? level)
+        {
+            using (var connection = _connectionProvider.TheEliteConnection)
+            {
+                return await connection
+                    .QueryFirstAsync<int>(
+                        ToPsName(_getEntriesCountPsName),
+                        new
+                        {
+                            stage_id = (long)stage,
+                            level_id = (long?)level
+                        },
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
             }
         }
 

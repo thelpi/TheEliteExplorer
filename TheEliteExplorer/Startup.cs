@@ -62,6 +62,7 @@ namespace TheEliteExplorer
                 .AddSingleton<IRankingProvider, RankingProvider>()
                 .AddSingleton<IIntegrationProvider, IntegrationProvider>()
                 .AddSingleton<IWorldRecordProvider, WorldRecordProvider>()
+                .AddSingleton<IStageStatisticsProvider, StageStatisticsProvider>()
                 .AddDistributedMemoryCache();
         }
 

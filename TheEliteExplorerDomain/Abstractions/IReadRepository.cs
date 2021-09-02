@@ -43,6 +43,14 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<EntryDto>> GetEntries(Stage stage);
 
         /// <summary>
+        /// Gets entries count for a specified stage and an optional level.
+        /// </summary>
+        /// <param name="stage">Stage.</param>
+        /// <param name="level">Level (<c>Null</c> for every level).</param>
+        /// <returns>Entries count.</returns>
+        Task<int> GetEntriesCount(Stage stage, Level? level);
+
+        /// <summary>
         /// Gets the most recent entry date.
         /// </summary>
         /// <returns>Most recent entry date</returns>
