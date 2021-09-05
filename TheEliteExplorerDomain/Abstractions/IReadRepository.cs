@@ -47,8 +47,10 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <param name="stage">Stage.</param>
         /// <param name="level">Level (<c>Null</c> for every level).</param>
+        /// <param name="startDate">Start date (inclusive).</param>
+        /// <param name="endDate">End date (exclusive).</param>
         /// <returns>Entries count.</returns>
-        Task<int> GetEntriesCount(Stage stage, Level? level);
+        Task<int> GetEntriesCount(Stage stage, Level? level, DateTime? startDate, DateTime? endDate);
 
         /// <summary>
         /// Gets the most recent entry date.

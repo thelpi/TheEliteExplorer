@@ -34,6 +34,8 @@ namespace TheEliteExplorer.Controllers
         /// <param name="startDate">Start date (inclusive).</param>
         /// <param name="endDate">End date (exclusive).</param>
         /// <param name="levelDetails">With or without details by level.</param>
+        /// <param name="globalStartDate">Start date for <see cref="StageEntryCount.TotalEntriesCount"/> (inclusive).</param>
+        /// <param name="globalEndDate">End date for <see cref="StageEntryCount.TotalEntriesCount"/> (exclusive).</param>
         /// <returns>Collection of <see cref="StageEntryCount"/>.</returns>
         [HttpGet("games/{game}/entries-count")]
         [ProducesResponseType(typeof(IReadOnlyCollection<StageEntryCount>), (int)HttpStatusCode.OK)]
@@ -41,10 +43,12 @@ namespace TheEliteExplorer.Controllers
             [FromRoute] Game game,
             [FromQuery] DateTime startDate,
             [FromQuery] DateTime endDate,
+            [FromQuery] DateTime? globalStartDate,
+            [FromQuery] DateTime? globalEndDate,
             [FromQuery] bool levelDetails)
         {
             var results = await _stageStatisticsProvider
-                .GetStagesEntriesCount(game, startDate, endDate, levelDetails)
+                .GetStagesEntriesCount(game, startDate, endDate, levelDetails, globalStartDate, globalEndDate)
                 .ConfigureAwait(false);
 
             return Ok(results);

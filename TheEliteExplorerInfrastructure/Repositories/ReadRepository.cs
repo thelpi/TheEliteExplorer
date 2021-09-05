@@ -168,7 +168,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<int> GetEntriesCount(Stage stage, Level? level)
+        public async Task<int> GetEntriesCount(Stage stage, Level? level, DateTime? startDate, DateTime? endDate)
         {
             using (var connection = _connectionProvider.TheEliteConnection)
             {
@@ -178,7 +178,9 @@ namespace TheEliteExplorerInfrastructure.Repositories
                         new
                         {
                             stage_id = (long)stage,
-                            level_id = (long?)level
+                            level_id = (long?)level,
+                            start_date = startDate,
+                            end_date = endDate
                         },
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);

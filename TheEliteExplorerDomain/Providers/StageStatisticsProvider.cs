@@ -33,7 +33,9 @@ namespace TheEliteExplorerDomain.Providers
             Game game,
             DateTime startDate,
             DateTime endDate,
-            bool levelDetails)
+            bool levelDetails,
+            DateTime? globalStartDate,
+            DateTime? globalEndDate)
         {
             var entries = new List<EntryDto>();
 
@@ -66,7 +68,9 @@ namespace TheEliteExplorerDomain.Providers
                         Level = level,
                         PeriodEntriesCount = entries.Count(e => e.Stage == stage && (!level.HasValue || e.Level == level)),
                         Stage = stage,
-                        TotalEntriesCount = await _readRepository.GetEntriesCount(stage, level).ConfigureAwait(false)
+                        TotalEntriesCount = await _readRepository
+                            .GetEntriesCount(stage, level, globalStartDate, globalEndDate)
+                            .ConfigureAwait(false)
                     });
                 }
             }
