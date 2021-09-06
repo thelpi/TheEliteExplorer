@@ -59,7 +59,7 @@ namespace TheEliteExplorerDomain.Providers
                 {
                     if (simulatedPlayerId.HasValue)
                     {
-                        var stageLevelRankings = await RebuildRankingHistoryInternal(players, stage, level, rankingDate)
+                        var stageLevelRankings = await RebuildRankingHistoryInternal(players, stage, level, simulatedPlayerId.HasValue ? new Tuple<long, DateTime>(simulatedPlayerId.Value, rankingDate) : null)
                             .ConfigureAwait(false);
                         finalEntries.AddRange(stageLevelRankings);
                     }
@@ -138,15 +138,22 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         // internal logic or ranking building (simulated or not)
-        private async Task<List<RankingDto>> RebuildRankingHistoryInternal(IDictionary<long, PlayerDto> players, Stage stage, Level level, DateTime? oneShotAtDate)
+        private async Task<List<RankingDto>> RebuildRankingHistoryInternal(
+            IDictionary<long, PlayerDto> players,
+            Stage stage,
+            Level level,
+            Tuple<long, DateTime> playerAtSpecificDate = null)
         {
             players = players ?? await GetPlayers()
                 .ConfigureAwait(false);
 
-            var entries = await GetEntriesInternal(null, (stage, level), players, oneShotAtDate)
+            var entries = await GetEntriesInternal(null, (stage, level), players, playerAtSpecificDate)
                 .ConfigureAwait(false);
 
-            return await RebuildRankingHistoryInternal(entries, players, stage, level, oneShotAtDate)
+            return await RebuildRankingHistoryInternal(entries, players, stage, level,
+                playerAtSpecificDate == null
+                    ? (DateTime?)null
+                    : playerAtSpecificDate.Item2)
                 .ConfigureAwait(false);
         }
 
@@ -155,7 +162,7 @@ namespace TheEliteExplorerDomain.Providers
             Game? game,
             (Stage Stage, Level Level)? stageAndLevel,
             IDictionary<long, PlayerDto> players,
-            DateTime? atSpecificDate = null)
+            Tuple<long, DateTime> playerAtSpecificDate = null)
         {
             var entriesSource = new List<EntryDto>();
 
@@ -165,7 +172,7 @@ namespace TheEliteExplorerDomain.Providers
 
                 // Gets every entry for the stage and level
                 var tmpEntriesSource = await _readRepository
-                    .GetEntries(stageAndLevel.Value.Stage, stageAndLevel.Value.Level, null, atSpecificDate)
+                    .GetEntries(stageAndLevel.Value.Stage, stageAndLevel.Value.Level, null, null)
                     .ConfigureAwait(false);
 
                 entriesSource.AddRange(tmpEntriesSource);
@@ -186,8 +193,13 @@ namespace TheEliteExplorerDomain.Providers
             // Entries not related to players are excluded
             var entries = entriesSource.Where(e => players.ContainsKey(e.PlayerId)).ToList();
 
-            // Sets time for every entry
+            // Sets date for every entry
             ManageDateLessEntries(game.Value, players, entries);
+
+            if (playerAtSpecificDate != null)
+            {
+                entries.RemoveAll(_ => _.Date > playerAtSpecificDate.Item2 && _.PlayerId != playerAtSpecificDate.Item1);
+            }
 
             return entries;
         }
