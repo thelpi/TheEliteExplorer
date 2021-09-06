@@ -45,7 +45,8 @@ namespace TheEliteExplorerDomain.Providers
         public async Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntries(
             Game game,
             DateTime rankingDate,
-            bool full)
+            bool full,
+            long? simulatedPlayerId = null)
         {
             rankingDate = rankingDate.Date;
 
@@ -56,10 +57,19 @@ namespace TheEliteExplorerDomain.Providers
             {
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
-                    var stageLevelRankings = await _readRepository
-                        .GetStageLevelDateRankings(stage, level, rankingDate)
-                        .ConfigureAwait(false);
-                    finalEntries.AddRange(stageLevelRankings);
+                    if (simulatedPlayerId.HasValue)
+                    {
+                        var stageLevelRankings = await RebuildRankingHistoryInternal(players, stage, level, rankingDate)
+                            .ConfigureAwait(false);
+                        finalEntries.AddRange(stageLevelRankings);
+                    }
+                    else
+                    {
+                        var stageLevelRankings = await _readRepository
+                            .GetStageLevelDateRankings(stage, level, rankingDate)
+                            .ConfigureAwait(false);
+                        finalEntries.AddRange(stageLevelRankings);
+                    }
                 }
             }
 
@@ -123,13 +133,20 @@ namespace TheEliteExplorerDomain.Providers
             Stage stage,
             Level level)
         {
-            var players = await GetPlayers()
+            await RebuildRankingHistoryInternal(null, stage, level, null)
+                .ConfigureAwait(false);
+        }
+
+        // internal logic or ranking building (simulated or not)
+        private async Task<List<RankingDto>> RebuildRankingHistoryInternal(IDictionary<long, PlayerDto> players, Stage stage, Level level, DateTime? oneShotAtDate)
+        {
+            players = players ?? await GetPlayers()
                 .ConfigureAwait(false);
 
-            var entries = await GetEntriesInternal(null, (stage, level), players)
+            var entries = await GetEntriesInternal(null, (stage, level), players, oneShotAtDate)
                 .ConfigureAwait(false);
 
-            await RebuildRankingHistoryInternal(entries, players, stage, level)
+            return await RebuildRankingHistoryInternal(entries, players, stage, level, oneShotAtDate)
                 .ConfigureAwait(false);
         }
 
@@ -137,15 +154,18 @@ namespace TheEliteExplorerDomain.Providers
         private async Task<List<EntryDto>> GetEntriesInternal(
             Game? game,
             (Stage Stage, Level Level)? stageAndLevel,
-            IDictionary<long, PlayerDto> players)
+            IDictionary<long, PlayerDto> players,
+            DateTime? atSpecificDate = null)
         {
             var entriesSource = new List<EntryDto>();
 
             if (stageAndLevel.HasValue)
             {
+                game = stageAndLevel.Value.Stage.GetGame();
+
                 // Gets every entry for the stage and level
                 var tmpEntriesSource = await _readRepository
-                    .GetEntries(stageAndLevel.Value.Stage, stageAndLevel.Value.Level, null, null)
+                    .GetEntries(stageAndLevel.Value.Stage, stageAndLevel.Value.Level, null, atSpecificDate)
                     .ConfigureAwait(false);
 
                 entriesSource.AddRange(tmpEntriesSource);
@@ -173,16 +193,20 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         // Rebuilds ranking for a stage and a level
-        private async Task RebuildRankingHistoryInternal(
+        private async Task<List<RankingDto>> RebuildRankingHistoryInternal(
             List<EntryDto> entries,
             IDictionary<long, PlayerDto> players,
             Stage stage,
-            Level level)
+            Level level,
+            DateTime? oneShotAtDate = null)
         {
-            // Removes previous ranking history
-            await _writeRepository
-                .DeleteStageLevelRankingHistory(stage, level)
-                .ConfigureAwait(false);
+            if (!oneShotAtDate.HasValue)
+            {
+                // Removes previous ranking history
+                await _writeRepository
+                    .DeleteStageLevelRankingHistory(stage, level)
+                    .ConfigureAwait(false);
+            }
 
             // Groups and sorts by date
             var entriesDateGroup = new SortedList<DateTime, List<EntryDto>>(
@@ -198,6 +222,13 @@ namespace TheEliteExplorerDomain.Providers
                 .LoopBetweenDates(DateStep.Day)
                 .Where(d => entriesDateGroup.ContainsKey(d))
                 .ToList();
+
+            // if we have only one date to build
+            // it's the last from the base list
+            if (oneShotAtDate.HasValue)
+            {
+                eligiblesDates = eligiblesDates.Skip(eligiblesDates.Count - 1).ToList();
+            }
 
             var rankingsToInsert = new List<RankingDto>();
 
@@ -248,9 +279,14 @@ namespace TheEliteExplorerDomain.Providers
                 }
             }
 
-            await _writeRepository
-                .BulkInsertRankings(rankingsToInsert)
-                .ConfigureAwait(false);
+            if (!oneShotAtDate.HasValue)
+            {
+                await _writeRepository
+                    .BulkInsertRankings(rankingsToInsert)
+                    .ConfigureAwait(false);
+            }
+
+            return rankingsToInsert;
         }
 
         // Gets every player keyed by ID

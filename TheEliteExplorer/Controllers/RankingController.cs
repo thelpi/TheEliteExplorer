@@ -43,6 +43,7 @@ namespace TheEliteExplorer.Controllers
         /// <param name="page">page index (starts at <c>1</c>).</param>
         /// <param name="count">Items count by page.</param>
         /// <param name="full"><c>True</c> to get full details for each ranking entry.</param>
+        /// <param name="simulatedPlayerId">A player identifier, that we want the latest times instead of <paramref name="date"/> times.</param>
         /// <returns>Paginated collection of <see cref="RankingEntry"/>.</returns>
         [HttpGet("games/{game}/rankings/{date}")]
         [ProducesResponseType(typeof(PaginatedCollection<RankingEntryLight>), (int)HttpStatusCode.OK)]
@@ -51,10 +52,11 @@ namespace TheEliteExplorer.Controllers
             [FromRoute] DateTime? date,
             [FromQuery] int page,
             [FromQuery] int count,
-            [FromQuery] bool full)
+            [FromQuery] bool full,
+            [FromQuery] long? simulatedPlayerId)
         {
             var rankingEntries = await _rankingProvider
-                .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now, full)
+                .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now, full, simulatedPlayerId)
                 .ConfigureAwait(false);
 
             return Ok(PaginatedCollection<RankingEntryLight>.CreateInstance(rankingEntries, page, count));
