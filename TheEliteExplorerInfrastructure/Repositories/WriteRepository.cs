@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using Microsoft.Extensions.Caching.Distributed;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
@@ -39,21 +38,16 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private static readonly string DataFilePath = Path.Combine(Environment.CurrentDirectory, "bulk_datas.csv");
 
         private readonly IConnectionProvider _connectionProvider;
-        private readonly IDistributedCache _cache;
+        //private readonly IDistributedCache _cache;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="connectionProvider">Instance of <see cref="IConnectionProvider"/>.</param>
-        /// <param name="cache">Instance of <see cref="IDistributedCache"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="connectionProvider"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="cache"/> is <c>Null</c>.</exception>
-        public WriteRepository(
-            IConnectionProvider connectionProvider,
-            IDistributedCache cache)
+        public WriteRepository(IConnectionProvider connectionProvider)
         {
             _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
         /// <inheritdoc />
@@ -75,14 +69,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
                     requestEntry.Time,
                     system_id = requestEntry.Engine.HasValue ? (long)requestEntry.Engine.Value : default(long?)
                 }).ConfigureAwait(false);
-
-            // invalidates caches
-            await _cache
-                .RemoveAsync(string.Format(_getEntriesCacheKeyFormat, (long)requestEntry.Stage, (long)requestEntry.Level))
-                .ConfigureAwait(false);
-            await _cache
-                .RemoveAsync(string.Format(_getAllEntriesCacheKeyFormat, (long)game))
-                .ConfigureAwait(false);
 
             return entryid;
         }

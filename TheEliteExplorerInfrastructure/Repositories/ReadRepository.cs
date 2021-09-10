@@ -4,12 +4,9 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Options;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
-using TheEliteExplorerInfrastructure.Configuration;
 
 namespace TheEliteExplorerInfrastructure.Repositories
 {
@@ -34,68 +31,38 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _getEntriesCountPsName = "select_entry_count";
 
         private readonly IConnectionProvider _connectionProvider;
-        private readonly CacheConfiguration _cacheConfiguration;
-        private readonly IDistributedCache _cache;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="connectionProvider">Instance of <see cref="IConnectionProvider"/>.</param>
-        /// <param name="cacheConfiguration">Cache configuration.</param>
-        /// <param name="cache">Instance of <see cref="IDistributedCache"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="connectionProvider"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="cacheConfiguration"/> or its inner value is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="cache"/> is <c>Null</c>.</exception>
-        public ReadRepository(
-            IConnectionProvider connectionProvider,
-            IOptions<CacheConfiguration> cacheConfiguration,
-            IDistributedCache cache)
+        public ReadRepository(IConnectionProvider connectionProvider)
         {
             _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
-            _cacheConfiguration = cacheConfiguration?.Value ?? throw new ArgumentNullException(nameof(cacheConfiguration));
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<EntryDto>> GetEntries(Stage stage, Level level, DateTime? startDate, DateTime? endDate)
         {
-            if (!_cacheConfiguration.Enabled || startDate.HasValue || endDate.HasValue)
+            if (startDate.HasValue || endDate.HasValue)
             {
                 return await GetEntriesWithoutCache(stage, level, startDate, endDate).ConfigureAwait(false);
             }
 
-            return await _cache.GetOrSetFromCache(
-                string.Format(_getEntriesCacheKeyFormat, (long)stage, level),
-                GetCacheOptions(),
-                () => GetEntriesWithoutCache(stage, level, null, null));
+            return await GetEntriesWithoutCache(stage, level, null, null).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<EntryDto>> GetEntries(Stage stage)
         {
-            if (!_cacheConfiguration.Enabled)
-            {
-                return await GetEntriesWithoutCache(stage).ConfigureAwait(false);
-            }
-
-            return await _cache.GetOrSetFromCache(
-                string.Format(_getAllEntriesCacheKeyFormat, (long)stage),
-                GetCacheOptions(),
-                () => GetEntriesWithoutCache(stage));
+            return await GetEntriesWithoutCache(stage).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<PlayerDto>> GetPlayers()
         {
-            if (!_cacheConfiguration.Enabled)
-            {
-                return await GetPlayersWithoutCache(false).ConfigureAwait(false);
-            }
-
-            return await _cache.GetOrSetFromCache(
-                _getPlayersCacheKey,
-                GetCacheOptions(),
-                () => GetPlayersWithoutCache(false));
+            return await GetPlayersWithoutCache(false).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -185,12 +152,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
             }
-        }
-
-        private DistributedCacheEntryOptions GetCacheOptions()
-        {
-            return new DistributedCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromMinutes(_cacheConfiguration.MinutesBeforeExpiration));
         }
 
         private async Task<List<PlayerDto>> GetPlayersWithoutCache(bool isDirty)
