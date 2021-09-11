@@ -9,5 +9,8 @@ namespace TheEliteExplorerUi.Models
         public List<PointsRankingItemData> PointsRankingEntries { get; set; }
         public List<StageWorldRecordItemData> StageWorldRecordEntries { get; set; }
         public TimeSpan CombinedTime { get; set; }
+        public TimeSpan EasyCombinedTime { get; set; }
+        public TimeSpan MediumCombinedTime { get; set; }
+        public TimeSpan HardCombinedTime { get; set; }
     }
 }

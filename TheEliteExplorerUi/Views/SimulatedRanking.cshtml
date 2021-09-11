@@ -181,371 +181,71 @@
                             <th class="difficulty">Secret Agent</th>
                             <th class="difficulty">00 Agent</th>
                         </tr>
+                        @foreach (var stage in Model.StageWorldRecordEntries)
+                        {
                         <tr>
-                            <td><a href="/goldeneye/stage/dam" class="stage-image" id="s1"></a><a href="/goldeneye/stage/dam" class="stage-title">Dam</a></td>
+                            <td><a href="/goldeneye/stage/@stage.Name.ToLower()" class="stage-image" id="@stage.Code"></a><a href="/goldeneye/stage/@stage.Name.ToLower()" class="stage-title">@stage.Name</a></td>
                             <td>
-                                <div class="time">0:52</div>
+                                <div class="time">@stage.EasyTime.ToString(@"mm\:ss")</div>
                                 <a href="javascript:Site.openOverlay('/video/134550');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Karl+Jobst/time/134550" class="user u172" title="Karl Jobst">KJ</a></div>
+                                <div class="initials">
+                                    @{
+                                        int i = 0;
+                                        foreach (var kvp in stage.EasyColoredInitials)
+                                        {
+                                            if (i == 5)
+                                            {
+                                                <br />
+                                            }
+                                            <a href="/~Dark+Inkosi/time/92565" style="color:#@kvp.Item2" title="Marc Rützou">@kvp.Item1</a>
+                                            i++;
+                                        }
+                                    }
+                                </div>
                             </td>
                             <td>
-                                <div class="time">1:16</div>
+                                <div class="time">@stage.MediumTime.ToString(@"mm\:ss")</div>
                                 <a href="javascript:Site.openOverlay('/video/181557');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Dark+Inkosi/time/92565" class="user u197" title="Marc Rützou">MR</a><a href="/~Perfect+Ace/time/111497" class="user u269" title="Rayan I.">RI</a><a href="/~Swiss/time/161687" class="user u812" title="Dan Parker">DP</a><a href="/~Calle+W/time/181557" class="user u1054" title="Carl-Magnus Wall">CW</a></div>
+                                <div class="initials">
+                                    @{
+                                        i = 0;
+                                        foreach (var kvp in stage.MediumColoredInitials)
+                                        {
+                                            if (i == 5)
+                                            {
+                                                <br />
+                                            }
+                                            <a href="/~Dark+Inkosi/time/92565" style="color:#@kvp.Item2" title="Marc Rützou">@kvp.Item1</a>
+                                            i++;
+                                        }
+                                    }
+                                </div>
                             </td>
                             <td>
-                                <div class="time">1:54</div>
+                                <div class="time">@stage.HardTime.ToString(@"mm\:ss")</div>
                                 <a href="javascript:Site.openOverlay('/video/228179');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Dark+Inkosi/time/228179" class="user u197" title="Marc Rützou">MR</a></div>
+                                <div class="initials">
+                                    @{
+                                        i = 0;
+                                        foreach (var kvp in stage.HardColoredInitials)
+                                        {
+                                            if (i == 5)
+                                            {
+                                                <br />
+                                            }
+                                            <a href="/~Dark+Inkosi/time/92565" style="color:#@kvp.Item2" title="Marc Rützou">@kvp.Item1</a>
+                                            i++;
+                                        }
+                                    }
+                                </div>
                             </td>
                         </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/facility" class="stage-image" id="s2"></a><a href="/goldeneye/stage/facility" class="stage-title">Facility</a></td>
-                            <td>
-                                <div class="time">0:42</div>
-                                <a href="javascript:Site.openOverlay('/video/191092');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Perfect+Ace/time/191092" class="user u269" title="Rayan I.">RI</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:51</div>
-                                <a href="javascript:Site.openOverlay('/video/195954');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Perfect+Ace/time/195954" class="user u269" title="Rayan I.">RI</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:51</div>
-                                <a href="javascript:Site.openOverlay('/video/205661');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Wodahs-Reklaw/time/205661" class="user u707" title="Daniel Coelho">DC</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/runway" class="stage-image" id="s3"></a><a href="/goldeneye/stage/runway" class="stage-title">Runway</a></td>
-                            <td>
-                                <div class="time">0:21</div>
-                                <a href="javascript:Site.openOverlay('/video/225335');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~berg/time/206357" class="user u1664" title="Eric Bergmann">EB</a><a href="/~Joakim+Ljung/time/225335" class="user u2260" title="Joakim Ljung">JL</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:22</div>
-                                <a href="javascript:Site.openOverlay('/video/122753');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Big+Bossman/time/57766" class="user u43" title="Bryan B.">BB</a><a href="/~MouserScribe/time/76103" class="user u222" title="Michael K.">MK</a><a href="/~hotshott/time/93289" class="user u736" title="Walton Mattei">WM</a><a href="/~Discombobulator/time/95279" class="user u268" title="Randy Buikema">RB</a><a href="/~Luke+Szklarz/time/105870" class="user u191" title="Luke Szklarz">LS</a><br><a href="/~Baps/time/109907" class="user u1009" title="Marc Williams">MW</a><a href="/~Philip+Bezgoubov/time/110831" class="user u696" title="Philip Bezgoubov">PB</a><a href="/~Goose/time/111060" class="user u294" title="Ryan White">RW</a><a href="/~Wodahs-Reklaw/time/111152" class="user u707" title="Daniel Coelho">DC</a><a href="/~Graviton/time/111373" class="user u1121" title="Ryan Gibbs">RG</a><br><a href="/~Swiss/time/131300" class="user u812" title="Dan Parker">DP</a><a href="/~xxomg/time/122753" class="user u1150" title="Samuel Haycock">SH</a><a href="/~Ash/time/131286" class="user u847" title="Sammy Rodgers">SR</a><a href="/~SGT+RAGEQUIT/time/131415" class="user u1044" title="Tyler Deel">TD</a><a href="/~Irie+Butler/time/133887" class="user u1374" title="Irie Butler">IB</a><br><a href="/~Matthew+Burden/time/135400" class="user u899" title="Matthew Burden">MB</a><a href="/~TheLuge/time/142055" class="user u1105" title="Aaron Scott">AS</a><a href="/~Karl+Jobst/time/145283" class="user u172" title="Karl Jobst">KJ</a><a href="/~Jimbo/time/161941" class="user u141" title="Jim Barrett">JB</a><a href="/~Aleph%E2%84%B50L/time/167164" class="user u1501" title="Joris Quevedo">JQ</a><br><a href="/~MW/time/170087" class="user u1317" title="Michael W.">MW</a><a href="/~berg/time/171725" class="user u1664" title="Eric Bergmann">EB</a><a href="/~BK/time/182111" class="user u1626" title="Karl M.">KM</a><a href="/~MadmanFlechr/time/175361" class="user u1761" title="Adam V.">AV</a><a href="/~HomegrownDufuss/time/178404" class="user u1274" title="Silas Lankford">SL</a><br><a href="/~ThaRixer/time/199489" class="user u1033" title="Nikolaj Sørensen">NS</a><a href="/~JDBlack21/time/186158" class="user u1588" title="Josh Schwarz">JS</a><a href="/~pogopope/time/186279" class="user u1842" title="Troy Noojin">TN</a><a href="/~Antler/time/189821" class="user u1258" title="Austin H.">AH</a><a href="/~Gus+Riolo/time/196155" class="user u761" title="Gus Riolo">GR</a><br><a href="/~mikemint/time/198316" class="user u1499" title="Mike Mint">MM</a><a href="/~Joakim+Ljung/time/201032" class="user u2260" title="Joakim Ljung">JL</a><a href="/~Timtamz/time/202424" class="user u1140" title="Timmy Johansson">TJ</a><a href="/~Calle+W/time/204946" class="user u1054" title="Carl-Magnus Wall">CW</a><a href="/~Perfect+Ace/time/204932" class="user u269" title="Rayan I.">RI</a><br><a href="/~Banz/time/203822" class="user u2017" title="Janne Pitkänen">JP</a><a href="/~LQwerty/time/204788" class="user u1441" title="Chris Leon">CL</a><a href="/~joeyhbg/time/206134" class="user u2148" title="Fernando Almeida">FA</a><a href="/~Chris+Gonsalves/time/216040" class="user u2330" title="Chris Gonsalves">CG</a><a href="/~therm33/time/221480" class="user u1433" title="Simon L.">SL</a><br><a href="/~Andrew+Gall/time/223101" class="user u2111" title="Andrew Gall">AG</a><a href="/~Psychroptic/time/224175" class="user u2301" title="Zack B.">ZB</a><a href="/~Creator_Destroyer/time/228223" class="user u1365" title="Cory May">CM</a><a href="/~Breakneck/time/241008" class="user u1453" title="Dan O.">DO</a><a href="/~Rob+P./time/245451" class="user u2527" title="Rob P.">RP</a><br><a href="/~wishiwasfamous/time/246952" class="user u324" title="Thomas Andrews">TA</a><a href="/~widdershins/time/260123" class="user u2447" title="Kieran Maher">KM</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:28</div>
-                                <a href="javascript:Site.openOverlay('/video/158396');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Graviton/time/158396" class="user u1121" title="Ryan Gibbs">RG</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/surface1" class="stage-image" id="s4"></a><a href="/goldeneye/stage/surface1" class="stage-title">Surface 1</a></td>
-                            <td>
-                                <div class="time">1:01</div>
-                                <a href="javascript:Site.openOverlay('/video/257799');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Calle+W/time/257799" class="user u1054" title="Carl-Magnus Wall">CW</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:46</div>
-                                <a href="javascript:Site.openOverlay('/video/204951');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Calle+W/time/204951" class="user u1054" title="Carl-Magnus Wall">CW</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:47</div>
-                                <a href="javascript:Site.openOverlay('/video/204944');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Calle+W/time/204944" class="user u1054" title="Carl-Magnus Wall">CW</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/bunker1" class="stage-image" id="s5"></a><a href="/goldeneye/stage/bunker1" class="stage-title">Bunker 1</a></td>
-                            <td>
-                                <div class="time">0:16</div>
-                                <a href="javascript:Site.openOverlay('/video/242955');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Karl+Jobst/time/163459" class="user u172" title="Karl Jobst">KJ</a><a href="/~True+Faith/time/185972" class="user u72" title="David Clemens">DC</a><a href="/~Aleph%E2%84%B50L/time/199499" class="user u1501" title="Joris Quevedo">JQ</a><a href="/~Joakim+Ljung/time/241082" class="user u2260" title="Joakim Ljung">JL</a><a href="/~Banz/time/242955" class="user u2017" title="Janne Pitkänen">JP</a><br><a href="/~Calle+W/time/262412" class="user u1054" title="Carl-Magnus Wall">CW</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:20</div>
-                                <a href="javascript:Site.openOverlay('/video/153172');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Perfect+Ace/time/153172" class="user u269" title="Rayan I.">RI</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:01</div>
-                                <a href="javascript:Site.openOverlay('/video/183818');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~True+Faith/time/183818" class="user u72" title="David Clemens">DC</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/silo" class="stage-image" id="s6"></a><a href="/goldeneye/stage/silo" class="stage-title">Silo</a></td>
-                            <td>
-                                <div class="time">0:59</div>
-                                <a href="javascript:Site.openOverlay('/video/190800');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Dark+Inkosi/time/190800" class="user u197" title="Marc Rützou">MR</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:07</div>
-                                <a href="javascript:Site.openOverlay('/video/132484');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Dark+Inkosi/time/132484" class="user u197" title="Marc Rützou">MR</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:21</div>
-                                <a href="javascript:Site.openOverlay('/video/80432');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Perfect+Ace/time/80432" class="user u269" title="Rayan I.">RI</a><a href="/~Goose/time/132642" class="user u294" title="Ryan White">RW</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/frigate" class="stage-image" id="s7"></a><a href="/goldeneye/stage/frigate" class="stage-title">Frigate</a></td>
-                            <td>
-                                <div class="time">0:22</div>
-                                <a href="javascript:Site.openOverlay('/video/223366');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Karl+Jobst/time/177451" class="user u172" title="Karl Jobst">KJ</a><a href="/~Whiteted/time/223366" class="user u1809" title="James Greening">WT</a><a href="/~Calle+W/time/262414" class="user u1054" title="Carl-Magnus Wall">CW</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:58</div>
-                                <a href="javascript:Site.openOverlay('/video/115502');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Luke+Pettit/time/115502" class="user u190" title="Luke Pettit">LP</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:04</div>
-                                <a href="javascript:Site.openOverlay('/video/186666');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Swiss/time/186666" class="user u812" title="Dan Parker">DP</a><a href="/~FrostHops/time/226563" class="user u1358" title="Jonathan Hauptman">JH</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/surface2" class="stage-image" id="s8"></a><a href="/goldeneye/stage/surface2" class="stage-title">Surface 2</a></td>
-                            <td>
-                                <div class="time">0:46</div>
-                                <a href="javascript:Site.openOverlay('/video/163701');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Karl+Jobst/time/158233" class="user u172" title="Karl Jobst">KJ</a><a href="/~Graviton/time/158394" class="user u1121" title="Ryan Gibbs">RG</a><a href="/~mikemint/time/161460" class="user u1499" title="Mike Mint">MM</a><a href="/~Glanivin/time/163701" class="user u1393" title="Glan Ivin">GI</a><a href="/~Wodahs-Reklaw/time/165650" class="user u707" title="Daniel Coelho">DC</a><br><a href="/~Wally/time/168478" class="user u1313" title="James W">JW</a><a href="/~pogopope/time/189167" class="user u1842" title="Troy Noojin">TN</a><a href="/~JDBlack21/time/192522" class="user u1588" title="Josh Schwarz">JS</a><a href="/~TheLuge/time/201167" class="user u1105" title="Aaron Scott">AS</a><a href="/~joeyhbg/time/204929" class="user u2148" title="Fernando Almeida">FA</a><br><a href="/~Calle+W/time/204945" class="user u1054" title="Carl-Magnus Wall">CW</a><a href="/~Aleph%E2%84%B50L/time/206720" class="user u1501" title="Joris Quevedo">JQ</a><a href="/~LQwerty/time/218258" class="user u1441" title="Chris Leon">CL</a><a href="/~SGT+RAGEQUIT/time/220771" class="user u1044" title="Tyler Deel">TD</a><a href="/~Oscar+Pleininger/time/221260" class="user u857" title="Oscar Pleininger">OP</a><br><a href="/~MadmanFlechr/time/223089" class="user u1761" title="Adam V.">AV</a><a href="/~Dusky/time/223337" class="user u1257" title="Charlie Yeudall">CY</a><a href="/~Irie+Butler/time/223650" class="user u1374" title="Irie Butler">IB</a><a href="/~True+Faith/time/224246" class="user u72" title="David Clemens">DC</a><a href="/~Timtamz/time/241675" class="user u1140" title="Timmy Johansson">TJ</a><br><a href="/~McGarbage/time/225325" class="user u1303" title="Brent McGarvey">BM</a><a href="/~Ash/time/226601" class="user u847" title="Sammy Rodgers">SR</a><a href="/~Tyrannicide/time/242380" class="user u335" title="Tyler P.">TP</a><a href="/~Psychroptic/time/245674" class="user u2301" title="Zack B.">ZB</a><a href="/~Banz/time/256739" class="user u2017" title="Janne Pitkänen">JP</a><br><a href="/~Antler/time/259414" class="user u1258" title="Austin H.">AH</a><a href="/~Big+Bossman/time/259418" class="user u43" title="Bryan B.">BB</a><a href="/~Creator_Destroyer/time/261337" class="user u1365" title="Cory May">CM</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:47</div>
-                                <a href="javascript:Site.openOverlay('/video/131517');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Philip+Bezgoubov/time/131517" class="user u696" title="Philip Bezgoubov">PB</a><a href="/~Graviton/time/140388" class="user u1121" title="Ryan Gibbs">RG</a><a href="/~Ash/time/207799" class="user u847" title="Sammy Rodgers">SR</a><a href="/~Wally/time/160020" class="user u1313" title="James W">JW</a><a href="/~mikemint/time/168978" class="user u1499" title="Mike Mint">MM</a><br><a href="/~joeyhbg/time/204930" class="user u2148" title="Fernando Almeida">FA</a><a href="/~Aleph%E2%84%B50L/time/206982" class="user u1501" title="Joris Quevedo">JQ</a><a href="/~pogopope/time/207147" class="user u1842" title="Troy Noojin">TN</a><a href="/~MadmanFlechr/time/223867" class="user u1761" title="Adam V.">AV</a><a href="/~Irie+Butler/time/225343" class="user u1374" title="Irie Butler">IB</a><br><a href="/~Calle+W/time/238245" class="user u1054" title="Carl-Magnus Wall">CW</a><a href="/~JDBlack21/time/225590" class="user u1588" title="Josh Schwarz">JS</a><a href="/~Wodahs-Reklaw/time/225948" class="user u707" title="Daniel Coelho">DC</a><a href="/~LQwerty/time/259037" class="user u1441" title="Chris Leon">CL</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:18</div>
-                                <a href="javascript:Site.openOverlay('/video/225914');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~True+Faith/time/225914" class="user u72" title="David Clemens">DC</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/bunker2" class="stage-image" id="s9"></a><a href="/goldeneye/stage/bunker2" class="stage-title">Bunker 2</a></td>
-                            <td>
-                                <div class="time">0:20</div>
-                                <a href="javascript:Site.openOverlay('/video/261470');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Calle+W/time/261470" class="user u1054" title="Carl-Magnus Wall">CW</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:42</div>
-                                <a href="javascript:Site.openOverlay('/video/261945');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Perfect+Ace/time/198467" class="user u269" title="Rayan I.">RI</a><a href="/~Irie+Butler/time/261660" class="user u1374" title="Irie Butler">IB</a><a href="/~True+Faith/time/261945" class="user u72" title="David Clemens">DC</a><a href="/~LQwerty/time/262443" class="user u1441" title="Chris Leon">CL</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:52</div>
-                                <a href="javascript:Site.openOverlay('/video/262063');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~True+Faith/time/262063" class="user u72" title="David Clemens">DC</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/statue" class="stage-image" id="s10"></a><a href="/goldeneye/stage/statue" class="stage-title">Statue</a></td>
-                            <td>
-                                <div class="time">2:18</div>
-                                <a href="javascript:Site.openOverlay('/video/106840');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Jimmy+Bauer/time/73496" class="user u144" title="Jimmy Bauer">JB</a><a href="/~Ash/time/106840" class="user u847" title="Sammy Rodgers">SR</a><a href="/~Gus+Riolo/time/194492" class="user u761" title="Gus Riolo">GR</a><a href="/~Chris+Gonsalves/time/222975" class="user u2330" title="Chris Gonsalves">CG</a><a href="/~Calle+W/time/223939" class="user u1054" title="Carl-Magnus Wall">CW</a></div>
-                            </td>
-                            <td>
-                                <div class="time">2:17</div>
-                                <a href="javascript:Site.openOverlay('/video/223546');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Calle+W/time/223546" class="user u1054" title="Carl-Magnus Wall">CW</a></div>
-                            </td>
-                            <td>
-                                <div class="time">2:17</div>
-                                <a href="javascript:Site.openOverlay('/video/223038');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Calle+W/time/223038" class="user u1054" title="Carl-Magnus Wall">CW</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/archives" class="stage-image" id="s11"></a><a href="/goldeneye/stage/archives" class="stage-title">Archives</a></td>
-                            <td>
-                                <div class="time">0:15</div>
-                                <a href="javascript:Site.openOverlay('/video/244547');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Karl+Jobst/time/136886" class="user u172" title="Karl Jobst">KJ</a><a href="/~Gus+Riolo/time/167894" class="user u761" title="Gus Riolo">GR</a><a href="/~Wodahs-Reklaw/time/178192" class="user u707" title="Daniel Coelho">DC</a><a href="/~Aleph%E2%84%B50L/time/188643" class="user u1501" title="Joris Quevedo">JQ</a><a href="/~Antler/time/244547" class="user u1258" title="Austin H.">AH</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:53</div>
-                                <a href="javascript:Site.openOverlay('/video/137444');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Gus+Riolo/time/137444" class="user u761" title="Gus Riolo">GR</a><a href="/~Karl+Jobst/time/173134" class="user u172" title="Karl Jobst">KJ</a><a href="/~Wodahs-Reklaw/time/182289" class="user u707" title="Daniel Coelho">DC</a><a href="/~Aleph%E2%84%B50L/time/204128" class="user u1501" title="Joris Quevedo">JQ</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:53</div>
-                                <a href="javascript:Site.openOverlay('/video/137352');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Gus+Riolo/time/137352" class="user u761" title="Gus Riolo">GR</a><a href="/~Karl+Jobst/time/145688" class="user u172" title="Karl Jobst">KJ</a><a href="/~Wodahs-Reklaw/time/183727" class="user u707" title="Daniel Coelho">DC</a><a href="/~Aleph%E2%84%B50L/time/204605" class="user u1501" title="Joris Quevedo">JQ</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/streets" class="stage-image" id="s12"></a><a href="/goldeneye/stage/streets" class="stage-title">Streets</a></td>
-                            <td>
-                                <div class="time">1:11</div>
-                                <a href="javascript:Site.openOverlay('/video/110409');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Karl+Jobst/time/107177" class="user u172" title="Karl Jobst">KJ</a><a href="/~Illu/time/107409" class="user u128" title="Ilari Pekkala">IP</a><a href="/~jezz/time/108280" class="user u1099" title="Jezz Savage">JS</a><a href="/~Ogran/time/108727" class="user u891" title="Aaron Morgan">AM</a><a href="/~Redscreens/time/110409" class="user u1075" title="Daniel Dickens">DD</a><br><a href="/~Luke+Szklarz/time/110690" class="user u191" title="Luke Szklarz">LS</a><a href="/~Goose/time/137741" class="user u294" title="Ryan White">RW</a><a href="/~Irie+Butler/time/186630" class="user u1374" title="Irie Butler">IB</a><a href="/~mikemint/time/189983" class="user u1499" title="Mike Mint">MM</a><a href="/~SammoSammy/time/191864" class="user u1778" title="Samuel Scholten">SS</a><br><a href="/~Wodahs-Reklaw/time/199505" class="user u707" title="Daniel Coelho">DC</a><a href="/~Austin+P./time/213278" class="user u901" title="Austin P.">AP</a><a href="/~JDBlack21/time/224841" class="user u1588" title="Josh Schwarz">JS</a><a href="/~Aleph%E2%84%B50L/time/229479" class="user u1501" title="Joris Quevedo">JQ</a><a href="/~Chris+Gonsalves/time/230087" class="user u2330" title="Chris Gonsalves">CG</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:54</div>
-                                <a href="javascript:Site.openOverlay('/video/80870');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Goose/time/80870" class="user u294" title="Ryan White">RW</a><a href="/~Ogran/time/108696" class="user u891" title="Aaron Morgan">AM</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:54</div>
-                                <a href="javascript:Site.openOverlay('/video/108521');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Ogran/time/108521" class="user u891" title="Aaron Morgan">AM</a><a href="/~Goose/time/201981" class="user u294" title="Ryan White">RW</a><a href="/~mikemint/time/208564" class="user u1499" title="Mike Mint">MM</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/depot" class="stage-image" id="s13"></a><a href="/goldeneye/stage/depot" class="stage-title">Depot</a></td>
-                            <td>
-                                <div class="time">0:23</div>
-                                <a href="javascript:Site.openOverlay('/video/159765');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Philip+Bezgoubov/time/97264" class="user u696" title="Philip Bezgoubov">PB</a><a href="/~Ash/time/97539" class="user u847" title="Sammy Rodgers">SR</a><a href="/~Luke+Szklarz/time/107862" class="user u191" title="Luke Szklarz">LS</a><a href="/~Ryan+Lockwood/time/107869" class="user u292" title="Ryan Lockwood">RL</a><a href="/~True+Faith/time/107873" class="user u72" title="David Clemens">DC</a><br><a href="/~Karl+Jobst/time/141019" class="user u172" title="Karl Jobst">KJ</a><a href="/~Aleph%E2%84%B50L/time/159765" class="user u1501" title="Joris Quevedo">JQ</a><a href="/~Wodahs-Reklaw/time/189223" class="user u707" title="Daniel Coelho">DC</a><a href="/~Gus+Riolo/time/214010" class="user u761" title="Gus Riolo">GR</a><a href="/~Charles+Bayard/time/217371" class="user u1880" title="Charles Bayard">CB</a><br><a href="/~Irie+Butler/time/217733" class="user u1374" title="Irie Butler">IB</a><a href="/~LQwerty/time/221273" class="user u1441" title="Chris Leon">CL</a><a href="/~xxomg/time/225770" class="user u1150" title="Samuel Haycock">SH</a><a href="/~JDBlack21/time/225819" class="user u1588" title="Josh Schwarz">JS</a><a href="/~Timtamz/time/241680" class="user u1140" title="Timmy Johansson">TJ</a><br><a href="/~pogopope/time/241216" class="user u1842" title="Troy Noojin">TN</a><a href="/~foxdie/time/226599" class="user u1481" title="Eric P.">EP</a><a href="/~Psychroptic/time/230060" class="user u2301" title="Zack B.">ZB</a><a href="/~Banz/time/256072" class="user u2017" title="Janne Pitkänen">JP</a><a href="/~Big+Bossman/time/258059" class="user u43" title="Bryan B.">BB</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:39</div>
-                                <a href="javascript:Site.openOverlay('/video/183497');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Goose/time/100075" class="user u294" title="Ryan White">RW</a><a href="/~Ash/time/141417" class="user u847" title="Sammy Rodgers">SR</a><a href="/~Karl+Jobst/time/144145" class="user u172" title="Karl Jobst">KJ</a><a href="/~Gus+Riolo/time/183497" class="user u761" title="Gus Riolo">GR</a><a href="/~Wodahs-Reklaw/time/183728" class="user u707" title="Daniel Coelho">DC</a><br><a href="/~Aleph%E2%84%B50L/time/199496" class="user u1501" title="Joris Quevedo">JQ</a><a href="/~Charles+Bayard/time/208554" class="user u1880" title="Charles Bayard">CB</a><a href="/~Banz/time/241303" class="user u2017" title="Janne Pitkänen">JP</a><a href="/~SammoSammy/time/261456" class="user u1778" title="Samuel Scholten">SS</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:45</div>
-                                <a href="javascript:Site.openOverlay('/video/206574');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Gus+Riolo/time/206574" class="user u761" title="Gus Riolo">GR</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/train" class="stage-image" id="s14"></a><a href="/goldeneye/stage/train" class="stage-title">Train</a></td>
-                            <td>
-                                <div class="time">0:56</div>
-                                <a href="javascript:Site.openOverlay('/video/211603');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Wyst3r/time/211603" class="user u122" title="Henrik Norgren">HN</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:22</div>
-                                <a href="javascript:Site.openOverlay('/video/248617');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Wyst3r/time/248617" class="user u122" title="Henrik Norgren">HN</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:48</div>
-                                <a href="javascript:Site.openOverlay('/video/138963');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Wyst3r/time/138963" class="user u122" title="Henrik Norgren">HN</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/jungle" class="stage-image" id="s15"></a><a href="/goldeneye/stage/jungle" class="stage-title">Jungle</a></td>
-                            <td>
-                                <div class="time">0:49</div>
-                                <a href="javascript:Site.openOverlay('/video/175782');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Karl+Jobst/time/175782" class="user u172" title="Karl Jobst">KJ</a><a href="/~True+Faith/time/182493" class="user u72" title="David Clemens">DC</a><a href="/~Irie+Butler/time/202999" class="user u1374" title="Irie Butler">IB</a><a href="/~Aleph%E2%84%B50L/time/211865" class="user u1501" title="Joris Quevedo">JQ</a><a href="/~Banz/time/241304" class="user u2017" title="Janne Pitkänen">JP</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:51</div>
-                                <a href="javascript:Site.openOverlay('/video/211867');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Aleph%E2%84%B50L/time/211867" class="user u1501" title="Joris Quevedo">JQ</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:52</div>
-                                <a href="javascript:Site.openOverlay('/video/220215');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Aleph%E2%84%B50L/time/220215" class="user u1501" title="Joris Quevedo">JQ</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/control" class="stage-image" id="s16"></a><a href="/goldeneye/stage/control" class="stage-title">Control</a></td>
-                            <td>
-                                <div class="time">3:55</div>
-                                <a href="javascript:Site.openOverlay('/video/198993');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Perfect+Ace/time/198993" class="user u269" title="Rayan I.">RI</a></div>
-                            </td>
-                            <td>
-                                <div class="time">4:01</div>
-                                <a href="javascript:Site.openOverlay('/video/204936');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Perfect+Ace/time/204936" class="user u269" title="Rayan I.">RI</a></div>
-                            </td>
-                            <td>
-                                <div class="time">4:02</div>
-                                <a href="javascript:Site.openOverlay('/video/204939');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Perfect+Ace/time/204939" class="user u269" title="Rayan I.">RI</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/caverns" class="stage-image" id="s17"></a><a href="/goldeneye/stage/caverns" class="stage-title">Caverns</a></td>
-                            <td>
-                                <div class="time">1:01</div>
-                                <a href="javascript:Site.openOverlay('/video/204947');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Dark+Inkosi/time/178692" class="user u197" title="Marc Rützou">MR</a><a href="/~True+Faith/time/16609" class="user u72" title="David Clemens">DC</a><a href="/~Luke+Szklarz/time/77182" class="user u191" title="Luke Szklarz">LS</a><a href="/~Perfect+Ace/time/79789" class="user u269" title="Rayan I.">RI</a><a href="/~Wodahs-Reklaw/time/102302" class="user u707" title="Daniel Coelho">DC</a><br><a href="/~Swiss/time/131302" class="user u812" title="Dan Parker">DP</a><a href="/~Graviton/time/131281" class="user u1121" title="Ryan Gibbs">RG</a><a href="/~Karl+Jobst/time/126194" class="user u172" title="Karl Jobst">KJ</a><a href="/~Wyst3r/time/126801" class="user u122" title="Henrik Norgren">HN</a><a href="/~Goose/time/127091" class="user u294" title="Ryan White">RW</a><br><a href="/~Big+Bossman/time/138077" class="user u43" title="Bryan B.">BB</a><a href="/~SGT+RAGEQUIT/time/140587" class="user u1044" title="Tyler Deel">TD</a><a href="/~Gus+Riolo/time/183209" class="user u761" title="Gus Riolo">GR</a><a href="/~Aleph%E2%84%B50L/time/184678" class="user u1501" title="Joris Quevedo">JQ</a><a href="/~mikemint/time/190071" class="user u1499" title="Mike Mint">MM</a><br><a href="/~Oscar+Pleininger/time/190253" class="user u857" title="Oscar Pleininger">OP</a><a href="/~Irie+Butler/time/191646" class="user u1374" title="Irie Butler">IB</a><a href="/~Jimbo/time/192388" class="user u141" title="Jim Barrett">JB</a><a href="/~Kev+B./time/199625" class="user u1445" title="Kev B.">KB</a><a href="/~Andrew+Wash/time/200042" class="user u1230" title="Andrew Wash">AW</a><br><a href="/~Calle+W/time/204947" class="user u1054" title="Carl-Magnus Wall">CW</a><a href="/~Timtamz/time/202001" class="user u1140" title="Timmy Johansson">TJ</a><a href="/~Zach+Mulac/time/204714" class="user u1316" title="Zach Mulac">ZM</a><a href="/~SammoSammy/time/205671" class="user u1778" title="Samuel Scholten">SS</a><a href="/~David+Jones/time/207424" class="user u1922" title="David Jones">DJ</a><br><a href="/~LQwerty/time/218459" class="user u1441" title="Chris Leon">CL</a><a href="/~pogopope/time/219689" class="user u1842" title="Troy Noojin">TN</a><a href="/~MW/time/223801" class="user u1317" title="Michael W.">MW</a><a href="/~FrostHops/time/223803" class="user u1358" title="Jonathan Hauptman">JH</a><a href="/~JDBlack21/time/225420" class="user u1588" title="Josh Schwarz">JS</a><br><a href="/~McGarbage/time/226914" class="user u1303" title="Brent McGarvey">BM</a><a href="/~Kyto/time/228222" class="user u1556" title="Joonas Kytö">JK</a><a href="/~Banz/time/241302" class="user u2017" title="Janne Pitkänen">JP</a><a href="/~berg/time/262402" class="user u1664" title="Eric Bergmann">EB</a><a href="/~BK/time/262403" class="user u1626" title="Karl M.">KM</a><br><a href="/~Yendis/time/256825" class="user u1727" title="Jakob Birkenes">JB</a><a href="/~Antler/time/257658" class="user u1258" title="Austin H.">AH</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:12</div>
-                                <a href="javascript:Site.openOverlay('/video/199509');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Wodahs-Reklaw/time/199509" class="user u707" title="Daniel Coelho">DC</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:29</div>
-                                <a href="javascript:Site.openOverlay('/video/191871');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Perfect+Ace/time/191871" class="user u269" title="Rayan I.">RI</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/cradle" class="stage-image" id="s18"></a><a href="/goldeneye/stage/cradle" class="stage-title">Cradle</a></td>
-                            <td>
-                                <div class="time">0:33</div>
-                                <a href="javascript:Site.openOverlay('/video/164749');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Timtamz/time/163870" class="user u1140" title="Timmy Johansson">TJ</a><a href="/~True+Faith/time/164074" class="user u72" title="David Clemens">DC</a><a href="/~Irie+Butler/time/164079" class="user u1374" title="Irie Butler">IB</a><a href="/~Wodahs-Reklaw/time/164218" class="user u707" title="Daniel Coelho">DC</a><a href="/~Karl+Jobst/time/164227" class="user u172" title="Karl Jobst">KJ</a><br><a href="/~Big+Bossman/time/164489" class="user u43" title="Bryan B.">BB</a><a href="/~Gus+Riolo/time/164490" class="user u761" title="Gus Riolo">GR</a><a href="/~Matthew+Burden/time/164749" class="user u899" title="Matthew Burden">MB</a><a href="/~Redscreens/time/164810" class="user u1075" title="Daniel Dickens">DD</a><a href="/~Luke+Szklarz/time/165052" class="user u191" title="Luke Szklarz">LS</a><br><a href="/~Graviton/time/165298" class="user u1121" title="Ryan Gibbs">RG</a><a href="/~Haydos/time/165509" class="user u1630" title="Hayden King">HK</a><a href="/~mikemint/time/166080" class="user u1499" title="Mike Mint">MM</a><a href="/~Calle+W/time/167034" class="user u1054" title="Carl-Magnus Wall">CW</a><a href="/~Antler/time/171326" class="user u1258" title="Austin H.">AH</a><br><a href="/~Jimbo/time/171945" class="user u141" title="Jim Barrett">JB</a><a href="/~SGT+RAGEQUIT/time/173901" class="user u1044" title="Tyler Deel">TD</a><a href="/~dsx/time/187571" class="user u813" title="Jonathan Hotinski">JH</a><a href="/~FrostHops/time/199485" class="user u1358" title="Jonathan Hauptman">JH</a><a href="/~Swiss/time/191522" class="user u812" title="Dan Parker">DP</a><br><a href="/~Aleph%E2%84%B50L/time/199498" class="user u1501" title="Joris Quevedo">JQ</a><a href="/~Perfect+Ace/time/196963" class="user u269" title="Rayan I.">RI</a><a href="/~Zach+Mulac/time/198763" class="user u1316" title="Zach Mulac">ZM</a><a href="/~Dusky/time/199970" class="user u1257" title="Charlie Yeudall">CY</a><a href="/~pogopope/time/200337" class="user u1842" title="Troy Noojin">TN</a><br><a href="/~DynamixDJ/time/203786" class="user u2281" title="Josh Thomson">JT</a><a href="/~Chris+Gonsalves/time/215200" class="user u2330" title="Chris Gonsalves">CG</a><a href="/~LQwerty/time/215968" class="user u1441" title="Chris Leon">CL</a><a href="/~JDBlack21/time/218828" class="user u1588" title="Josh Schwarz">JS</a><a href="/~therm33/time/224562" class="user u1433" title="Simon L.">SL</a><br><a href="/~xxomg/time/224866" class="user u1150" title="Samuel Haycock">SH</a><a href="/~Mathieu+de+carufel/time/238450" class="user u2208" title="Mathieu de carufel">MC</a><a href="/~Banz/time/243690" class="user u2017" title="Janne Pitkänen">JP</a><a href="/~Kyle+Reid/time/247277" class="user u2036" title="Kyle Reid">KR</a><a href="/~Psychroptic/time/248346" class="user u2301" title="Zack B.">ZB</a><br><a href="/~Oscar+Pleininger/time/253385" class="user u857" title="Oscar Pleininger">OP</a><a href="/~Creator_Destroyer/time/257812" class="user u1365" title="Cory May">CM</a><a href="/~Canovah/time/258676" class="user u2245" title="Colton Hinkle">CH</a><a href="/~Rob+P./time/261642" class="user u2527" title="Rob P.">RP</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:33</div>
-                                <a href="javascript:Site.openOverlay('/video/164437');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Irie+Butler/time/164437" class="user u1374" title="Irie Butler">IB</a><a href="/~Wodahs-Reklaw/time/164751" class="user u707" title="Daniel Coelho">DC</a><a href="/~True+Faith/time/165033" class="user u72" title="David Clemens">DC</a><a href="/~Karl+Jobst/time/166447" class="user u172" title="Karl Jobst">KJ</a><a href="/~Calle+W/time/204948" class="user u1054" title="Carl-Magnus Wall">CW</a><br><a href="/~Timtamz/time/203050" class="user u1140" title="Timmy Johansson">TJ</a><a href="/~JDBlack21/time/223142" class="user u1588" title="Josh Schwarz">JS</a><a href="/~Chris+Gonsalves/time/219787" class="user u2330" title="Chris Gonsalves">CG</a><a href="/~Gus+Riolo/time/220560" class="user u761" title="Gus Riolo">GR</a><a href="/~xxomg/time/224902" class="user u1150" title="Samuel Haycock">SH</a><br><a href="/~FrostHops/time/240566" class="user u1358" title="Jonathan Hauptman">JH</a><a href="/~Banz/time/248712" class="user u2017" title="Janne Pitkänen">JP</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:33</div>
-                                <a href="javascript:Site.openOverlay('/video/165035');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~True+Faith/time/164350" class="user u72" title="David Clemens">DC</a><a href="/~Wodahs-Reklaw/time/165035" class="user u707" title="Daniel Coelho">DC</a><a href="/~Irie+Butler/time/166082" class="user u1374" title="Irie Butler">IB</a><a href="/~Karl+Jobst/time/166995" class="user u172" title="Karl Jobst">KJ</a><a href="/~Calle+W/time/204949" class="user u1054" title="Carl-Magnus Wall">CW</a><br><a href="/~JDBlack21/time/223156" class="user u1588" title="Josh Schwarz">JS</a><a href="/~Chris+Gonsalves/time/220208" class="user u2330" title="Chris Gonsalves">CG</a><a href="/~Gus+Riolo/time/221026" class="user u761" title="Gus Riolo">GR</a><a href="/~xxomg/time/225351" class="user u1150" title="Samuel Haycock">SH</a><a href="/~Timtamz/time/241691" class="user u1140" title="Timmy Johansson">TJ</a><br><a href="/~FrostHops/time/240957" class="user u1358" title="Jonathan Hauptman">JH</a><a href="/~Banz/time/253370" class="user u2017" title="Janne Pitkänen">JP</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/aztec" class="stage-image" id="s19"></a><a href="/goldeneye/stage/aztec" class="stage-title">Aztec</a></td>
-                            <td>
-                                <div class="time">1:23</div>
-                                <a href="javascript:Site.openOverlay('/video/158875');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Wodahs-Reklaw/time/158875" class="user u707" title="Daniel Coelho">DC</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:30</div>
-                                <a href="javascript:Site.openOverlay('/video/110547');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Perfect+Ace/time/110547" class="user u269" title="Rayan I.">RI</a><a href="/~Luke+Szklarz/time/133340" class="user u191" title="Luke Szklarz">LS</a><a href="/~True+Faith/time/260385" class="user u72" title="David Clemens">DC</a></div>
-                            </td>
-                            <td>
-                                <div class="time">1:34</div>
-                                <a href="javascript:Site.openOverlay('/video/261373');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Gus+Riolo/time/261373" class="user u761" title="Gus Riolo">GR</a></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><a href="/goldeneye/stage/egypt" class="stage-image" id="s20"></a><a href="/goldeneye/stage/egypt" class="stage-title">Egypt</a></td>
-                            <td>
-                                <div class="time">0:44</div>
-                                <a href="javascript:Site.openOverlay('/video/142504');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Karl+Jobst/time/142504" class="user u172" title="Karl Jobst">KJ</a><a href="/~Haydos/time/160946" class="user u1630" title="Hayden King">HK</a><a href="/~Klobber/time/208655" class="user u1996" title="Joe F.">JF</a><a href="/~Chris+Gonsalves/time/239443" class="user u2330" title="Chris Gonsalves">CG</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:44</div>
-                                <a href="javascript:Site.openOverlay('/video/161850');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Haydos/time/161850" class="user u1630" title="Hayden King">HK</a></div>
-                            </td>
-                            <td>
-                                <div class="time">0:44</div>
-                                <a href="javascript:Site.openOverlay('/video/162234');" class="video-link" title="Watch the video">Video</a>
-                                <div class="initials"><a href="/~Haydos/time/162234" class="user u1630" title="Hayden King">HK</a></div>
-                            </td>
-                        </tr>
+                        }
                         <tr>
                             <th>Totals</th>
-                            <th>19:07</th>
-                            <th>24:05</th>
-                            <th>27:27</th>
+                            <th>@Model.EasyCombinedTime.ToString("c")</th>
+                            <th>@Model.MediumCombinedTime.ToString("c")</th>
+                            <th>@Model.HardCombinedTime.ToString("c")</th>
                         </tr>
                     </tbody>
                 </table>
