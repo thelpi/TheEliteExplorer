@@ -86,13 +86,13 @@ namespace TheEliteExplorerUi.Controllers
                 var hardEntries = rankingEntries.Where(x => x.Details.ContainsKey(stage) && x.Details[stage].ContainsKey(Level.Hard) && x.Details[stage][Level.Hard].Item3 == hardTime).ToList();
 
                 stageWorldRecordEntries.Add(new StageWorldRecordItemData
-                {// .OrderBy(x => x.Details[stage][Level.Easy].)
-                    EasyColoredInitials = easyEntries.Select(x => (ToInitials(x.PlayerName), x.PlayerColor)).ToList(),
+                {
+                    EasyColoredInitials = easyEntries.OrderBy(x => x.Details[stage][Level.Easy].Item4).Select(x => (ToInitials(x.PlayerName), x.PlayerColor)).ToList(),
                     EasyTime = new TimeSpan(0, 0, easyTime),
-                    HardColoredInitials = hardEntries.Select(x => (ToInitials(x.PlayerName), x.PlayerColor)).ToList(),
+                    HardColoredInitials = hardEntries.OrderBy(x => x.Details[stage][Level.Hard].Item4).Select(x => (ToInitials(x.PlayerName), x.PlayerColor)).ToList(),
                     HardTime = new TimeSpan(0, 0, hardTime),
                     Image = $@"D:\Ma programmation\csharp\Projects\TheEliteUI\TheEliteUI\Resources\Stages\{(int)stage}.jpg",
-                    MediumColoredInitials = mediumEntries.Select(x => (ToInitials(x.PlayerName), x.PlayerColor)).ToList(),
+                    MediumColoredInitials = mediumEntries.OrderBy(x => x.Details[stage][Level.Medium].Item4).Select(x => (ToInitials(x.PlayerName), x.PlayerColor)).ToList(),
                     MediumTime = new TimeSpan(0, 0, mediumTime),
                     Name = stage.ToString(),
                     Code = $"s{(int)stage}"

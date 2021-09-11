@@ -243,9 +243,9 @@
                         }
                         <tr>
                             <th>Totals</th>
-                            <th>@Model.EasyCombinedTime.ToString("c")</th>
-                            <th>@Model.MediumCombinedTime.ToString("c")</th>
-                            <th>@Model.HardCombinedTime.ToString("c")</th>
+                            <th>@Model.EasyCombinedTime.ToString(@"mm\:ss")</th>
+                            <th>@Model.MediumCombinedTime.ToString(@"mm\:ss")</th>
+                            <th>@Model.HardCombinedTime.ToString(@"mm\:ss")</th>
                         </tr>
                     </tbody>
                 </table>
@@ -307,9 +307,9 @@
                                             <!--<div class="flag f16 US"></div>-->
                                             <a style="color:#@item.PlayerColor">@item.PlayerName</a>
                                         </td>
-                                        <td>@item.EasyTime.ToString("c")</td>
-                                        <td>@item.MediumTime.ToString("c")</td>
-                                        <td>@item.HardTime.ToString("c")</td>
+                                        <td>@item.EasyTime.ToString(@"mm\:ss")</td>
+                                        <td>@item.MediumTime.ToString(@"mm\:ss")</td>
+                                        <td>@item.HardTime.ToString(@"mm\:ss")</td>
                                         <td class="sorted"><strong>@item.TotalTime.ToString("c")</strong></td>
                                     </tr>
                                 }

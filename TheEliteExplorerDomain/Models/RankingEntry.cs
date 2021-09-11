@@ -15,7 +15,7 @@ namespace TheEliteExplorerDomain.Models
         private readonly Dictionary<Level, int> _levelUntiedRecordsCount;
         private readonly Dictionary<Level, int> _levelRecordsCount;
         private readonly Dictionary<Level, long> _levelCumuledTime;
-        private readonly Dictionary<Stage, Dictionary<Level, (int, int, long?)>> _details;
+        private readonly Dictionary<Stage, Dictionary<Level, (int, int, long?, System.DateTime?)>> _details;
 
         /// <summary>
         /// Points by <see cref="Level"/>.
@@ -34,19 +34,19 @@ namespace TheEliteExplorerDomain.Models
         /// </summary>
         public IReadOnlyDictionary<Level, long> LevelCumuledTime { get { return _levelCumuledTime; } }
         /// <summary>
-        /// Detail of [ranking/points/time] for each level of each stage.
+        /// Detail of [ranking/points/time/date] for each level of each stage.
         /// </summary>
-        public IReadOnlyDictionary<Stage, IReadOnlyDictionary<Level, (int, int, long?)>> Details
+        public IReadOnlyDictionary<Stage, IReadOnlyDictionary<Level, (int, int, long?, System.DateTime?)>> Details
         {
             get
             {
-                return _details.ToDictionary(d => d.Key, d => (IReadOnlyDictionary<Level, (int, int, long?)>)d.Value);
+                return _details.ToDictionary(d => d.Key, d => (IReadOnlyDictionary<Level, (int, int, long?, System.DateTime?)>)d.Value);
             }
         }
 
         internal RankingEntry(Game game, PlayerDto player) : base(game, player)
         {
-            _details = new Dictionary<Stage, Dictionary<Level, (int, int, long?)>>();
+            _details = new Dictionary<Stage, Dictionary<Level, (int, int, long?, System.DateTime?)>>();
 
             _levelPoints = ToLevelDictionary(0);
             _levelUntiedRecordsCount = ToLevelDictionary(0);
@@ -70,7 +70,7 @@ namespace TheEliteExplorerDomain.Models
             
             _levelPoints[ranking.Level] += points;
             
-            GetDetailsByLevel(ranking.Stage).Add(ranking.Level, (ranking.Rank, points, ranking.Time));
+            GetDetailsByLevel(ranking.Stage).Add(ranking.Level, (ranking.Rank, points, ranking.Time, ranking.EntryDate));
 
             if (ranking.Time < UnsetTimeValueSeconds)
             {
@@ -80,12 +80,12 @@ namespace TheEliteExplorerDomain.Models
             return points;
         }
 
-        private Dictionary<Level, (int, int, long?)> GetDetailsByLevel(Stage stage)
+        private Dictionary<Level, (int, int, long?, System.DateTime?)> GetDetailsByLevel(Stage stage)
         {
-            Dictionary<Level, (int, int, long?)> detailsByLevel;
+            Dictionary<Level, (int, int, long?, System.DateTime?)> detailsByLevel;
             if (!_details.ContainsKey(stage))
             {
-                detailsByLevel = new Dictionary<Level, (int, int, long?)>();
+                detailsByLevel = new Dictionary<Level, (int, int, long?, System.DateTime?)>();
                 _details.Add(stage, detailsByLevel);
             }
             else

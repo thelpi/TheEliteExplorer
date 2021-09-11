@@ -284,7 +284,8 @@ namespace TheEliteExplorerDomain.Providers
                         PlayerId = entry.PlayerId,
                         Rank = pos,
                         Stage = entry.Stage,
-                        Time = entry.Time
+                        Time = entry.Time,
+                        EntryDate = entry.Date
                     };
 
                     rankingsToInsert.Add(ranking);

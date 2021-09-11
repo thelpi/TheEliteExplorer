@@ -32,5 +32,9 @@ namespace TheEliteExplorerDomain.Dtos
         /// Rank.
         /// </summary>
         public int Rank { get; set; }
+        /// <summary>
+        /// Entry date.
+        /// </summary>
+        public DateTime? EntryDate { get; set; }
     }
 }
