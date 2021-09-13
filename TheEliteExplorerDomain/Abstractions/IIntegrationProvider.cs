@@ -40,5 +40,12 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </param>
         /// <returns>Nothing.</returns>
         Task ScanTimePage(Game game, DateTime? startDate);
+
+        /// <summary>
+        /// Scans every time entry of a stage.
+        /// </summary>
+        /// <param name="stage">The stage.</param>
+        /// <returns>Nothing.</returns>
+        Task ScanStageTimes(Stage stage);
     }
 }

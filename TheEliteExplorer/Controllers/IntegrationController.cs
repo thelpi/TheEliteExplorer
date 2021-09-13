@@ -45,6 +45,26 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
+        /// Scans the site to get times from a bunch of stages to integrate in the database.
+        /// </summary>
+        /// <param name="stages">Stages collection.</param>
+        /// <returns>Nothing.</returns>
+        [HttpPost("stages/entries")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> ScanTimePage(
+            [FromQuery] Stage[] stages)
+        {
+            foreach (var stage in stages)
+            {
+                await _integrationProvider
+                    .ScanStageTimes(stage)
+                    .ConfigureAwait(false);
+            }
+
+            return NoContent();
+        }
+
+        /// <summary>
         /// Scans the site to get every time for every player on a game.
         /// </summary>
         /// <param name="game">Game.</param>

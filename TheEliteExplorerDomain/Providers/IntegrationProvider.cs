@@ -150,6 +150,17 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
+        /// <inheritdoc />
+        public async Task ScanStageTimes(Stage stage)
+        {
+            var entries = await _siteParser.ExtractStageAllTimeEntries(stage).ConfigureAwait(false);
+
+            foreach (var entry in entries)
+            {
+                await CreateEntry(entry, stage.GetGame()).ConfigureAwait(false);
+            }
+        }
+
         private async Task<DateTime> GetStartDate(
             Game game,
             DateTime? startDate)
