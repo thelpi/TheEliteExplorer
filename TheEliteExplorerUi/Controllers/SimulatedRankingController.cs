@@ -23,11 +23,10 @@ namespace TheEliteExplorerUi.Controllers
         public async Task<IActionResult> Index(
             Game game,
             DateTime? date,
-            bool full,
             long? simulatedPlayerId)
         {
             var rankingEntriesBase = await _rankingProvider
-                .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now, full, simulatedPlayerId)
+                .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now, true, simulatedPlayerId)
                 .ConfigureAwait(false);
 
             var rankingEntries = rankingEntriesBase.Select(r => r as RankingEntry).ToList();
@@ -71,7 +70,7 @@ namespace TheEliteExplorerUi.Controllers
             var mediumSeconds = 0;
             var hardSeconds = 0;
             var stageWorldRecordEntries = new List<StageWorldRecordItemData>();
-            foreach (var stage in SystemExtensions.Enumerate<Stage>().Where(s => TheEliteExplorerDomain.Extensions.GetGame(s) == Game.GoldenEye))
+            foreach (var stage in SystemExtensions.Enumerate<Stage>().Where(s => TheEliteExplorerDomain.Extensions.GetGame(s) == game))
             {
                 var easyEntryRef = rankingEntries.Where(x => x.Details.ContainsKey(stage) && x.Details[stage].ContainsKey(Level.Easy)).OrderBy(x => x.Details[stage][Level.Easy].Item3).First();
                 var mediumEntryRef = rankingEntries.Where(x => x.Details.ContainsKey(stage) && x.Details[stage].ContainsKey(Level.Medium)).OrderBy(x => x.Details[stage][Level.Medium].Item3).First();
