@@ -42,7 +42,7 @@ namespace TheEliteExplorerUi.Models
             Dictionary<Level, int> secondsLevelCollector,
             string stageImagePath)
         {
-            var coloredInitialsLevel = new Dictionary<Level, List<(string, string)>>();
+            var coloredInitialsLevel = new Dictionary<Level, List<(string, string, string)>>();
             var secondsLevelStage = new Dictionary<Level, int>();
             foreach (var level in SystemExtensions.Enumerate<Level>())
             {
@@ -66,14 +66,14 @@ namespace TheEliteExplorerUi.Models
             };
         }
 
-        private static List<(string, string PlayerColor)> GetPlayersRankedAtStageAndLevelTime(List<RankingEntry> rankingEntries, Stage stage, Level level, int bestTime)
+        private static List<(string, string, string)> GetPlayersRankedAtStageAndLevelTime(List<RankingEntry> rankingEntries, Stage stage, Level level, int bestTime)
         {
             return rankingEntries
                 .Where(x => x.Details.ContainsKey(stage)
                     && x.Details[stage].ContainsKey(level)
                     && x.Details[stage][level].Item3 == bestTime)
                 .OrderBy(x => x.Details[stage][level].Item4)
-                .Select(x => (x.PlayerName.ToInitials(), x.PlayerColor))
+                .Select(x => (x.PlayerName.ToInitials(), x.PlayerColor, x.PlayerName))
                 .ToList();
         }
 

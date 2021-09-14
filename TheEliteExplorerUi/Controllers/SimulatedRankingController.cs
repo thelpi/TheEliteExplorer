@@ -31,41 +31,52 @@ namespace TheEliteExplorerUi.Controllers
             long? simulatedPlayerId,
             int? monthsOfFreshTimes)
         {
-            var rankingEntriesBase = await _rankingProvider
+            try
+            {
+                var rankingEntriesBase = await _rankingProvider
                 .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now, true, simulatedPlayerId, monthsOfFreshTimes)
                 .ConfigureAwait(false);
 
-            var rankingEntries = rankingEntriesBase.Select(r => r as RankingEntry).ToList();
+                var rankingEntries = rankingEntriesBase.Select(r => r as RankingEntry).ToList();
 
-            var pointsRankingEntries = rankingEntries
-                .Where(r => r.Rank <= MaxRankDisplay)
-                .Select(r => r.ToPointsRankingItemData())
-                .ToList();
+                var pointsRankingEntries = rankingEntries
+                    .Where(r => r.Rank <= MaxRankDisplay)
+                    .Select(r => r.ToPointsRankingItemData())
+                    .ToList();
 
-            // this does not manage equality between two global times
-            // ie one player will be ranked above/below the other one
-            int rank = 1;
-            var timeRankingEntries = rankingEntries
-                .OrderBy(x => x.CumuledTime)
-                .Take(MaxRankDisplay)
-                .Select(r => r.ToTimeRankingItemData( rank++))
-                .ToList();
+                // this does not manage equality between two global times
+                // ie one player will be ranked above/below the other one
+                int rank = 1;
+                var timeRankingEntries = rankingEntries
+                    .OrderBy(x => x.CumuledTime)
+                    .Take(MaxRankDisplay)
+                    .Select(r => r.ToTimeRankingItemData(rank++))
+                    .ToList();
 
-            var secondsLevel = SystemExtensions.Enumerate<Level>().ToDictionary(l => l, l => 0);
-            var stageWorldRecordEntries = game.GetStages()
-                .Select(s => s.ToStageWorldRecordItemData(rankingEntries, secondsLevel, StageImagePath))
-                .ToList();
+                var secondsLevel = SystemExtensions.Enumerate<Level>().ToDictionary(l => l, l => 0);
+                var stageWorldRecordEntries = game.GetStages()
+                    .Select(s => s.ToStageWorldRecordItemData(rankingEntries, secondsLevel, StageImagePath))
+                    .ToList();
 
-            return View($"Views/{ViewName}.cshtml", new SimulatedRankingViewData
+                return View($"Views/{ViewName}.cshtml", new SimulatedRankingViewData
+                {
+                    CombinedTime = new TimeSpan(0, 0, secondsLevel.Values.Sum()),
+                    EasyCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Easy]),
+                    MediumCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Medium]),
+                    HardCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Hard]),
+                    PointsRankingEntries = pointsRankingEntries,
+                    TimeRankingEntries = timeRankingEntries,
+                    StageWorldRecordEntries = stageWorldRecordEntries
+                });
+            }
+            catch (Exception ex)
             {
-                CombinedTime = new TimeSpan(0, 0, secondsLevel.Values.Sum()),
-                EasyCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Easy]),
-                MediumCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Medium]),
-                HardCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Hard]),
-                PointsRankingEntries = pointsRankingEntries,
-                TimeRankingEntries = timeRankingEntries,
-                StageWorldRecordEntries = stageWorldRecordEntries
-            });
+                using (var w = new System.IO.StreamWriter($@"D:\iis_test\global_app.log", true))
+                {
+                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")} - {ex.Message}");
+                }
+                return Forbid();
+            }
         }
     }
 }
