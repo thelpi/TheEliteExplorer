@@ -200,15 +200,16 @@ namespace TheEliteExplorerDomain.Providers
 
             if (playerAtSpecificDate != null)
             {
-                if (playerAtSpecificDate.Item3.HasValue)
+                var monthsMin = playerAtSpecificDate.Item3;
+                var dateRank = playerAtSpecificDate.Item2;
+                var playerSim = playerAtSpecificDate.Item1;
+
+                if (monthsMin.HasValue)
                 {
-                    entries.RemoveAll(_ => _.Date < playerAtSpecificDate.Item2.AddMonths(-playerAtSpecificDate.Item3.Value));
+                    entries.RemoveAll(_ => _.Date < dateRank.AddMonths(-monthsMin.Value));
                 }
 
-                if (playerAtSpecificDate.Item1.HasValue)
-                {
-                    entries.RemoveAll(_ => _.Date > playerAtSpecificDate.Item2 && _.PlayerId != playerAtSpecificDate.Item1);
-                }
+                entries.RemoveAll(_ => _.Date > dateRank && (!playerSim.HasValue || _.PlayerId != playerSim));
             }
 
             return entries;
