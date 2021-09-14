@@ -46,7 +46,8 @@ namespace TheEliteExplorerDomain.Providers
             Game game,
             DateTime rankingDate,
             bool full,
-            long? simulatedPlayerId = null)
+            long? simulatedPlayerId = null,
+            int? monthsOfFreshTimes = null)
         {
             rankingDate = rankingDate.Date;
 
@@ -57,9 +58,10 @@ namespace TheEliteExplorerDomain.Providers
             {
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
-                    if (simulatedPlayerId.HasValue)
+                    if (simulatedPlayerId.HasValue || monthsOfFreshTimes.HasValue)
                     {
-                        var stageLevelRankings = await RebuildRankingHistoryInternal(players, stage, level, simulatedPlayerId.HasValue ? new Tuple<long, DateTime>(simulatedPlayerId.Value, rankingDate) : null)
+                        var stageLevelRankings = await RebuildRankingHistoryInternal(players, stage, level,
+                                new Tuple<long?, DateTime, int?>(simulatedPlayerId, rankingDate, monthsOfFreshTimes))
                             .ConfigureAwait(false);
                         finalEntries.AddRange(stageLevelRankings);
                     }
@@ -142,7 +144,7 @@ namespace TheEliteExplorerDomain.Providers
             IDictionary<long, PlayerDto> players,
             Stage stage,
             Level level,
-            Tuple<long, DateTime> playerAtSpecificDate = null)
+            Tuple<long?, DateTime, int?> playerAtSpecificDate = null)
         {
             players = players ?? await GetPlayers()
                 .ConfigureAwait(false);
@@ -162,7 +164,7 @@ namespace TheEliteExplorerDomain.Providers
             Game? game,
             (Stage Stage, Level Level)? stageAndLevel,
             IDictionary<long, PlayerDto> players,
-            Tuple<long, DateTime> playerAtSpecificDate = null)
+            Tuple<long?, DateTime, int?> playerAtSpecificDate = null)
         {
             var entriesSource = new List<EntryDto>();
 
@@ -198,7 +200,15 @@ namespace TheEliteExplorerDomain.Providers
 
             if (playerAtSpecificDate != null)
             {
-                entries.RemoveAll(_ => _.Date > playerAtSpecificDate.Item2 && _.PlayerId != playerAtSpecificDate.Item1);
+                if (playerAtSpecificDate.Item3.HasValue)
+                {
+                    entries.RemoveAll(_ => _.Date < playerAtSpecificDate.Item2.AddMonths(-playerAtSpecificDate.Item3.Value));
+                }
+
+                if (playerAtSpecificDate.Item1.HasValue)
+                {
+                    entries.RemoveAll(_ => _.Date > playerAtSpecificDate.Item2 && _.PlayerId != playerAtSpecificDate.Item1);
+                }
             }
 
             return entries;

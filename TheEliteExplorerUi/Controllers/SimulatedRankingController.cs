@@ -28,10 +28,11 @@ namespace TheEliteExplorerUi.Controllers
         public async Task<IActionResult> Index(
             Game game,
             DateTime? date,
-            long? simulatedPlayerId)
+            long? simulatedPlayerId,
+            int? monthsOfFreshTimes)
         {
             var rankingEntriesBase = await _rankingProvider
-                .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now, true, simulatedPlayerId)
+                .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now, true, simulatedPlayerId, monthsOfFreshTimes)
                 .ConfigureAwait(false);
 
             var rankingEntries = rankingEntriesBase.Select(r => r as RankingEntry).ToList();

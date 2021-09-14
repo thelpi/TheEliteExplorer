@@ -18,11 +18,12 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="rankingDate">Ranking date.</param>
         /// <param name="full"><c>True</c> to get details for each ranking entry.</param>
         /// <param name="simulatedPlayerId">Optionnal player identifier for which the ranking uses his latest entries instead of <paramref name="rankingDate"/> entries.</param>
+        /// <param name="monthsOfFreshTimes">Optionnal; if specified, ignores entries older than <paramref name="rankingDate"/> minus this number of months.</param>
         /// <returns>
         /// Collection of <see cref="RankingEntryLight"/>;
         /// sorted by <see cref="RankingEntryLight.Points"/> descending.
         /// </returns>
-        Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntries(Game game, DateTime rankingDate, bool full, long? simulatedPlayerId = null);
+        Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntries(Game game, DateTime rankingDate, bool full, long? simulatedPlayerId = null, int? monthsOfFreshTimes = null);
 
         /// <summary>
         /// Rebuilds the ranking history for a single stage and level.

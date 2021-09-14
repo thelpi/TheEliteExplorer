@@ -11,7 +11,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "SimulatedRanking?game=2&date=2012-01-01&simulatedPlayerId=4",
+      "launchUrl": "SimulatedRanking?game=1&date=2021-09-13&monthsOfFreshTimes=24",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
