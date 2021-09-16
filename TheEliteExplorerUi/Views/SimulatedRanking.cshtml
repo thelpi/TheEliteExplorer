@@ -25,58 +25,68 @@
                         @foreach (var stage in Model.StageWorldRecordEntries)
                         {
                         <tr>
-                            <td><img width="56" height="36" src="@stage.Image" /><a href="#">@stage.Name</a></td>
-                            <td>
-                                <div class="time">@stage.EasyTime.ToString(@"mm\:ss")</div>
-                                <div class="initials">
-                                    @{
-                                        int i = 0;
-                                        foreach (var kvp in stage.EasyColoredInitials)
-                                        {
-                                            if (i == 5)
+                            @if (stage == null)
+                            {
+                                <td>N/A</td>
+                                <td>N/A</td>
+                                <td>N/A</td>
+                                <td>N/A</td>
+                            }
+                            else
+                            {
+                                <td><img width="75" height="48" src="@stage.Image" /><a href="#">@stage.Name</a></td>
+                                <td>
+                                    <div class="time">@stage.EasyTime.ToString(@"mm\:ss")</div>
+                                    <div class="initials">
+                                        @{
+                                            int i = 0;
+                                            foreach (var kvp in stage.EasyColoredInitials)
                                             {
-                                                <br />
+                                                if (i == 5)
+                                                {
+                                                    <br />
+                                                }
+                                                <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
+                                                i++;
                                             }
-                                            <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
-                                            i++;
                                         }
-                                    }
-                                </div>
-                            </td>
-                            <td>
-                                <div class="time">@stage.MediumTime.ToString(@"mm\:ss")</div>
-                                <div class="initials">
-                                    @{
-                                        i = 0;
-                                        foreach (var kvp in stage.MediumColoredInitials)
-                                        {
-                                            if (i == 5)
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="time">@stage.MediumTime.ToString(@"mm\:ss")</div>
+                                    <div class="initials">
+                                        @{
+                                            i = 0;
+                                            foreach (var kvp in stage.MediumColoredInitials)
                                             {
-                                                <br />
+                                                if (i == 5)
+                                                {
+                                                    <br />
+                                                }
+                                                <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
+                                                i++;
                                             }
-                                            <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
-                                            i++;
                                         }
-                                    }
-                                </div>
-                            </td>
-                            <td>
-                                <div class="time">@stage.HardTime.ToString(@"mm\:ss")</div>
-                                <div class="initials">
-                                    @{
-                                        i = 0;
-                                        foreach (var kvp in stage.HardColoredInitials)
-                                        {
-                                            if (i == 5)
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="time">@stage.HardTime.ToString(@"mm\:ss")</div>
+                                    <div class="initials">
+                                        @{
+                                            i = 0;
+                                            foreach (var kvp in stage.HardColoredInitials)
                                             {
-                                                <br />
+                                                if (i == 5)
+                                                {
+                                                    <br />
+                                                }
+                                                <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
+                                                i++;
                                             }
-                                            <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
-                                            i++;
                                         }
-                                    }
-                                </div>
-                            </td>
+                                    </div>
+                                </td>
+                            }
                         </tr>
                         }
                         <tr>

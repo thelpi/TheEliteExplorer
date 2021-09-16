@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerCommon;
@@ -12,10 +12,11 @@ using TheEliteExplorerUi.Models;
 
 namespace TheEliteExplorerUi.Controllers
 {
+    [Route("simulated-ranking/{game}")]
     public class SimulatedRankingController : Controller
     {
         private const int MaxRankDisplay = 50;
-        private const string StageImagePath = @"../images/{0}.jpg";
+        private const string StageImagePath = @"/images/{0}.jpg";
         private const string ViewName = "SimulatedRanking";
 
         private readonly IRankingProvider _rankingProvider;
@@ -25,17 +26,45 @@ namespace TheEliteExplorerUi.Controllers
             _rankingProvider = rankingProvider;
         }
 
-        public async Task<IActionResult> Index(
-            Game game,
-            DateTime? date,
-            long? simulatedPlayerId,
-            int? monthsOfFreshTimes)
+        [HttpGet("player/{playerId}")]
+        public async Task<IActionResult> ByPlayer(
+            [FromRoute] Game game,
+            [FromRoute] long playerId,
+            [FromQuery] DateTime? rankingDate)
+        {
+            if (!Enum.TryParse(typeof(Game), game.ToString(), out _)
+                || playerId <= 0)
+            {
+                return BadRequest();
+            }
+
+            return await SimulateRankingInternal(game, rankingDate, playerId)
+                .ConfigureAwait(false);
+        }
+
+        [HttpGet("date-range")]
+        public async Task<IActionResult> ByDateRange(
+            [FromRoute] Game game,
+            [FromQuery] DateTime? rankingDate,
+            [FromQuery] int monthsPrior)
+        {
+            if (!Enum.TryParse(typeof(Game), game.ToString(), out _)
+                || monthsPrior <= 0)
+            {
+                return BadRequest();
+            }
+
+            return await SimulateRankingInternal(game, rankingDate, monthsPrior: monthsPrior)
+                .ConfigureAwait(false);
+        }
+
+        private async Task<IActionResult> SimulateRankingInternal(Game game, DateTime? rankingDate, long? playerId = null, int? monthsPrior = null)
         {
             try
             {
                 var rankingEntriesBase = await _rankingProvider
-                .GetRankingEntries(game, date ?? ServiceProviderAccessor.ClockProvider.Now, true, simulatedPlayerId, monthsOfFreshTimes)
-                .ConfigureAwait(false);
+                    .GetRankingEntries(game, rankingDate ?? DateTime.Now, true, playerId, monthsPrior)
+                    .ConfigureAwait(false);
 
                 var rankingEntries = rankingEntriesBase.Select(r => r as RankingEntry).ToList();
 
@@ -71,11 +100,11 @@ namespace TheEliteExplorerUi.Controllers
             }
             catch (Exception ex)
             {
-                using (var w = new System.IO.StreamWriter($@"D:\iis_test\global_app.log", true))
+                using (var w = new System.IO.StreamWriter($@"S:\iis_logs\global_app.log", true))
                 {
-                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")} - {ex.Message}");
+                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")}\t{ex.Message}\t{ex.StackTrace}");
                 }
-                return Forbid();
+                return StatusCode((int)HttpStatusCode.InternalServerError);
             }
         }
     }
