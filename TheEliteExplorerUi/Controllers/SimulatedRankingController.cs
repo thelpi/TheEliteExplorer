@@ -15,7 +15,7 @@ namespace TheEliteExplorerUi.Controllers
     public class SimulatedRankingController : Controller
     {
         private const int MaxRankDisplay = 50;
-        private const string StageImagePath = @"D:\Ma programmation\csharp\Projects\TheEliteUI\TheEliteUI\Resources\Stages\{0}.jpg";
+        private const string StageImagePath = @"../images/{0}.jpg";
         private const string ViewName = "SimulatedRanking";
 
         private readonly IRankingProvider _rankingProvider;
