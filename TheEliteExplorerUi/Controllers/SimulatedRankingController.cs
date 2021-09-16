@@ -17,13 +17,35 @@ namespace TheEliteExplorerUi.Controllers
     {
         private const int MaxRankDisplay = 50;
         private const string StageImagePath = @"/images/{0}.jpg";
-        private const string ViewName = "SimulatedRanking";
+        private const string RankingViewName = "SimulatedRanking";
+        private const string PlayersViewName = "Players";
 
         private readonly IRankingProvider _rankingProvider;
+        private readonly IReadRepository _repository;
 
-        public SimulatedRankingController(IRankingProvider rankingProvider)
+        public SimulatedRankingController(IRankingProvider rankingProvider, IReadRepository repository)
         {
             _rankingProvider = rankingProvider;
+            _repository = repository;
+        }
+
+        [HttpGet("/players")]
+        public async Task<IActionResult> GetPlayers()
+        {
+            try
+            {
+                var players = await _repository.GetPlayers().ConfigureAwait(false);
+
+                return View($"Views/{PlayersViewName}.cshtml", players.ToList());
+            }
+            catch (Exception ex)
+            {
+                using (var w = new System.IO.StreamWriter($@"S:\iis_logs\global_app.log", true))
+                {
+                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")}\t{ex.Message}\t{ex.StackTrace}");
+                }
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
         }
 
         [HttpGet("player/{playerId}")]
@@ -87,7 +109,7 @@ namespace TheEliteExplorerUi.Controllers
                     .Select(s => s.ToStageWorldRecordItemData(rankingEntries, secondsLevel, StageImagePath))
                     .ToList();
 
-                return View($"Views/{ViewName}.cshtml", new SimulatedRankingViewData
+                return View($"Views/{RankingViewName}.cshtml", new SimulatedRankingViewData
                 {
                     CombinedTime = new TimeSpan(0, 0, secondsLevel.Values.Sum()),
                     EasyCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Easy]),
