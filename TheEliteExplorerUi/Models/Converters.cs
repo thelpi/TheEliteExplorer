@@ -76,44 +76,55 @@ namespace TheEliteExplorerUi.Models
         }
 
         internal static LastTiedWrViewData ToLastTiedWrViewData(
-            this Dictionary<Stage, Dictionary<Level, TheEliteExplorerDomain.Dtos.EntryDto>> entries,
+            this Dictionary<Stage, Dictionary<Level, (TheEliteExplorerDomain.Dtos.EntryDto, bool)>> entries,
             DateTime? date,
             IReadOnlyCollection<TheEliteExplorerDomain.Dtos.PlayerDto> players,
             string stageImagePath)
         {
-            return new LastTiedWrViewData
+            var vd = new LastTiedWrViewData
             {
                 StageDetails = entries.Keys
                     .Select(stage => new LastTiedWrStageItemData
                     {
-                        EasyData = entries[stage].ToLastTiedWrLevelItemData(Level.Easy, date, players),
-                        HardData = entries[stage].ToLastTiedWrLevelItemData(Level.Hard, date, players),
-                        MediumData = entries[stage].ToLastTiedWrLevelItemData(Level.Medium, date, players),
+                        EasyData = entries[stage].ToLastTiedWrLevelItemData(Level.Easy, date, players, stage),
+                        HardData = entries[stage].ToLastTiedWrLevelItemData(Level.Hard, date, players, stage),
+                        MediumData = entries[stage].ToLastTiedWrLevelItemData(Level.Medium, date, players, stage),
                         Image = string.Format(stageImagePath, (int)stage),
                         Name = stage.ToString()
                     })
                     .ToList()
             };
+
+            vd.TopDetails = vd.StageDetails
+                .SelectMany(_ => new[] { _.EasyData, _.HardData, _.MediumData })
+                .OrderByDescending(_ => _.EntryDays)
+                .ToList();
+
+            return vd;
         }
 
         private static LastTiedWrLevelItemData ToLastTiedWrLevelItemData(
-            this Dictionary<Level, TheEliteExplorerDomain.Dtos.EntryDto> levelData,
+            this Dictionary<Level, (TheEliteExplorerDomain.Dtos.EntryDto, bool)> levelData,
             Level level,
             DateTime? date,
-            IReadOnlyCollection<TheEliteExplorerDomain.Dtos.PlayerDto> players)
+            IReadOnlyCollection<TheEliteExplorerDomain.Dtos.PlayerDto> players,
+            Stage stage)
         {
-            if (!levelData.ContainsKey(level)) return null;
+            if (!levelData.ContainsKey(level) || levelData[level].Item1 == null) return null;
 
-            var p = players.FirstOrDefault(_ => _.Id == levelData[level].PlayerId);
+            var p = players.FirstOrDefault(_ => _.Id == levelData[level].Item1.PlayerId);
 
             return new LastTiedWrLevelItemData
             {
-                EntryDate = levelData[level].Date.Value,
-                EntryDays = (int)Math.Floor((date.Value - levelData[level].Date.Value).TotalDays),
-                EntryTime = new TimeSpan(0, (int)levelData[level].Time, 0),
+                EntryDate = levelData[level].Item1.Date.Value,
+                EntryDays = (int)Math.Floor((date.Value - levelData[level].Item1.Date.Value).TotalDays),
+                EntryTime = new TimeSpan(0, 0, (int)levelData[level].Item1.Time),
                 PlayerColor = p?.Color,
                 PlayerInitials = p?.RealName.ToInitials(),
-                PlayerName = p?.RealName
+                PlayerName = p?.RealName,
+                Stage = stage,
+                Level = level,
+                Untied = levelData[level].Item2 ? 'Y' : 'N'
             };
         }
 

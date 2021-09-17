@@ -73,7 +73,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="game">Game</param>
         /// <param name="date">Date</param>
         /// <returns>Last WR entry by stage an level</returns>
-        Task<Dictionary<Stage, Dictionary<Level, Dtos.EntryDto>>> GetLastTiedWrs(
+        Task<Dictionary<Stage, Dictionary<Level, (Dtos.EntryDto, bool)>>> GetLastTiedWrs(
             Game game,
             DateTime date);
     }

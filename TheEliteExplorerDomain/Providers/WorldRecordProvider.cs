@@ -243,25 +243,26 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<Stage, Dictionary<Level, EntryDto>>> GetLastTiedWrs(Game game, DateTime date)
+        public async Task<Dictionary<Stage, Dictionary<Level, (EntryDto, bool)>>> GetLastTiedWrs(Game game, DateTime date)
         {
-            var daysByStage = new Dictionary<Stage, Dictionary<Level, EntryDto>>();
+            var daysByStage = new Dictionary<Stage, Dictionary<Level, (EntryDto, bool)>>();
 
             foreach (var stage in game.GetStages())
             {
-                daysByStage.Add(stage, new Dictionary<Level, EntryDto>());
+                daysByStage.Add(stage, new Dictionary<Level, (EntryDto, bool)>());
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
                     var entries = await _readRepository.GetEntries(stage, level, null, date).ConfigureAwait(false);
                     var datedEntries = entries.Where(_ => _.Date.HasValue);
                     if (datedEntries.Any())
                     {
-                        var lastEntry = datedEntries.GroupBy(_ => _.Time).OrderBy(_ => _.Key).First().OrderByDescending(_ => _.Date).First();
-                        daysByStage[stage].Add(level, lastEntry);
+                        var entriesAt = datedEntries.GroupBy(_ => _.Time).OrderBy(_ => _.Key).First();
+                        var lastEntry = entriesAt.OrderByDescending(_ => _.Date).First();
+                        daysByStage[stage].Add(level, (lastEntry, entriesAt.Count() == 1));
                     }
                     else
                     {
-                        daysByStage[stage].Add(level, null);
+                        daysByStage[stage].Add(level, (null, false));
                     }
                 }
             }
