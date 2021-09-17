@@ -1,0 +1,78 @@
+﻿@model TheEliteExplorerUi.Models.LastTiedWrViewData
+
+<html class=" byzbljr idc0_332">
+<head>
+    <title>The GoldenEye World Records and Rankings - The Elite Rankings</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link href="https://rankings.the-elite.net/css/base.1628312764.css" type="text/css" rel="stylesheet">
+    <link href="https://rankings.the-elite.net/css/users.1631148673.css" type="text/css" rel="stylesheet">
+    <link href="https://rankings.the-elite.net/css/flags.1541225167.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+    <div id="container">
+        <div id="page" class="with-sidebar">
+            <div id="content">
+                <h2>Last time WR done</h2>
+                <table id="wr-table" class="ge">
+                    <tbody>
+                        <tr>
+                            <th class="stage">Stage</th>
+                            <th class="difficulty">Agent</th>
+                            <th class="difficulty">Secret Agent</th>
+                            <th class="difficulty">00 Agent</th>
+                        </tr>
+                        @foreach (var stage in Model.StageDetails)
+                        {
+                        <tr>
+                            <td><img width="75" height="48" src="@stage.Image" /><a href="#">@stage.Name</a></td>
+                            @if (stage.EasyData == null)
+                            {
+                                <td>N/A</td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <div class="time">@stage.EasyData.EntryTime.ToString(@"mm\:ss")</div>
+                                    <div class="time">@stage.EasyData.EntryDays days</div>
+                                    <div class="initials">
+                                        <a href="#" style="color:#@stage.EasyData.PlayerColor" title="@stage.EasyData.PlayerName">@stage.EasyData.PlayerInitials</a>
+                                    </div>
+                                </td>
+                            }
+                            @if (stage.MediumData == null)
+                            {
+                                <td>N/A</td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <div class="time">@stage.MediumData.EntryTime.ToString(@"mm\:ss")</div>
+                                    <div class="time">@stage.MediumData.EntryDays days</div>
+                                    <div class="initials">
+                                        <a href="#" style="color:#@stage.MediumData.PlayerColor" title="@stage.MediumData.PlayerName">@stage.MediumData.PlayerInitials</a>
+                                    </div>
+                                </td>
+                            }
+                            @if (stage.HardData == null)
+                            {
+                                <td>N/A</td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <div class="time">@stage.HardData.EntryTime.ToString(@"mm\:ss")</div>
+                                    <div class="time">@stage.HardData.EntryDays days</div>
+                                    <div class="initials">
+                                        <a href="#" style="color:#@stage.HardData.PlayerColor" title="@stage.HardData.PlayerName">@stage.HardData.PlayerInitials</a>
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

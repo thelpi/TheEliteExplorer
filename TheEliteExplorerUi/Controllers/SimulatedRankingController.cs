@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -19,14 +20,49 @@ namespace TheEliteExplorerUi.Controllers
         private const string StageImagePath = @"/images/{0}.jpg";
         private const string RankingViewName = "SimulatedRanking";
         private const string PlayersViewName = "Players";
+        private const string LastTiedWrViewName = "LastTiedWr";
 
         private readonly IRankingProvider _rankingProvider;
         private readonly IReadRepository _repository;
+        private readonly IWorldRecordProvider _worldRecordProvider;
 
-        public SimulatedRankingController(IRankingProvider rankingProvider, IReadRepository repository)
+        public SimulatedRankingController(
+            IRankingProvider rankingProvider,
+            IReadRepository repository,
+            IWorldRecordProvider worldRecordProvider)
         {
             _rankingProvider = rankingProvider;
             _repository = repository;
+            _worldRecordProvider = worldRecordProvider;
+        }
+
+        [HttpGet("/game/{game}/last-tied-wr")]
+        public async Task<IActionResult> GetLastTiedWr(
+            [FromRoute] Game game,
+            [FromQuery] DateTime? date)
+        {
+            try
+            {
+                date = date ?? DateTime.Now;
+
+                var entries = await _worldRecordProvider
+                    .GetLastTiedWrs(game, date.Value)
+                    .ConfigureAwait(false);
+
+                var players = await _repository
+                    .GetPlayers()
+                    .ConfigureAwait(false);
+
+                return View($"Views/{LastTiedWrViewName}.cshtml", entries.ToLastTiedWrViewData(date, players, StageImagePath));
+            }
+            catch (Exception ex)
+            {
+                using (var w = new System.IO.StreamWriter($@"S:\iis_logs\global_app.log", true))
+                {
+                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")}\t{ex.Message}\t{ex.StackTrace}");
+                }
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
         }
 
         [HttpGet("/players")]

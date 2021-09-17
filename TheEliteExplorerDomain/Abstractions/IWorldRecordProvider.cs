@@ -66,5 +66,15 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<StageWrStanding>> GetCurrentLongestStandingWrsHistory(
             Game game,
             bool untied);
+
+        /// <summary>
+        /// Gets, at a specified date, the latest WR entry for every stage and level.
+        /// </summary>
+        /// <param name="game">Game</param>
+        /// <param name="date">Date</param>
+        /// <returns>Last WR entry by stage an level</returns>
+        Task<Dictionary<Stage, Dictionary<Level, Dtos.EntryDto>>> GetLastTiedWrs(
+            Game game,
+            DateTime date);
     }
 }

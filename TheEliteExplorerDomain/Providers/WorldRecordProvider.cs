@@ -242,6 +242,33 @@ namespace TheEliteExplorerDomain.Providers
             return finalStandingList;
         }
 
+        /// <inheritdoc />
+        public async Task<Dictionary<Stage, Dictionary<Level, EntryDto>>> GetLastTiedWrs(Game game, DateTime date)
+        {
+            var daysByStage = new Dictionary<Stage, Dictionary<Level, EntryDto>>();
+
+            foreach (var stage in game.GetStages())
+            {
+                daysByStage.Add(stage, new Dictionary<Level, EntryDto>());
+                foreach (var level in SystemExtensions.Enumerate<Level>())
+                {
+                    var entries = await _readRepository.GetEntries(stage, level, null, date).ConfigureAwait(false);
+                    var datedEntries = entries.Where(_ => _.Date.HasValue);
+                    if (datedEntries.Any())
+                    {
+                        var lastEntry = datedEntries.GroupBy(_ => _.Time).OrderBy(_ => _.Key).First().OrderByDescending(_ => _.Date).First();
+                        daysByStage[stage].Add(level, lastEntry);
+                    }
+                    else
+                    {
+                        daysByStage[stage].Add(level, null);
+                    }
+                }
+            }
+
+            return daysByStage;
+        }
+
         private static List<StageWrStanding> GetEveryStageWrStanding(
             bool untied,
             Dictionary<long, PlayerDto> players,

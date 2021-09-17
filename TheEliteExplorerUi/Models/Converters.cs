@@ -75,6 +75,48 @@ namespace TheEliteExplorerUi.Models
             };
         }
 
+        internal static LastTiedWrViewData ToLastTiedWrViewData(
+            this Dictionary<Stage, Dictionary<Level, TheEliteExplorerDomain.Dtos.EntryDto>> entries,
+            DateTime? date,
+            IReadOnlyCollection<TheEliteExplorerDomain.Dtos.PlayerDto> players,
+            string stageImagePath)
+        {
+            return new LastTiedWrViewData
+            {
+                StageDetails = entries.Keys
+                    .Select(stage => new LastTiedWrStageItemData
+                    {
+                        EasyData = entries[stage].ToLastTiedWrLevelItemData(Level.Easy, date, players),
+                        HardData = entries[stage].ToLastTiedWrLevelItemData(Level.Hard, date, players),
+                        MediumData = entries[stage].ToLastTiedWrLevelItemData(Level.Medium, date, players),
+                        Image = string.Format(stageImagePath, (int)stage),
+                        Name = stage.ToString()
+                    })
+                    .ToList()
+            };
+        }
+
+        private static LastTiedWrLevelItemData ToLastTiedWrLevelItemData(
+            this Dictionary<Level, TheEliteExplorerDomain.Dtos.EntryDto> levelData,
+            Level level,
+            DateTime? date,
+            IReadOnlyCollection<TheEliteExplorerDomain.Dtos.PlayerDto> players)
+        {
+            if (!levelData.ContainsKey(level)) return null;
+
+            var p = players.FirstOrDefault(_ => _.Id == levelData[level].PlayerId);
+
+            return new LastTiedWrLevelItemData
+            {
+                EntryDate = levelData[level].Date.Value,
+                EntryDays = (int)Math.Floor((date.Value - levelData[level].Date.Value).TotalDays),
+                EntryTime = new TimeSpan(0, (int)levelData[level].Time, 0),
+                PlayerColor = p?.Color,
+                PlayerInitials = p?.RealName.ToInitials(),
+                PlayerName = p?.RealName
+            };
+        }
+
         private static List<(string, string, string)> GetPlayersRankedAtStageAndLevelTime(List<RankingEntry> rankingEntries, Stage stage, Level level, int bestTime)
         {
             return rankingEntries
