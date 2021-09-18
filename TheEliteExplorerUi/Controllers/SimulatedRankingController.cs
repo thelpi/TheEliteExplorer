@@ -116,15 +116,45 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
-        private async Task<IActionResult> SimulateRankingInternal(Game game, DateTime? rankingDate, long? playerId = null, int? monthsPrior = null)
+        [HttpGet("cherry-pick")]
+        public async Task<IActionResult> ByStagesSkip(
+            [FromRoute] Game game,
+            [FromQuery] DateTime? rankingDate,
+            [FromQuery] Stage[] skipStages)
+        {
+            if (!Enum.TryParse(typeof(Game), game.ToString(), out _))
+            {
+                return BadRequest();
+            }
+
+            return await SimulateRankingInternal(game, rankingDate, skipStages: skipStages)
+                .ConfigureAwait(false);
+        }
+
+        private async Task<IActionResult> SimulateRankingInternal(
+            Game game,
+            DateTime? rankingDate,
+            long? playerId = null,
+            int? monthsPrior = null,
+            Stage[] skipStages = null)
         {
             try
             {
                 var rankingEntriesBase = await _rankingProvider
-                    .GetRankingEntries(game, rankingDate ?? DateTime.Now, true, playerId, monthsPrior)
+                    .GetRankingEntries(game, rankingDate ?? DateTime.Now, true, playerId, monthsPrior, skipStages)
                     .ConfigureAwait(false);
 
                 var rankingEntries = rankingEntriesBase.Select(r => r as RankingEntry).ToList();
+
+                var dt = rankingEntries.First(r => r.PlayerId == 4).Details;
+                foreach (var s in dt.Keys)
+                {
+                    var v1 = dt[s].ContainsKey(Level.Easy) ? dt[s][Level.Easy].Item2 : 0;
+                    var v2 = dt[s].ContainsKey(Level.Medium) ? dt[s][Level.Medium].Item2 : 0;
+                    var v3 = dt[s].ContainsKey(Level.Hard) ? dt[s][Level.Hard].Item2 : 0;
+
+                    System.Diagnostics.Debug.WriteLine($"{v1}\t{v2}\t{v3}");
+                }
 
                 var pointsRankingEntries = rankingEntries
                     .Where(r => r.Rank <= MaxRankDisplay)

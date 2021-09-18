@@ -11,7 +11,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "game/1/last-tied-wr?date=2021-09-01",
+      "launchUrl": "simulated-ranking/1/cherry-pick",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
