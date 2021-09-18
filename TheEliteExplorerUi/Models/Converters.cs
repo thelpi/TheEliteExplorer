@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using TheEliteExplorerCommon;
+using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
 
@@ -9,6 +10,62 @@ namespace TheEliteExplorerUi.Models
 {
     internal static class Converters
     {
+        internal static PlayerDetailsViewData ToPlayerDetailsViewData(this RankingEntry entry, string imagePath)
+        {
+            var localDetails = new Dictionary<Stage, IReadOnlyDictionary<Level, (int, int, long?, DateTime?)>>();
+            foreach (var stage in entry.Game.GetStages())
+                localDetails.Add(stage, entry.Details.ContainsKey(stage) ? entry.Details[stage] : null);
+
+            return new PlayerDetailsViewData
+            {
+                DetailsByStage = localDetails.Keys.Select(sk => localDetails[sk].ToPlayerStageDetailsItemData(sk, imagePath)).ToList(),
+                EasyPoints = entry.LevelPoints[Level.Easy],
+                EasyTime = new TimeSpan(0, 0, (int)entry.LevelCumuledTime[Level.Easy]),
+                Game = entry.Game,
+                HardPoints = entry.LevelPoints[Level.Hard],
+                HardTime = new TimeSpan(0, 0, (int)entry.LevelCumuledTime[Level.Hard]),
+                MediumPoints = entry.LevelPoints[Level.Medium],
+                MediumTime = new TimeSpan(0, 0, (int)entry.LevelCumuledTime[Level.Medium]),
+                OverallPoints = entry.Points,
+                OverallRanking = entry.Rank,
+                OverallTime = new TimeSpan(0, 0, (int)entry.CumuledTime),
+                PlayerName = entry.PlayerName
+            };
+        }
+
+        private static PlayerStageDetailsItemData ToPlayerStageDetailsItemData(
+            this IReadOnlyDictionary<Level, (int, int, long?, DateTime?)> lt,
+            Stage s,
+            string imagePath)
+        {
+            var d = new PlayerStageDetailsItemData
+            {
+                Stage = s,
+                Image = string.Format(imagePath, (int)s)
+            };
+
+            if (lt != null)
+            {
+                if (lt.ContainsKey(Level.Easy) && lt[Level.Easy].Item3.HasValue)
+                {
+                    d.EasyPoints = lt[Level.Easy].Item2;
+                    d.EasyTime = new TimeSpan(0, 0, (int)lt[Level.Easy].Item3);
+                }
+                if (lt.ContainsKey(Level.Medium) && lt[Level.Medium].Item3.HasValue)
+                {
+                    d.MediumPoints = lt[Level.Medium].Item2;
+                    d.MediumTime = new TimeSpan(0, 0, (int)lt[Level.Medium].Item3);
+                }
+                if (lt.ContainsKey(Level.Hard) && lt[Level.Hard].Item3.HasValue)
+                {
+                    d.HardPoints = lt[Level.Hard].Item2;
+                    d.HardTime = new TimeSpan(0, 0, (int)lt[Level.Hard].Item3);
+                }
+            }
+
+            return d;
+        }
+
         internal static PointsRankingItemData ToPointsRankingItemData(this RankingEntry entry)
         {
             return new PointsRankingItemData

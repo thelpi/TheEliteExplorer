@@ -80,7 +80,7 @@ namespace TheEliteExplorerDomain.Providers
                     var rank = timesGroup.First().Rank;
                     if (rank > 100)
                     {
-                        break;
+                        //break;
                     }
                     bool isUntied = rank == 1 && timesGroup.Count() == 1;
 
