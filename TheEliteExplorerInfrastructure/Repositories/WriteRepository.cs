@@ -270,6 +270,20 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
+        /// <inheritdoc />
+        public async Task UpdateEntryDate(long entryId, DateTime date)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                // lazy !
+                await connection
+                    .QueryAsync(
+                        "UPDATE [dbo].[entry] SET [date] = @date WHERE [id] = @entryId",
+                        new { date, entryId })
+                    .ConfigureAwait(false);
+            }
+        }
+
         private async Task<long> InsertAndGetId(string psNameBase, object lambdaParameters)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)

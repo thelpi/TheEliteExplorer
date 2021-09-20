@@ -227,6 +227,12 @@ namespace TheEliteExplorerDomain.Providers
                     .InsertTimeEntry(requestEntry, game)
                     .ConfigureAwait(false);
             }
+            else if (!matchEntry.Date.HasValue && requestEntry.Date.HasValue)
+            {
+                await _writeRepository
+                    .UpdateEntryDate(matchEntry.Id, requestEntry.Date.Value)
+                    .ConfigureAwait(false);
+            }
         }
     }
 }

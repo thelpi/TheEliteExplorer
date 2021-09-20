@@ -12,6 +12,14 @@ namespace TheEliteExplorerDomain.Abstractions
     public interface IWriteRepository
     {
         /// <summary>
+        /// Updates the date of an entry.
+        /// </summary>
+        /// <param name="entryId">Entry identifier.</param>
+        /// <param name="date">Date of the entry.</param>
+        /// <returns>Nothing</returns>
+        Task UpdateEntryDate(long entryId, DateTime date);
+
+        /// <summary>
         /// Insert a time entry.
         /// </summary>
         /// <param name="requestEntry">Entry to insert.</param>
