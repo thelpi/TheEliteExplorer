@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TheEliteExplorer.Workers;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Configuration;
@@ -62,7 +63,8 @@ namespace TheEliteExplorer
                 .AddSingleton<IRankingProvider, RankingProvider>()
                 .AddSingleton<IIntegrationProvider, IntegrationProvider>()
                 .AddSingleton<IWorldRecordProvider, WorldRecordProvider>()
-                .AddSingleton<IStageStatisticsProvider, StageStatisticsProvider>();
+                .AddSingleton<IStageStatisticsProvider, StageStatisticsProvider>()
+                .AddHostedService<CrawlerService>();
         }
 
         /// <summary>
