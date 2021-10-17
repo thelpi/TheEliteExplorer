@@ -36,6 +36,20 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<EntryDto>> GetEntries(Stage stage, Level level, DateTime? startDate, DateTime? endDate);
 
         /// <summary>
+        /// Gets every entry of a player.
+        /// </summary>
+        /// <param name="playerId">Player identifier.</param>
+        /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
+        Task<IReadOnlyCollection<EntryDto>> GetPlayerEntries(long playerId);
+
+        /// <summary>
+        /// Gets every entry with details that matches the specified entry (date, time, stage, level).
+        /// </summary>
+        /// <param name="entryId">Entry identifier.</param>
+        /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
+        Task<IReadOnlyCollection<EntryDto>> GetEntriesByEntry(long entryId);
+
+        /// <summary>
         /// Gets every entry for a specified stage.
         /// </summary>
         /// <param name="stage">Stage.</param>

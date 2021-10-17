@@ -29,6 +29,8 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _getDuplicatePlayersPsName = "select_duplicate_players";
         private const string _getEntriesByGamePsName = "select_all_entry";
         private const string _getEntriesCountPsName = "select_entry_count";
+        private const string _getEntriesByPlayerPsName = "select_player_entry";
+        private const string _getEntriesByEntryPsName = "select_entry_by_entry";
 
         private readonly IConnectionProvider _connectionProvider;
 
@@ -51,6 +53,36 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
 
             return await GetEntriesWithoutCache(stage, level, null, null).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<EntryDto>> GetPlayerEntries(long playerId)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                var results = await connection.QueryAsync<EntryDto>(
+                       ToPsName(_getEntriesByPlayerPsName),
+                       new { player_id = playerId },
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
+
+                return results?.ToList() ?? new List<EntryDto>();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesByEntry(long entryId)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                var results = await connection.QueryAsync<EntryDto>(
+                       ToPsName(_getEntriesByEntryPsName),
+                       new { entry_id = entryId },
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
+
+                return results?.ToList() ?? new List<EntryDto>();
+            }
         }
 
         /// <inheritdoc />
