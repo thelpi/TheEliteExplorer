@@ -37,6 +37,28 @@ namespace TheEliteExplorerUi.Controllers
             _worldRecordProvider = worldRecordProvider;
         }
 
+        [HttpGet("/game/{game}/sweeps")]
+        public async Task<IActionResult> GetSweeps(
+            [FromRoute] Game game,
+            [FromQuery] bool untied,
+            [FromQuery] int? stage)
+        {
+            if (stage.HasValue && (stage < 0 || stage > 20))
+            {
+                return BadRequest();
+            }
+
+            stage = stage.HasValue ? (game == Game.PerfectDark ? stage - 20 : stage) : null;
+
+            var sweeps = await _worldRecordProvider
+                .GetSweeps(game, untied, null, null, (Stage)stage)
+                .ConfigureAwait(false);
+
+            sweeps = sweeps.OrderByDescending(s => s.Days).ToList();
+
+            return View($"Views/Sweeps.cshtml", sweeps);
+        }
+
         [HttpGet("/game/{game}/last-tied-wr")]
         public async Task<IActionResult> GetLastTiedWr(
             [FromRoute] Game game,

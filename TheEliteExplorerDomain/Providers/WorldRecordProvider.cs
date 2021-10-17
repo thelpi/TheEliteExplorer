@@ -102,7 +102,8 @@ namespace TheEliteExplorerDomain.Providers
             Game game,
             bool untied,
             DateTime? startDate,
-            DateTime? endDate)
+            DateTime? endDate,
+            Stage? stage)
         {
             if (startDate > endDate)
             {
@@ -122,10 +123,13 @@ namespace TheEliteExplorerDomain.Providers
                 endDate ?? ServiceProviderAccessor.ClockProvider.Now,
                 DateStep.Day))
             {
-                foreach (var stage in game.GetStages())
+                foreach (var stg in game.GetStages())
                 {
-                    var sweeps = GetPotentialSweep(untied, entriesGroups, currentDate, stage);
-                    sweepsRaw.AddRange(sweeps);
+                    if (stage == null || stg == stage)
+                    {
+                        var sweeps = GetPotentialSweep(untied, entriesGroups, currentDate, stg);
+                        sweepsRaw.AddRange(sweeps);
+                    }
                 }
             }
 

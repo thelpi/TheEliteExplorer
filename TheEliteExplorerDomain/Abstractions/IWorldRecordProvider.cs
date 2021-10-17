@@ -25,13 +25,15 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="untied">Untied y/n.</param>
         /// <param name="startDate">Start date.</param>
         /// <param name="endDate">End date.</param>
+        /// <param name="stage">Stage</param>
         /// <returns>Collection of sweeps</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="startDate"/> is greater than <paramref name="endDate"/>.</exception>
         Task<IReadOnlyCollection<StageSweep>> GetSweeps(
             Game game,
             bool untied,
             DateTime? startDate,
-            DateTime? endDate);
+            DateTime? endDate,
+            Stage? stage);
 
         /// <summary>
         /// Gets longest standing world records.

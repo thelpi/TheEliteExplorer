@@ -33,6 +33,16 @@ namespace TheEliteExplorerDomain.Models
         /// </summary>
         public int Days { get { return (int)(EndDate - StartDate).TotalDays; } }
 
+        /// <summary>
+        /// Player name.
+        /// </summary>
+        public string PlayerName => Player.RealName;
+
+        /// <summary>
+        /// Player color.
+        /// </summary>
+        public string PlayerColor { get; set; }
+
         internal long PlayerId { get; }
 
         internal StageSweep(DateTime date, Stage stage, Dtos.PlayerDto playerDto)
@@ -42,6 +52,7 @@ namespace TheEliteExplorerDomain.Models
             EndDate = date;
             StartDate = date;
             Player = new Player(playerDto);
+            PlayerColor = playerDto.Color;
         }
 
         internal void AddDay()

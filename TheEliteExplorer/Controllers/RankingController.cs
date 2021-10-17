@@ -115,7 +115,7 @@ namespace TheEliteExplorer.Controllers
             [FromQuery] DateTime? endDate)
         {
             var sweeps = await _wrProvider
-                .GetSweeps(game, untied, startDate, endDate)
+                .GetSweeps(game, untied, startDate, endDate, null)
                 .ConfigureAwait(false);
 
             return Ok(sweeps);
