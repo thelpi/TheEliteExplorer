@@ -48,7 +48,7 @@ namespace TheEliteExplorerUi.Controllers
                 return BadRequest();
             }
 
-            stage = stage.HasValue ? (game == Game.PerfectDark ? stage - 20 : stage) : null;
+            stage = stage.HasValue ? (game == Game.PerfectDark ? stage + 20 : stage) : null;
 
             var sweeps = await _worldRecordProvider
                 .GetSweeps(game, untied, null, null, (Stage)stage)
