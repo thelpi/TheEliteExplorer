@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TheEliteExplorerCommon;
@@ -15,6 +16,8 @@ namespace TheEliteExplorerDomain.Providers
     /// <seealso cref="IIntegrationProvider"/>
     public sealed class IntegrationProvider : IIntegrationProvider
     {
+        private const decimal DuplicateEntriesRate = 0.5M;
+
         private readonly IWriteRepository _writeRepository;
         private readonly IReadRepository _readRepository;
         private readonly ITheEliteWebSiteParser _siteParser;
@@ -115,16 +118,41 @@ namespace TheEliteExplorerDomain.Providers
 
             foreach (var p in players)
             {
-                var pInfo = await _siteParser
-                    .GetPlayerInformation(p.UrlName, Player.DefaultPlayerHexColor)
+                var entries = await _readRepository
+                    .GetPlayerEntries(p.Id)
                     .ConfigureAwait(false);
 
-                if (pInfo != null)
+                var duplicates = new List<EntryDto>();
+                foreach (var entry in entries)
                 {
-                    pInfo.Id = p.Id;
-                    await _writeRepository
-                        .UpdatePlayerInformation(pInfo)
+                    duplicates.AddRange(
+                        await _readRepository
+                            .GetEntriesByEntry(entry.Id)
+                            .ConfigureAwait(false));
+                }
+
+                var potentialPlayerMatch = duplicates
+                    .GroupBy(d => d.PlayerId)
+                    .OrderByDescending(d => d.Count())
+                    .FirstOrDefault();
+
+                if (potentialPlayerMatch?.Count() > entries.Count * DuplicateEntriesRate)
+                {
+
+                }
+                else
+                {
+                    var pInfo = await _siteParser
+                        .GetPlayerInformation(p.UrlName, Player.DefaultPlayerHexColor)
                         .ConfigureAwait(false);
+
+                    if (pInfo != null)
+                    {
+                        pInfo.Id = p.Id;
+                        await _writeRepository
+                            .UpdatePlayerInformation(pInfo)
+                            .ConfigureAwait(false);
+                    }
                 }
             }
         }
