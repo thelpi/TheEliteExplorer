@@ -78,5 +78,7 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<Dictionary<Stage, Dictionary<Level, (Dtos.EntryDto, bool)>>> GetLastTiedWrs(
             Game game,
             DateTime date);
+
+        Task<IReadOnlyCollection<DateCountWr>> GetDateCountWrs(Game game);
     }
 }

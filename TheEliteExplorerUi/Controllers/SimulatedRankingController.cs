@@ -37,6 +37,33 @@ namespace TheEliteExplorerUi.Controllers
             _worldRecordProvider = worldRecordProvider;
         }
 
+        [HttpGet("/game/{game}/stats")]
+        public async Task<IActionResult> GetWrStats([FromRoute] Game game)
+        {
+            var results = await _worldRecordProvider
+                .GetDateCountWrs(game)
+                .ConfigureAwait(false);
+
+            const string tab = "\t";
+            using (var w = new System.IO.StreamWriter($@"S:\iis_logs\stats{game}.csv"))
+            {
+                w.WriteLine(string.Join(tab, new[] { "Date", "WR count", "WR players", "UWR count", "UWR players" }));
+                foreach (var x in results)
+                {
+                    w.WriteLine(string.Join(tab, new[]
+                    {
+                        x.Date.ToString("yyyy-MM-dd"),
+                        x.TiedsCount.ToString(),
+                        x.TiedPlayers.Count.ToString(),
+                        x.UntiedsCount.ToString(),
+                        x.UntiedPlayers.Count.ToString()
+                    }));
+                }
+            }
+
+            return NoContent();
+        }
+
         [HttpGet("/game/{game}/sweeps")]
         public async Task<IActionResult> GetSweeps(
             [FromRoute] Game game,

@@ -492,5 +492,56 @@ namespace TheEliteExplorerDomain.Providers
 
             return sweeps;
         }
+
+        public async Task<IReadOnlyCollection<DateCountWr>> GetDateCountWrs(Game game)
+        {
+            var result = new List<DateCountWr>();
+
+            var players = await GetPlayersDictionary().ConfigureAwait(false);
+
+            var entriesGroups = await GetEntriesGroupByStageAndLevel(game).ConfigureAwait(false);
+
+            foreach (var currentDate in SystemExtensions.LoopBetweenDates(
+                Extensions.GetEliteFirstDate(game),
+                ServiceProviderAccessor.ClockProvider.Now,
+                DateStep.Day))
+            {
+                if (currentDate.DayOfWeek != DayOfWeek.Sunday)
+                    continue;
+
+                var currentResult = new DateCountWr
+                {
+                    Date = currentDate,
+                    TiedPlayers = new List<long>(),
+                    UntiedPlayers = new List<long>()
+                };
+                foreach (var stage in game.GetStages())
+                {
+                    foreach (var level in SystemExtensions.Enumerate<Level>())
+                    {
+                        var wrs = entriesGroups[(stage, level)]
+                            .Where(e => e.Date <= currentDate)
+                            .GroupBy(e => e.Time)
+                            .OrderBy(e => e.Key)
+                            .FirstOrDefault()?
+                            .ToList()
+                            ?? new List<EntryDto>();
+
+                        var untied = wrs.Count == 1;
+                        if (untied)
+                        {
+                            currentResult.UntiedsCount++;
+                            currentResult.UntiedPlayers.AddRange(wrs.Select(e => e.PlayerId).Where(pId => !currentResult.UntiedPlayers.Contains(pId)));
+                        }
+
+                        currentResult.TiedsCount += wrs.Count;
+                        currentResult.TiedPlayers.AddRange(wrs.Select(e => e.PlayerId).Where(pId => !currentResult.TiedPlayers.Contains(pId)));
+                    }
+                }
+                result.Add(currentResult);
+            }
+
+            return result;
+        }
     }
 }
