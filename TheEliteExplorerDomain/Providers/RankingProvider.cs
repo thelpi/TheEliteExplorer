@@ -48,7 +48,8 @@ namespace TheEliteExplorerDomain.Providers
             bool full,
             long? simulatedPlayerId = null,
             int? monthsOfFreshTimes = null,
-            Stage[] skipStages = null)
+            Stage[] skipStages = null,
+            bool excludeWinners = false)
         {
             rankingDate = rankingDate.Date;
 
@@ -66,6 +67,28 @@ namespace TheEliteExplorerDomain.Providers
                         .ConfigureAwait(false);
                     finalEntries.AddRange(stageLevelRankings);
                 }
+            }
+
+            if (excludeWinners)
+            {
+                var wrHolders = finalEntries.Where(e => e.Rank == 1).Select(e => e.PlayerId).ToList();
+
+                players = players.Where(p => !wrHolders.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
+
+                finalEntries = new List<RankingDto>();
+                foreach (var stage in game.GetStages())
+                {
+                    if (skipStages?.Contains(stage) == true) continue;
+
+                    foreach (var level in SystemExtensions.Enumerate<Level>())
+                    {
+                        var stageLevelRankings = await RebuildRankingHistoryInternal(players, stage, level,
+                                new Tuple<long?, DateTime, int?>(simulatedPlayerId, rankingDate, monthsOfFreshTimes))
+                            .ConfigureAwait(false);
+                        finalEntries.AddRange(stageLevelRankings);
+                    }
+                }
+                //finalEntries.RemoveAll(e => wrHolders.Contains(e.PlayerId));
             }
 
             var rankingEntries = finalEntries

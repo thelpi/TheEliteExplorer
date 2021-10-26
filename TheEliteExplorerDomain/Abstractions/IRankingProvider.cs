@@ -30,7 +30,8 @@ namespace TheEliteExplorerDomain.Abstractions
             bool full,
             long? simulatedPlayerId = null,
             int? monthsOfFreshTimes = null,
-            Stage[] skipStages = null);
+            Stage[] skipStages = null,
+            bool excludeWinners = false);
 
         /// <summary>
         /// Rebuilds the ranking history for a single stage and level.

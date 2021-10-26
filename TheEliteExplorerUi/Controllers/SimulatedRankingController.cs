@@ -166,6 +166,20 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
+        [HttpGet("losers-bracket")]
+        public async Task<IActionResult> ByStagesSkip(
+            [FromRoute] Game game,
+            [FromQuery] DateTime? rankingDate)
+        {
+            if (!Enum.TryParse(typeof(Game), game.ToString(), out _))
+            {
+                return BadRequest();
+            }
+
+            return await SimulateRankingInternal(game, rankingDate, excludeWinners: true)
+                .ConfigureAwait(false);
+        }
+
         [HttpGet("cherry-pick")]
         public async Task<IActionResult> ByStagesSkip(
             [FromRoute] Game game,
@@ -191,7 +205,7 @@ namespace TheEliteExplorerUi.Controllers
         {
             try
             {
-                var rankingEntries = await GetRankingsWithParams(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages).ConfigureAwait(false);
+                var rankingEntries = await GetRankingsWithParams(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, false).ConfigureAwait(false);
 
                 var pRanking = rankingEntries.Single(r => r.PlayerId == playerId);
 
@@ -212,11 +226,12 @@ namespace TheEliteExplorerUi.Controllers
             DateTime? rankingDate,
             long? playerId = null,
             int? monthsPrior = null,
-            Stage[] skipStages = null)
+            Stage[] skipStages = null,
+            bool excludeWinners = false)
         {
             try
             {
-                var rankingEntries = await GetRankingsWithParams(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages).ConfigureAwait(false);
+                var rankingEntries = await GetRankingsWithParams(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, excludeWinners).ConfigureAwait(false);
 
                 var pointsRankingEntries = rankingEntries
                     .Where(r => r.Rank <= MaxRankDisplay)
@@ -263,10 +278,11 @@ namespace TheEliteExplorerUi.Controllers
             DateTime rankingDate,
             long? playerId,
             int? monthsPrior,
-            Stage[] skipStages)
+            Stage[] skipStages,
+            bool excludeWinners)
         {
             var rankingEntriesBase = await _rankingProvider
-                                .GetRankingEntries(game, rankingDate, true, playerId, monthsPrior, skipStages)
+                                .GetRankingEntries(game, rankingDate, true, playerId, monthsPrior, skipStages, excludeWinners)
                                 .ConfigureAwait(false);
             
             return rankingEntriesBase.Select(r => r as RankingEntry).ToList();
