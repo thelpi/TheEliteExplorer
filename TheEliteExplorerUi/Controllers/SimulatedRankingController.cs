@@ -169,14 +169,15 @@ namespace TheEliteExplorerUi.Controllers
         [HttpGet("losers-bracket")]
         public async Task<IActionResult> ByStagesSkip(
             [FromRoute] Game game,
-            [FromQuery] DateTime? rankingDate)
+            [FromQuery] DateTime? rankingDate,
+            [FromQuery] bool untied)
         {
             if (!Enum.TryParse(typeof(Game), game.ToString(), out _))
             {
                 return BadRequest();
             }
 
-            return await SimulateRankingInternal(game, rankingDate, excludeWinners: true)
+            return await SimulateRankingInternal(game, rankingDate, excludeWinners: (untied ? (bool?)null : true))
                 .ConfigureAwait(false);
         }
 
@@ -227,7 +228,7 @@ namespace TheEliteExplorerUi.Controllers
             long? playerId = null,
             int? monthsPrior = null,
             Stage[] skipStages = null,
-            bool excludeWinners = false)
+            bool? excludeWinners = false)
         {
             try
             {
@@ -279,7 +280,7 @@ namespace TheEliteExplorerUi.Controllers
             long? playerId,
             int? monthsPrior,
             Stage[] skipStages,
-            bool excludeWinners)
+            bool? excludeWinners)
         {
             var rankingEntriesBase = await _rankingProvider
                                 .GetRankingEntries(game, rankingDate, true, playerId, monthsPrior, skipStages, excludeWinners)

@@ -49,7 +49,7 @@ namespace TheEliteExplorerDomain.Providers
             long? simulatedPlayerId = null,
             int? monthsOfFreshTimes = null,
             Stage[] skipStages = null,
-            bool excludeWinners = false)
+            bool? excludeWinners = false)
         {
             rankingDate = rankingDate.Date;
 
@@ -69,9 +69,13 @@ namespace TheEliteExplorerDomain.Providers
                 }
             }
 
-            if (excludeWinners)
+            if (excludeWinners != false)
             {
-                var wrHolders = finalEntries.Where(e => e.Rank == 1).Select(e => e.PlayerId).ToList();
+                var wrHolders = finalEntries
+                    .Where(e => e.Rank == 1 && (excludeWinners == true || !finalEntries.Any(eBis =>
+                        eBis.Rank == 1 && eBis.PlayerId != e.PlayerId && eBis.Stage == e.Stage && eBis.Level == e.Level)))
+                    .Select(e => e.PlayerId)
+                    .ToList();
 
                 players = players.Where(p => !wrHolders.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
 
