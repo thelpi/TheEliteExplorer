@@ -15,10 +15,4 @@
     <ProjectReference Include="..\TheEliteExplorerInfrastructure\TheEliteExplorerInfrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Update="Views\LastTiedWr.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-  </ItemGroup>
-
 </Project>

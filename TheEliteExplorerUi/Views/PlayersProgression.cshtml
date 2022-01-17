@@ -1,0 +1,40 @@
+﻿@model List<TheEliteExplorerDomain.Models.PlayerProgression>
+
+<html class=" byzbljr idc0_332">
+<head>
+    <title>The GoldenEye World Records and Rankings - The Elite Rankings</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link href="https://rankings.the-elite.net/css/base.1628312764.css" type="text/css" rel="stylesheet">
+    <link href="https://rankings.the-elite.net/css/users.1631148673.css" type="text/css" rel="stylesheet">
+    <link href="https://rankings.the-elite.net/css/flags.1541225167.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+    <div id="container">
+        <div id="page" class="with-sidebar">
+            <div id="content">
+                <h2>Best progressions</h2>
+                <table id="wr-table" class="ge">
+                    <tbody>
+                        <tr>
+                            <th class="stage">Surname</th>
+                            <th class="stage">Days to reach</th>
+                            <th class="stage">First day</th>
+                            <th class="stage">Reach day</th>
+                        </tr>
+                        @foreach (var progression in Model)
+                        {
+                        <tr>
+                            <td style="color:#@progression.Player.Color">@progression.Player.SurName</td>
+                            <td style="color:#@progression.Player.Color">@progression.Days</td>
+                            <td style="color:#@progression.Player.Color">@progression.FirstDate.ToString("yyyy-MM-dd")</td>
+                            <td style="color:#@progression.Player.Color">@progression.ReachTargetDate.ToString("yyyy-MM-dd")</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- /#container -->
+</body>
+</html>

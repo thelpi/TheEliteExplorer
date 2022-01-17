@@ -37,6 +37,19 @@ namespace TheEliteExplorerUi.Controllers
             _worldRecordProvider = worldRecordProvider;
         }
 
+        [HttpGet("/game/{game}/progressions")]
+        public async Task<IActionResult> GetProgressions(
+            [FromRoute] Game game,
+            [FromQuery] ProgressionType progressType,
+            [FromQuery] int threshold)
+        {
+            var results = await _rankingProvider
+                .GetBestPlayerProgressions(game, progressType, threshold, 50)
+                .ConfigureAwait(false);
+
+            return View($"Views/PlayersProgression.cshtml", results);
+        }
+
         [HttpGet("/game/{game}/stats")]
         public async Task<IActionResult> GetWrStats([FromRoute] Game game)
         {

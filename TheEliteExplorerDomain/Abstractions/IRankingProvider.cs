@@ -11,6 +11,8 @@ namespace TheEliteExplorerDomain.Abstractions
     /// </summary>
     public interface IRankingProvider
     {
+        Task<IReadOnlyCollection<PlayerProgression>> GetBestPlayerProgressions(Game game, ProgressionType progressionType, int threshoold, int limit = 50);
+
         /// <summary>
         /// Computes and gets the full ranking at the specified date.
         /// </summary>
