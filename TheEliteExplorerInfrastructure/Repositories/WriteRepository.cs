@@ -32,6 +32,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _updatePlayerPsName = "update_player";
         private const string _deleteStageLevelWrPsName = "delete_stage_level_wr";
         private const string _insertStageLevelWrPsName = "insert_wr";
+        private const string _updateDirtyPlayerPsName = "update_dirty_player";
 
         private const string ColSeparator = ",";
         private const string RowSeparator = "\r\n";
@@ -326,6 +327,20 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
 
             File.Delete(DataFilePath);
+        }
+
+        /// <inheritdoc />
+        public async Task UpdateDirtyPlayer(long playerId)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection
+                    .QueryAsync(
+                        ToPsName(_updateDirtyPlayerPsName),
+                        new { id = playerId },
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
+            }
         }
     }
 }

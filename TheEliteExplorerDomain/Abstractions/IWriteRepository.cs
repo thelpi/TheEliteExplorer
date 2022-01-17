@@ -109,5 +109,12 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="level">Level.</param>
         /// <returns>Nothing.</returns>
         Task DeleteStageLevelWr(Stage stage, Level level);
+
+        /// <summary>
+        /// Updates a plyer to dirty.
+        /// </summary>
+        /// <param name="playerId">Player identifier.</param>
+        /// <returns>Nothing.</returns>
+        Task UpdateDirtyPlayer(long playerId);
     }
 }

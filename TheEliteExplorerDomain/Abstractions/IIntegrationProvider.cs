@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TheEliteExplorerDomain.Enums;
+using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorerDomain.Abstractions
 {
@@ -25,10 +27,16 @@ namespace TheEliteExplorerDomain.Abstractions
         Task ScanPlayerEntriesHistory(Game game, long playerId);
 
         /// <summary>
-        /// Cleans players flagged as dirty.
+        /// Gets dirty players with valid time page.
+        /// </summary>
+        /// <returns>Collection of players.</returns>
+        Task<IReadOnlyCollection<Player>> GetCleanableDirtyPlayers();
+
+        /// <summary>
+        /// Checks players for dirt
         /// </summary>
         /// <returns>Nothing.</returns>
-        Task CleanDirtyPlayers();
+        Task CheckDirtyPlayers();
 
         /// <summary>
         /// Scans and inserts time entries

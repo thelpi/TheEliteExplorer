@@ -110,51 +110,27 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task CleanDirtyPlayers()
+        public async Task<IReadOnlyCollection<Player>> GetCleanableDirtyPlayers()
         {
+            var okPlayers = new List<Player>();
+
             var players = await _readRepository
                 .GetDirtyPlayers()
                 .ConfigureAwait(false);
 
             foreach (var p in players)
             {
-                var entries = await _readRepository
-                    .GetPlayerEntries(p.Id)
-                    .ConfigureAwait(false);
-
-                var duplicates = new List<EntryDto>();
-                foreach (var entry in entries)
-                {
-                    duplicates.AddRange(
-                        await _readRepository
-                            .GetEntriesByEntry(entry.Id)
-                            .ConfigureAwait(false));
-                }
-
-                var potentialPlayerMatch = duplicates
-                    .GroupBy(d => d.PlayerId)
-                    .OrderByDescending(d => d.Count())
-                    .FirstOrDefault();
-
-                if (potentialPlayerMatch?.Count() > entries.Count * DuplicateEntriesRate)
-                {
-
-                }
-                else
-                {
-                    var pInfo = await _siteParser
+                var pInfo = await _siteParser
                         .GetPlayerInformation(p.UrlName, Player.DefaultPlayerHexColor)
                         .ConfigureAwait(false);
 
-                    if (pInfo != null)
-                    {
-                        pInfo.Id = p.Id;
-                        await _writeRepository
-                            .UpdatePlayerInformation(pInfo)
-                            .ConfigureAwait(false);
-                    }
+                if (pInfo != null)
+                {
+                    okPlayers.Add(new Player(pInfo));
                 }
             }
+
+            return okPlayers;
         }
 
         /// <inheritdoc />
@@ -260,6 +236,27 @@ namespace TheEliteExplorerDomain.Providers
                 await _writeRepository
                     .UpdateEntryDate(matchEntry.Id, requestEntry.Date.Value)
                     .ConfigureAwait(false);
+            }
+        }
+
+        public async Task CheckDirtyPlayers()
+        {
+            var nonDirtyPlayers = await _readRepository
+                .GetPlayers()
+                .ConfigureAwait(false);
+
+            foreach (var p in nonDirtyPlayers)
+            {
+                var res = await _siteParser
+                    .GetPlayerInformation(p.UrlName, Player.DefaultPlayerHexColor)
+                    .ConfigureAwait(false);
+
+                if (res == null)
+                {
+                    await _writeRepository
+                        .UpdateDirtyPlayer(p.Id)
+                        .ConfigureAwait(false);
+                }
             }
         }
     }

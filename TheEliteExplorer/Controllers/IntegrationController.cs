@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Enums;
+using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorer.Controllers
 {
@@ -111,16 +113,31 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
-        /// Cleans dirty players.
+        /// Gets dirty players with valid time page.
         /// </summary>
-        /// <returns>Nothing.</returns>
-        [HttpPatch("dirty-players")]
+        /// <returns>Collection of players.</returns>
+        [HttpGet("cleanable-dirty-players")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> CleanDirtyPlayers()
+        public async Task<ActionResult<IReadOnlyCollection<Player>>> GetCleanableDirtyPlayers()
+        {
+            var players = await _integrationProvider
+                .GetCleanableDirtyPlayers()
+                .ConfigureAwait(false);
+
+            return Ok(players);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("dirty-players")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> CheckDirtyPlayers()
         {
             await _integrationProvider
-                .CleanDirtyPlayers()
-                .ConfigureAwait(false);
+                   .CheckDirtyPlayers()
+                   .ConfigureAwait(false);
 
             return NoContent();
         }
