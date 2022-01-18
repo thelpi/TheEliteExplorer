@@ -1,54 +1,36 @@
 ﻿@model System.Collections.Generic.IReadOnlyCollection<TheEliteExplorerDomain.Models.StageSweep>
 
-<html class=" byzbljr idc0_332">
-<head>
-    <title>The GoldenEye World Records and Rankings - The Elite Rankings</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <link href="https://rankings.the-elite.net/css/base.1628312764.css" type="text/css" rel="stylesheet">
-    <link href="https://rankings.the-elite.net/css/users.1631148673.css" type="text/css" rel="stylesheet">
-    <link href="https://rankings.the-elite.net/css/flags.1541225167.css" type="text/css" rel="stylesheet">
-</head>
-<body>
-    <div id="container">
-        <div id="page" class="with-sidebar">
-            <div id="content">
-                <h2>300 points / untied sweeps</h2>
-                <div class="dual-box" style="width:auto">
-                    <h2>300 points / untied sweeps periods</h2>
-                    <div id="point-rankings" style="width:auto">
-                        <table style="width:auto">
-                            <tbody>
-                                <tr>
-                                    <th>Rank</th>
-                                    <th>Player</th>
-                                    <th>Stage</th>
-                                    <th>Date Start</th>
-                                    <th>Date End</th>
-                                    <th>Days</th>
-                                </tr>
-                                @{
-                                    int rank = 1;
-                                }
-                                @foreach (var item in Model)
-                                {
-                                <tr>
-                                    <td class="rank">@rank</td>
-                                    <td>
-                                        <a style="color:#@item.PlayerColor">@item.PlayerName</a>
-                                    </td>
-                                    <td>@item.Stage.ToString()</td>
-                                    <td>@item.StartDate.ToString("yyyy-MM-dd")</td>
-                                    <td>@item.EndDate.ToString("yyyy-MM-dd")</td>
-                                    <td><strong>@item.Days</strong></td>
-                                </tr>
-                                    rank++;
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="dual-box" style="width:auto">
+    <h2>300 points / untied sweeps periods</h2>
+    <div id="point-rankings" style="width:auto">
+        <table style="width:auto">
+            <tbody>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Stage</th>
+                    <th>Date Start</th>
+                    <th>Date End</th>
+                    <th>Days</th>
+                </tr>
+                @{
+                    int rank = 1;
+                }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="rank">@rank</td>
+                        <td>
+                            <a style="color:#@item.PlayerColor">@item.PlayerName</a>
+                        </td>
+                        <td>@item.Stage.ToString()</td>
+                        <td>@item.StartDate.ToString("yyyy-MM-dd")</td>
+                        <td>@item.EndDate.ToString("yyyy-MM-dd")</td>
+                        <td><strong>@item.Days</strong></td>
+                    </tr>
+                    rank++;
+                }
+            </tbody>
+        </table>
     </div>
-</body>
-</html>
+</div>

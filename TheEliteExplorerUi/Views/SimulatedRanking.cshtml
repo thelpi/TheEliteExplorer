@@ -1,170 +1,151 @@
 ﻿@model TheEliteExplorerUi.Models.SimulatedRankingViewData
 
-<html class=" byzbljr idc0_332">
-<head>
-    <title>The GoldenEye World Records and Rankings - The Elite Rankings</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <link href="https://rankings.the-elite.net/css/base.1628312764.css" type="text/css" rel="stylesheet">
-    <link href="https://rankings.the-elite.net/css/users.1631148673.css" type="text/css" rel="stylesheet">
-    <link href="https://rankings.the-elite.net/css/flags.1541225167.css" type="text/css" rel="stylesheet">
-</head>
-<body>
-    <div id="container">
-        <div id="page" class="with-sidebar">
-            <div id="content">
-                <h1>The GoldenEye/PerfectDark World Records and Rankings SIMULATOR</h1>
-                <h2>World Records</h2>
-                <table id="wr-table" class="ge">
-                    <tbody>
-                        <tr>
-                            <th class="stage">Stage</th>
-                            <th class="difficulty">Agent</th>
-                            <th class="difficulty">Secret Agent</th>
-                            <th class="difficulty">00 Agent</th>
-                        </tr>
-                        @foreach (var stage in Model.StageWorldRecordEntries)
-                        {
-                        <tr>
-                            @if (stage == null)
-                            {
-                                <td>N/A</td>
-                                <td>N/A</td>
-                                <td>N/A</td>
-                                <td>N/A</td>
-                            }
-                            else
-                            {
-                                <td><img width="75" height="48" src="@stage.Image" /><a href="#">@stage.Name</a></td>
-                                <td>
-                                    <div class="time">@stage.EasyTime.ToString(@"mm\:ss")</div>
-                                    <div class="initials">
-                                        @{
-                                            int i = 0;
-                                            foreach (var kvp in stage.EasyColoredInitials)
-                                            {
-                                                if (i == 5)
-                                                {
-                                                    <br />
-                                                }
-                                                <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
-                                                i++;
-                                            }
-                                        }
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="time">@stage.MediumTime.ToString(@"mm\:ss")</div>
-                                    <div class="initials">
-                                        @{
-                                            i = 0;
-                                            foreach (var kvp in stage.MediumColoredInitials)
-                                            {
-                                                if (i == 5)
-                                                {
-                                                    <br />
-                                                }
-                                                <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
-                                                i++;
-                                            }
-                                        }
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="time">@stage.HardTime.ToString(@"mm\:ss")</div>
-                                    <div class="initials">
-                                        @{
-                                            i = 0;
-                                            foreach (var kvp in stage.HardColoredInitials)
-                                            {
-                                                if (i == 5)
-                                                {
-                                                    <br />
-                                                }
-                                                <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
-                                                i++;
-                                            }
-                                        }
-                                    </div>
-                                </td>
-                            }
-                        </tr>
-                        }
-                        <tr>
-                            <th>Totals</th>
-                            <th>@Model.EasyCombinedTime.ToString(@"mm\:ss")</th>
-                            <th>@Model.MediumCombinedTime.ToString(@"mm\:ss")</th>
-                            <th>@Model.HardCombinedTime.ToString(@"mm\:ss")</th>
-                        </tr>
-                    </tbody>
-                </table>
-                <p class="overall">Overall combined time: @Model.CombinedTime.ToString("c")</p>
-                <div class="dual-box">
-                    <h2>Point Rankings</h2>
-                    <div id="point-rankings">
-                        <table>
-                            <tbody>
-                                <tr>
-                                    <th>Rank</th>
-                                    <th>Player</th>
-                                    <th>A</th>
-                                    <th>SA</th>
-                                    <th>00A</th>
-                                    <th>Total</th>
-                                </tr>
-                                @foreach (var item in Model.PointsRankingEntries)
+<h2>World Records</h2>
+<table id="wr-table" class="ge">
+    <tbody>
+        <tr>
+            <th class="stage">Stage</th>
+            <th class="difficulty">Agent</th>
+            <th class="difficulty">Secret Agent</th>
+            <th class="difficulty">00 Agent</th>
+        </tr>
+        @foreach (var stage in Model.StageWorldRecordEntries)
+        {
+            <tr>
+                @if (stage == null)
+                {
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                }
+                else
+                {
+                    <td><img width="75" height="48" src="@stage.Image" /><a href="#">@stage.Name</a></td>
+                    <td>
+                        <div class="time">@stage.EasyTime.ToString(@"mm\:ss")</div>
+                        <div class="initials">
+                            @{
+                                int i = 0;
+                                foreach (var kvp in stage.EasyColoredInitials)
                                 {
-                                    <tr>
-                                        <td class="rank">@item.Rank</td>
-                                        <td>
-                                            <!-- TODO: flag -->
-                                            <!--<div class="flag f16 US"></div>-->
-                                            <a style="color:#@item.PlayerColor">@item.PlayerName</a>
-                                        </td>
-                                        <td>@item.EasyPoints</td>
-                                        <td>@item.MediumPoints</td>
-                                        <td>@item.HardPoints</td>
-                                        <td class="sorted"><strong>@item.TotalPoints</strong></td>
-                                    </tr>
+                                    if (i == 5)
+                                    {
+                                        <br />
+                                    }
+                                    <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
+                                    i++;
                                 }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="dual-box last">
-                    <h2>Time Rankings</h2>
-                    <div id="time-rankings">
-                        <table>
-                            <tbody>
-                                <tr>
-                                    <th>Rank</th>
-                                    <th>Player</th>
-                                    <th>A</th>
-                                    <th>SA</th>
-                                    <th>00A</th>
-                                    <th>Total</th>
-                                </tr>
-                                @foreach (var item in Model.TimeRankingEntries)
+                            }
+                        </div>
+                    </td>
+                    <td>
+                        <div class="time">@stage.MediumTime.ToString(@"mm\:ss")</div>
+                        <div class="initials">
+                            @{
+                                i = 0;
+                                foreach (var kvp in stage.MediumColoredInitials)
                                 {
-                                    <tr>
-                                        <td class="rank">@item.Rank</td>
-                                        <td>
-                                            <!-- TODO: flag -->
-                                            <!--<div class="flag f16 US"></div>-->
-                                            <a style="color:#@item.PlayerColor">@item.PlayerName</a>
-                                        </td>
-                                        <td>@item.EasyTime.ToString(@"mm\:ss")</td>
-                                        <td>@item.MediumTime.ToString(@"mm\:ss")</td>
-                                        <td>@item.HardTime.ToString(@"mm\:ss")</td>
-                                        <td class="sorted"><strong>@item.TotalTime.ToString("c")</strong></td>
-                                    </tr>
+                                    if (i == 5)
+                                    {
+                                        <br />
+                                    }
+                                    <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
+                                    i++;
                                 }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+                            }
+                        </div>
+                    </td>
+                    <td>
+                        <div class="time">@stage.HardTime.ToString(@"mm\:ss")</div>
+                        <div class="initials">
+                            @{
+                                i = 0;
+                                foreach (var kvp in stage.HardColoredInitials)
+                                {
+                                    if (i == 5)
+                                    {
+                                        <br />
+                                    }
+                                    <a href="#" style="color:#@kvp.Item2" title="@kvp.Item3">@kvp.Item1</a>
+                                    i++;
+                                }
+                            }
+                        </div>
+                    </td>
+                }
+            </tr>
+        }
+        <tr>
+            <th>Totals</th>
+            <th>@Model.EasyCombinedTime.ToString(@"mm\:ss")</th>
+            <th>@Model.MediumCombinedTime.ToString(@"mm\:ss")</th>
+            <th>@Model.HardCombinedTime.ToString(@"mm\:ss")</th>
+        </tr>
+    </tbody>
+</table>
+<p class="overall">Overall combined time: @Model.CombinedTime.ToString("c")</p>
+<div class="dual-box">
+    <h2>Point Rankings</h2>
+    <div id="point-rankings">
+        <table>
+            <tbody>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>A</th>
+                    <th>SA</th>
+                    <th>00A</th>
+                    <th>Total</th>
+                </tr>
+                @foreach (var item in Model.PointsRankingEntries)
+                {
+                    <tr>
+                        <td class="rank">@item.Rank</td>
+                        <td>
+                            <!-- TODO: flag -->
+                            <!--<div class="flag f16 US"></div>-->
+                            <a style="color:#@item.PlayerColor">@item.PlayerName</a>
+                        </td>
+                        <td>@item.EasyPoints</td>
+                        <td>@item.MediumPoints</td>
+                        <td>@item.HardPoints</td>
+                        <td class="sorted"><strong>@item.TotalPoints</strong></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
-    <!-- /#container -->
-</body>
-</html>
+</div>
+<div class="dual-box last">
+    <h2>Time Rankings</h2>
+    <div id="time-rankings">
+        <table>
+            <tbody>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>A</th>
+                    <th>SA</th>
+                    <th>00A</th>
+                    <th>Total</th>
+                </tr>
+                @foreach (var item in Model.TimeRankingEntries)
+                {
+                    <tr>
+                        <td class="rank">@item.Rank</td>
+                        <td>
+                            <!-- TODO: flag -->
+                            <!--<div class="flag f16 US"></div>-->
+                            <a style="color:#@item.PlayerColor">@item.PlayerName</a>
+                        </td>
+                        <td>@item.EasyTime.ToString(@"mm\:ss")</td>
+                        <td>@item.MediumTime.ToString(@"mm\:ss")</td>
+                        <td>@item.HardTime.ToString(@"mm\:ss")</td>
+                        <td class="sorted"><strong>@item.TotalTime.ToString("c")</strong></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

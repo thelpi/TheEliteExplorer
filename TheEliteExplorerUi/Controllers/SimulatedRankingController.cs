@@ -13,15 +13,18 @@ using TheEliteExplorerUi.Models;
 
 namespace TheEliteExplorerUi.Controllers
 {
-    [Route("simulated-ranking/{game}")]
     public class SimulatedRankingController : Controller
     {
+        private const string LogsFilePath = @"S:\iis_logs\global_app.log";
+
         private const int MaxRankDisplay = 50;
         private const string StageImagePath = @"/images/{0}.jpg";
         private const string RankingViewName = "SimulatedRanking";
         private const string PlayersViewName = "Players";
         private const string LastTiedWrViewName = "LastTiedWr";
         private const string PlayerDetailsViewName = "PlayerDetails";
+        private const string PlayersProgressionViewName = "PlayersProgression";
+        private const string SweepsViewName = "Sweeps";
 
         private readonly IRankingProvider _rankingProvider;
         private readonly IReadRepository _repository;
@@ -37,20 +40,30 @@ namespace TheEliteExplorerUi.Controllers
             _worldRecordProvider = worldRecordProvider;
         }
 
+        /*[HttpGet("/")]
+        public async Task<IActionResult> Index()
+        {
+
+        }*/
+
         [HttpGet("/game/{game}/progressions")]
         public async Task<IActionResult> GetProgressions(
             [FromRoute] Game game,
             [FromQuery] ProgressionType progressType,
             [FromQuery] int threshold)
         {
-            var results = await _rankingProvider
-                .GetBestPlayerProgressions(game, progressType, threshold, 50)
-                .ConfigureAwait(false);
-
-            return View($"Views/PlayersProgression.cshtml", results);
+            return await DoAndCatchAsync(
+                PlayersProgressionViewName,
+                "Best progressions",
+                async () =>
+                {
+                    return await _rankingProvider
+                        .GetBestPlayerProgressions(game, progressType, threshold, 50)
+                        .ConfigureAwait(false);
+                }).ConfigureAwait(false);
         }
 
-        [HttpGet("/game/{game}/stats")]
+        /*[HttpGet("/game/{game}/stats")]
         public async Task<IActionResult> GetWrStats([FromRoute] Game game)
         {
             var results = await _worldRecordProvider
@@ -75,7 +88,7 @@ namespace TheEliteExplorerUi.Controllers
             }
 
             return NoContent();
-        }
+        }*/
 
         [HttpGet("/game/{game}/sweeps")]
         public async Task<IActionResult> GetSweeps(
@@ -83,20 +96,24 @@ namespace TheEliteExplorerUi.Controllers
             [FromQuery] bool untied,
             [FromQuery] int? stage)
         {
-            if (stage.HasValue && (stage < 0 || stage > 20))
-            {
-                return BadRequest();
-            }
+            return await DoAndCatchAsync(
+                SweepsViewName,
+                "300 points / untied sweeps",
+                async () =>
+                {
+                    if (stage.HasValue && (stage < 0 || stage > 20))
+                    {
+                        return BadRequest();
+                    }
 
-            stage = stage.HasValue ? (game == Game.PerfectDark ? stage + 20 : stage) : null;
+                    stage = stage.HasValue ? (game == Game.PerfectDark ? stage + 20 : stage) : null;
 
-            var sweeps = await _worldRecordProvider
-                .GetSweeps(game, untied, null, null, stage == null ? (Stage?)null: (Stage)stage.Value)
-                .ConfigureAwait(false);
+                    var sweeps = await _worldRecordProvider
+                        .GetSweeps(game, untied, null, null, stage == null ? (Stage?)null : (Stage)stage.Value)
+                        .ConfigureAwait(false);
 
-            sweeps = sweeps.OrderByDescending(s => s.Days).ToList();
-
-            return View($"Views/Sweeps.cshtml", sweeps);
+                    return sweeps.OrderByDescending(s => s.Days).ToList();
+                }).ConfigureAwait(false);
         }
 
         [HttpGet("/game/{game}/last-tied-wr")]
@@ -104,50 +121,40 @@ namespace TheEliteExplorerUi.Controllers
             [FromRoute] Game game,
             [FromQuery] DateTime? date)
         {
-            try
-            {
-                date = date ?? DateTime.Now;
-
-                var entries = await _worldRecordProvider
-                    .GetLastTiedWrs(game, date.Value)
-                    .ConfigureAwait(false);
-
-                var players = await _repository
-                    .GetPlayers()
-                    .ConfigureAwait(false);
-
-                return View($"Views/{LastTiedWrViewName}.cshtml", entries.ToLastTiedWrViewData(date, players, StageImagePath));
-            }
-            catch (Exception ex)
-            {
-                using (var w = new System.IO.StreamWriter($@"S:\iis_logs\global_app.log", true))
+            return await DoAndCatchAsync(
+                LastTiedWrViewName,
+                "Latest WR tied for each stage",
+                async () =>
                 {
-                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")}\t{ex.Message}\t{ex.StackTrace}");
-                }
-                return StatusCode((int)HttpStatusCode.InternalServerError);
-            }
+                    date = date ?? DateTime.Now;
+
+                    var entries = await _worldRecordProvider
+                        .GetLastTiedWrs(game, date.Value)
+                        .ConfigureAwait(false);
+
+                    var players = await _repository
+                        .GetPlayers()
+                        .ConfigureAwait(false);
+
+                    return entries.ToLastTiedWrViewData(date, players, StageImagePath);
+                }).ConfigureAwait(false);
         }
 
         [HttpGet("/players")]
         public async Task<IActionResult> GetPlayers()
         {
-            try
-            {
-                var players = await _repository.GetPlayers().ConfigureAwait(false);
-
-                return View($"Views/{PlayersViewName}.cshtml", players.ToList());
-            }
-            catch (Exception ex)
-            {
-                using (var w = new System.IO.StreamWriter($@"S:\iis_logs\global_app.log", true))
+            return await DoAndCatchAsync(
+                PlayersViewName,
+                "Players list",
+                async () =>
                 {
-                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")}\t{ex.Message}\t{ex.StackTrace}");
-                }
-                return StatusCode((int)HttpStatusCode.InternalServerError);
-            }
+                    var players = await _repository.GetPlayers().ConfigureAwait(false);
+
+                    return players.ToList();
+                }).ConfigureAwait(false);
         }
 
-        [HttpGet("player/{playerId}")]
+        [HttpGet("/simulated-ranking/{game}/player/{playerId}")]
         public async Task<IActionResult> ByPlayer(
             [FromRoute] Game game,
             [FromRoute] long playerId,
@@ -163,7 +170,7 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
-        [HttpGet("date-range")]
+        [HttpGet("/simulated-ranking/{game}/date-range")]
         public async Task<IActionResult> ByDateRange(
             [FromRoute] Game game,
             [FromQuery] DateTime? rankingDate,
@@ -179,7 +186,7 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
-        [HttpGet("losers-bracket")]
+        [HttpGet("/simulated-ranking/{game}/losers-bracket")]
         public async Task<IActionResult> ByStagesSkip(
             [FromRoute] Game game,
             [FromQuery] DateTime? rankingDate,
@@ -194,7 +201,7 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
-        [HttpGet("cherry-pick")]
+        [HttpGet("/simulated-ranking/{game}/cherry-pick")]
         public async Task<IActionResult> ByStagesSkip(
             [FromRoute] Game game,
             [FromQuery] DateTime? rankingDate,
@@ -209,30 +216,25 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
-        [HttpGet("player-details/{playerId}")]
-        public async Task<IActionResult> GetPlayerDetailsForSpecifeidRanking(
+        [HttpGet("/simulated-ranking/{game}/player-details/{playerId}")]
+        public async Task<IActionResult> GetPlayerDetailsForSpecifiedRanking(
             [FromRoute] Game game,
             [FromRoute] long playerId,
             [FromQuery] DateTime? rankingDate,
             [FromQuery] Stage[] skipStages,
             [FromQuery] int? monthsPrior)
         {
-            try
-            {
-                var rankingEntries = await GetRankingsWithParams(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, false).ConfigureAwait(false);
-
-                var pRanking = rankingEntries.Single(r => r.PlayerId == playerId);
-
-                return View($"Views/{PlayerDetailsViewName}.cshtml", pRanking.ToPlayerDetailsViewData(StageImagePath));
-            }
-            catch (Exception ex)
-            {
-                using (var w = new System.IO.StreamWriter($@"S:\iis_logs\global_app.log", true))
+            return await DoAndCatchAsync(
+                PlayerDetailsViewName,
+                $"PlayerID {playerId} - {game.ToString()} times",
+                async () =>
                 {
-                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")}\t{ex.Message}\t{ex.StackTrace}");
-                }
-                return StatusCode((int)HttpStatusCode.InternalServerError);
-            }
+                    var rankingEntries = await GetRankingsWithParams(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, false).ConfigureAwait(false);
+
+                    var pRanking = rankingEntries.Single(r => r.PlayerId == playerId);
+
+                    return pRanking.ToPlayerDetailsViewData(StageImagePath);
+                }).ConfigureAwait(false);
         }
 
         private async Task<IActionResult> SimulateRankingInternal(
@@ -243,48 +245,43 @@ namespace TheEliteExplorerUi.Controllers
             Stage[] skipStages = null,
             bool? excludeWinners = false)
         {
-            try
-            {
-                var rankingEntries = await GetRankingsWithParams(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, excludeWinners).ConfigureAwait(false);
-
-                var pointsRankingEntries = rankingEntries
-                    .Where(r => r.Rank <= MaxRankDisplay)
-                    .Select(r => r.ToPointsRankingItemData())
-                    .ToList();
-
-                // this does not manage equality between two global times
-                // ie one player will be ranked above/below the other one
-                int rank = 1;
-                var timeRankingEntries = rankingEntries
-                    .OrderBy(x => x.CumuledTime)
-                    .Take(MaxRankDisplay)
-                    .Select(r => r.ToTimeRankingItemData(rank++))
-                    .ToList();
-
-                var secondsLevel = SystemExtensions.Enumerate<Level>().ToDictionary(l => l, l => 0);
-                var stageWorldRecordEntries = game.GetStages()
-                    .Select(s => s.ToStageWorldRecordItemData(rankingEntries, secondsLevel, StageImagePath))
-                    .ToList();
-
-                return View($"Views/{RankingViewName}.cshtml", new SimulatedRankingViewData
+            return await DoAndCatchAsync(
+                RankingViewName,
+                "The GoldenEye/PerfectDark World Records and Rankings SIMULATOR",
+                async () =>
                 {
-                    CombinedTime = new TimeSpan(0, 0, secondsLevel.Values.Sum()),
-                    EasyCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Easy]),
-                    MediumCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Medium]),
-                    HardCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Hard]),
-                    PointsRankingEntries = pointsRankingEntries,
-                    TimeRankingEntries = timeRankingEntries,
-                    StageWorldRecordEntries = stageWorldRecordEntries
-                });
-            }
-            catch (Exception ex)
-            {
-                using (var w = new System.IO.StreamWriter($@"S:\iis_logs\global_app.log", true))
-                {
-                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")}\t{ex.Message}\t{ex.StackTrace}");
-                }
-                return StatusCode((int)HttpStatusCode.InternalServerError);
-            }
+                    var rankingEntries = await GetRankingsWithParams(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, excludeWinners).ConfigureAwait(false);
+
+                    var pointsRankingEntries = rankingEntries
+                        .Where(r => r.Rank <= MaxRankDisplay)
+                        .Select(r => r.ToPointsRankingItemData())
+                        .ToList();
+
+                    // this does not manage equality between two global times
+                    // ie one player will be ranked above/below the other one
+                    int rank = 1;
+                    var timeRankingEntries = rankingEntries
+                        .OrderBy(x => x.CumuledTime)
+                        .Take(MaxRankDisplay)
+                        .Select(r => r.ToTimeRankingItemData(rank++))
+                        .ToList();
+
+                    var secondsLevel = SystemExtensions.Enumerate<Level>().ToDictionary(l => l, l => 0);
+                    var stageWorldRecordEntries = game.GetStages()
+                        .Select(s => s.ToStageWorldRecordItemData(rankingEntries, secondsLevel, StageImagePath))
+                        .ToList();
+
+                    return new SimulatedRankingViewData
+                    {
+                        CombinedTime = new TimeSpan(0, 0, secondsLevel.Values.Sum()),
+                        EasyCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Easy]),
+                        MediumCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Medium]),
+                        HardCombinedTime = new TimeSpan(0, 0, secondsLevel[Level.Hard]),
+                        PointsRankingEntries = pointsRankingEntries,
+                        TimeRankingEntries = timeRankingEntries,
+                        StageWorldRecordEntries = stageWorldRecordEntries
+                    };
+                }).ConfigureAwait(false);
         }
 
         private async Task<List<RankingEntry>> GetRankingsWithParams(
@@ -300,6 +297,37 @@ namespace TheEliteExplorerUi.Controllers
                                 .ConfigureAwait(false);
             
             return rankingEntriesBase.Select(r => r as RankingEntry).ToList();
+        }
+
+        private async Task<IActionResult> DoAndCatchAsync(
+            string viewName,
+            string title,
+            Func<Task<object>> getDatasFunc)
+        {
+            try
+            {
+                var datas = await getDatasFunc().ConfigureAwait(false);
+
+                return View($"Views/Template.cshtml", new BaseViewData
+                {
+                    Data = datas,
+                    Name = $"~/Views/{viewName}.cshtml",
+                    Title = title
+                });
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    using (var w = new System.IO.StreamWriter(LogsFilePath, true))
+                    {
+                        w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")}\t{ex.Message}\t{ex.StackTrace}");
+                    }
+                }
+                catch { }
+
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
         }
     }
 }
