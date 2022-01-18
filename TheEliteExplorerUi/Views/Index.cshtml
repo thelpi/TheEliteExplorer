@@ -1,28 +1,61 @@
-﻿<table id="wr-table" class="ge">
+﻿@model TheEliteExplorerUi.Models.IndexViewData
+
+<table id="wr-table" class="ge">
     <tbody>
         <tr>
-            <td><a href="/players">Players list</a></td>
+            <td colspan="3">
+                Game:
+                <select>
+                    <option value="1" selected="selected">GoldenEye</option>
+                    <option value="2">Perfect Dark</option>
+                </select>
+            </td>
         </tr>
         <tr>
-            <td><a href="/games/1/player-rankings?playerId=4&rankingDate=2008-01-01">Simulated ranking with latest times of a specified player, at a specified date in the past</a></td>
+            <td colspan="3">
+                Players:
+                <select>
+                    @foreach (var p in Model.Players)
+                    {
+                        <option value="@p.Id">@p.RealName</option>
+                    }
+                </select>
+                <a href="/players">Better view on players list here</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Date:
+                <input type="date" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3"><a href="/games/1/player-rankings?playerId=4&rankingDate=2008-01-01">Simulated ranking with latest times of a specified player, at a specified date in the past</a></td>
         </tr>
         <tr>
             <td><a href="/games/1/time-frame-rankings?rankingDate=2022-01-01&monthsPrior=24">Simulated ranking for a specified time frame (specified date minus specified number of months)</a></td>
+            <td colspan="2">Months prior: <input type="text" /></td>
         </tr>
         <tr>
             <td><a href="/games/1/losers-bracket-rankings?rankingDate=2022-01-01&untied=false">Simulated ranking at a specified time for players without tied or untied world records</a></td>
+            <td colspan="2"><input type="checkbox" value="Untied ?" /></td>
         </tr>
         <tr>
             <td><a href="/games/1/cherry-pick-rankings?rankingDate=2022-01-01&skipStages=20&skipStages=1">Simulated ranking at a specified time, while removing datas from specific stages</a></td>
+            <td colspan="2">Skipped stages: TODO</td>
         </tr>
         <tr>
             <td><a href="/games/1/sweeps?untied=true&stage=null">A view on longest sweeps (untied or 300 points) for a single stage or all</a></td>
+            <td><input type="checkbox" value="Untied ?" /></td>
+            <td>Stage: TODO</td>
         </tr>
         <tr>
-            <td><a href="/games/1/last-tied-wr?date=2022-01-18">A view on the last time each world record has been achieved for the last time</a></td>
+            <td colspan="3"><a href="/games/1/last-tied-wr?date=2022-01-18">A view on the last time each world record has been achieved for the last time</a></td>
         </tr>
         <tr>
             <td><a href="/games/1/players/4/details?rankingDate=2022-01-18&skipStages=20&skipStages=1&monthsPrior=null">Show player details about a specific simulated ranking</a></td>
+            <td>Skipped stages: TODO</td>
+            <td>Months prior: <input type="text" /></td>
         </tr>
     </tbody>
 </table>

@@ -51,7 +51,7 @@ namespace TheEliteExplorerUi.Controllers
                 {
                     var players = await _repository.GetPlayers().ConfigureAwait(false);
 
-                    return null;
+                    return new IndexViewData { Players = players };
                 }).ConfigureAwait(false);
         }
 
