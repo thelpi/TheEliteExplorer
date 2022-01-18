@@ -25,6 +25,7 @@ namespace TheEliteExplorerUi.Controllers
         private const string PlayerDetailsViewName = "PlayerDetails";
         private const string PlayersProgressionViewName = "PlayersProgression";
         private const string SweepsViewName = "Sweeps";
+        private const string IndexViewName = "Index";
 
         private readonly IRankingProvider _rankingProvider;
         private readonly IReadRepository _repository;
@@ -40,13 +41,21 @@ namespace TheEliteExplorerUi.Controllers
             _worldRecordProvider = worldRecordProvider;
         }
 
-        /*[HttpGet("/")]
+        [HttpGet("/")]
         public async Task<IActionResult> Index()
         {
+            return await DoAndCatchAsync(
+                IndexViewName,
+                "List of features",
+                async() =>
+                {
+                    var players = await _repository.GetPlayers().ConfigureAwait(false);
 
-        }*/
+                    return null;
+                }).ConfigureAwait(false);
+        }
 
-        [HttpGet("/game/{game}/progressions")]
+        /*[HttpGet("/game/{game}/progressions")]
         public async Task<IActionResult> GetProgressions(
             [FromRoute] Game game,
             [FromQuery] ProgressionType progressType,
@@ -61,7 +70,7 @@ namespace TheEliteExplorerUi.Controllers
                         .GetBestPlayerProgressions(game, progressType, threshold, 50)
                         .ConfigureAwait(false);
                 }).ConfigureAwait(false);
-        }
+        }*/
 
         /*[HttpGet("/game/{game}/stats")]
         public async Task<IActionResult> GetWrStats([FromRoute] Game game)
@@ -90,7 +99,7 @@ namespace TheEliteExplorerUi.Controllers
             return NoContent();
         }*/
 
-        [HttpGet("/game/{game}/sweeps")]
+        [HttpGet("/games/{game}/sweeps")]
         public async Task<IActionResult> GetSweeps(
             [FromRoute] Game game,
             [FromQuery] bool untied,
@@ -116,7 +125,7 @@ namespace TheEliteExplorerUi.Controllers
                 }).ConfigureAwait(false);
         }
 
-        [HttpGet("/game/{game}/last-tied-wr")]
+        [HttpGet("/games/{game}/last-tied-wr")]
         public async Task<IActionResult> GetLastTiedWr(
             [FromRoute] Game game,
             [FromQuery] DateTime? date)
@@ -154,10 +163,10 @@ namespace TheEliteExplorerUi.Controllers
                 }).ConfigureAwait(false);
         }
 
-        [HttpGet("/simulated-ranking/{game}/player/{playerId}")]
+        [HttpGet("/games/{game}/player-rankings")]
         public async Task<IActionResult> ByPlayer(
             [FromRoute] Game game,
-            [FromRoute] long playerId,
+            [FromQuery] long playerId,
             [FromQuery] DateTime? rankingDate)
         {
             if (!Enum.TryParse(typeof(Game), game.ToString(), out _)
@@ -170,7 +179,7 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
-        [HttpGet("/simulated-ranking/{game}/date-range")]
+        [HttpGet("/games/{game}/time-frame-rankings")]
         public async Task<IActionResult> ByDateRange(
             [FromRoute] Game game,
             [FromQuery] DateTime? rankingDate,
@@ -186,7 +195,7 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
-        [HttpGet("/simulated-ranking/{game}/losers-bracket")]
+        [HttpGet("/games/{game}/losers-bracket-rankings")]
         public async Task<IActionResult> ByStagesSkip(
             [FromRoute] Game game,
             [FromQuery] DateTime? rankingDate,
@@ -201,7 +210,7 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
-        [HttpGet("/simulated-ranking/{game}/cherry-pick")]
+        [HttpGet("/games/{game}/cherry-pick-rankings")]
         public async Task<IActionResult> ByStagesSkip(
             [FromRoute] Game game,
             [FromQuery] DateTime? rankingDate,
@@ -216,7 +225,7 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
-        [HttpGet("/simulated-ranking/{game}/player-details/{playerId}")]
+        [HttpGet("/games/{game}/players/{playerId}/details")]
         public async Task<IActionResult> GetPlayerDetailsForSpecifiedRanking(
             [FromRoute] Game game,
             [FromRoute] long playerId,
