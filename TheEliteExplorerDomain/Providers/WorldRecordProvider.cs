@@ -117,22 +117,30 @@ namespace TheEliteExplorerDomain.Providers
 
             var playerKeys = await GetPlayersDictionary().ConfigureAwait(false);
 
-            var sweepsRaw = new List<(long playerId, DateTime date, Stage stage)>();
+            var sweepsRaw = new ConcurrentBag<(long playerId, DateTime date, Stage stage)>();
 
-            foreach (var currentDate in SystemExtensions.LoopBetweenDates(
-                startDate ?? Extensions.GetEliteFirstDate(game),
-                endDate ?? ServiceProviderAccessor.ClockProvider.Now,
-                DateStep.Day))
+            var dates = SystemExtensions
+                .LoopBetweenDates(
+                    startDate ?? Extensions.GetEliteFirstDate(game),
+                    endDate ?? ServiceProviderAccessor.ClockProvider.Now,
+                    DateStep.Day)
+                .GroupBy(d => d.DayOfWeek)
+                .ToDictionary(d => d.Key, d => d);
+            Parallel.ForEach(Enum.GetValues(typeof(DayOfWeek)).Cast<DayOfWeek>(), dow =>
             {
-                foreach (var stg in game.GetStages())
+                foreach (var currentDate in dates[dow])
                 {
-                    if (stage == null || stg == stage)
+                    foreach (var stg in game.GetStages())
                     {
-                        var sweeps = GetPotentialSweep(untied, entriesGroups, currentDate, stg);
-                        sweepsRaw.AddRange(sweeps);
+                        if (stage == null || stg == stage)
+                        {
+                            var sweeps = GetPotentialSweep(untied, entriesGroups, currentDate, stg);
+                            foreach (var sw in sweeps)
+                                sweepsRaw.Add(sw);
+                        }
                     }
                 }
-            }
+            });
 
             return ConsolidateSweeps(playerKeys, sweepsRaw);
         }
@@ -482,7 +490,7 @@ namespace TheEliteExplorerDomain.Providers
 
         private static IReadOnlyCollection<StageSweep> ConsolidateSweeps(
             Dictionary<long, PlayerDto> playerKeys,
-            List<(long playerId, DateTime date, Stage stage)> sweepsRaw)
+            ConcurrentBag<(long playerId, DateTime date, Stage stage)> sweepsRaw)
         {
             var sweeps = new List<StageSweep>();
 
