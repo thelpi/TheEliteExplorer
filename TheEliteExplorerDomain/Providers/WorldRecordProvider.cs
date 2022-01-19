@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -249,29 +250,40 @@ namespace TheEliteExplorerDomain.Providers
         /// <inheritdoc />
         public async Task<Dictionary<Stage, Dictionary<Level, (EntryDto, bool)>>> GetLastTiedWrs(Game game, DateTime date)
         {
-            var daysByStage = new Dictionary<Stage, Dictionary<Level, (EntryDto, bool)>>();
+            var daysByStage = new ConcurrentDictionary<Stage, Dictionary<Level, (EntryDto, bool)>>();
 
+            var tasks = new List<Task>();
             foreach (var stage in game.GetStages())
+                tasks.Add(GetSingleStageGetLastTiedWrs(daysByStage, date, stage));
+
+            await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
+
+            return daysByStage.ToDictionary(_ => _.Key, _ => _.Value);
+        }
+
+        private async Task GetSingleStageGetLastTiedWrs(
+            ConcurrentDictionary<Stage, Dictionary<Level, (EntryDto, bool)>> daysByStage,
+            DateTime date,
+            Stage stage)
+        {
+            var stageDatas = new Dictionary<Level, (EntryDto, bool)>();
+            foreach (var level in SystemExtensions.Enumerate<Level>())
             {
-                daysByStage.Add(stage, new Dictionary<Level, (EntryDto, bool)>());
-                foreach (var level in SystemExtensions.Enumerate<Level>())
+                var entries = await _readRepository.GetEntries(stage, level, null, date).ConfigureAwait(false);
+                var datedEntries = entries.Where(_ => _.Date.HasValue);
+                if (datedEntries.Any())
                 {
-                    var entries = await _readRepository.GetEntries(stage, level, null, date).ConfigureAwait(false);
-                    var datedEntries = entries.Where(_ => _.Date.HasValue);
-                    if (datedEntries.Any())
-                    {
-                        var entriesAt = datedEntries.GroupBy(_ => _.Time).OrderBy(_ => _.Key).First();
-                        var lastEntry = entriesAt.OrderByDescending(_ => _.Date).First();
-                        daysByStage[stage].Add(level, (lastEntry, entriesAt.Count() == 1));
-                    }
-                    else
-                    {
-                        daysByStage[stage].Add(level, (null, false));
-                    }
+                    var entriesAt = datedEntries.GroupBy(_ => _.Time).OrderBy(_ => _.Key).First();
+                    var lastEntry = entriesAt.OrderByDescending(_ => _.Date).First();
+                    stageDatas.Add(level, (lastEntry, entriesAt.Count() == 1));
+                }
+                else
+                {
+                    stageDatas.Add(level, (null, false));
                 }
             }
 
-            return daysByStage;
+            daysByStage.TryAdd(stage, stageDatas);
         }
 
         private static List<StageWrStanding> GetEveryStageWrStanding(
