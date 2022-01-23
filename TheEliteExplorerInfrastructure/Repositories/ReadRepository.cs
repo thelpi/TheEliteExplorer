@@ -17,10 +17,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
     /// <seealso cref="BaseRepository"/>
     public sealed class ReadRepository : BaseRepository, IReadRepository
     {
-        private const string _getPlayersCacheKey = "players";
-        private const string _getEntriesCacheKeyFormat = "entries_{0}_{1}"; // stageId, levelId
-        private const string _getAllEntriesCacheKeyFormat = "entries_all_{0}"; // stageId
-
         private const string _getStageLevelWr = "select_stage_level_wr";
         private const string _getRankingsPsName = "select_ranking";
         private const string _getEveryPlayersPsName = "select_player";

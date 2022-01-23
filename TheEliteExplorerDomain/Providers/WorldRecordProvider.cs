@@ -18,84 +18,15 @@ namespace TheEliteExplorerDomain.Providers
     public sealed class WorldRecordProvider : IWorldRecordProvider
     {
         private readonly IReadRepository _readRepository;
-        private readonly IWriteRepository _writeRepository;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="readRepository">Instance of <see cref="IReadRepository"/>.</param>
-        /// <param name="writeRepository">Instance of <see cref="IWriteRepository"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="writeRepository"/> is <c>Null</c>.</exception>
-        public WorldRecordProvider(
-            IReadRepository readRepository,
-            IWriteRepository writeRepository)
+        public WorldRecordProvider(IReadRepository readRepository)
         {
             _readRepository = readRepository ?? throw new ArgumentNullException(nameof(readRepository));
-            _writeRepository = writeRepository ?? throw new ArgumentNullException(nameof(writeRepository));
-        }
-
-        /// <inheritdoc />
-        public async Task GenerateWorldRecords(Game game)
-        {
-            foreach (var stage in game.GetStages())
-            {
-                var entries = await _readRepository
-                    .GetEntries(stage)
-                    .ConfigureAwait(false);
-
-                foreach (var level in SystemExtensions.Enumerate<Level>())
-                {
-                    await _writeRepository
-                        .DeleteStageLevelWr(stage, level)
-                        .ConfigureAwait(false);
-
-                    var entriesDone = new List<(long, long)>();
-
-                    var levelEntries = entries
-                        .Where(e => e.Level == level && e.Date.HasValue)
-                        .GroupBy(e => e.Date.Value)
-                        .OrderBy(e => e.Key)
-                        .ToDictionary(e => e.Key, e => e.ToList());
-
-                    long? time = null;
-                    var currentlyUntied = false;
-                    foreach (var date in levelEntries.Keys)
-                    {
-                        // TODO: manage several dates in one day
-                        var bestTimesAtDate = levelEntries[date]
-                            .GroupBy(e => e.Time)
-                            .OrderBy(e => e.Key)
-                            .First();
-
-                        if (!time.HasValue || time > bestTimesAtDate.Key)
-                        {
-                            time = bestTimesAtDate.Key;
-
-                            currentlyUntied = await AddEntriesAsWorldRecords(
-                                    bestTimesAtDate,
-                                    stage,
-                                    level,
-                                    true,
-                                    false,
-                                    entriesDone)
-                                .ConfigureAwait(false);
-                        }
-                        else if (time == bestTimesAtDate.Key)
-                        {
-                            await AddEntriesAsWorldRecords(
-                                    bestTimesAtDate,
-                                    stage,
-                                    level,
-                                    false,
-                                    currentlyUntied,
-                                    entriesDone)
-                                .ConfigureAwait(false);
-                            currentlyUntied = false;
-                        }
-                    }
-                }
-            }
         }
 
         /// <inheritdoc />
@@ -353,7 +284,7 @@ namespace TheEliteExplorerDomain.Providers
                 .ToList();
         }
 
-        private async Task<bool> AddEntriesAsWorldRecords(
+        private bool AddEntriesAsWorldRecords(
             IEnumerable<EntryDto> bestTimesAtDate,
             Stage stage,
             Level level,
@@ -381,9 +312,6 @@ namespace TheEliteExplorerDomain.Providers
                     Untied = untied
                 };
 
-                await _writeRepository
-                    .InsertWr(dto)
-                    .ConfigureAwait(false);
                 if (untied)
                 {
                     untied = false;

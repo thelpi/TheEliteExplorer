@@ -12,13 +12,6 @@ namespace TheEliteExplorerDomain.Abstractions
     public interface IWorldRecordProvider
     {
         /// <summary>
-        /// Generates world records for a whole game; clears previous world records already registered.
-        /// </summary>
-        /// <param name="game">Game.</param>
-        /// <returns>Nothing.</returns>
-        Task GenerateWorldRecords(Game game);
-
-        /// <summary>
         /// Gets sweeps.
         /// </summary>
         /// <param name="game">Game.</param>

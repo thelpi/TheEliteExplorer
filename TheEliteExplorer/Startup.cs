@@ -54,7 +54,6 @@ namespace TheEliteExplorer
             services
                 .AddSingleton<IClockProvider, ClockProvider>()
                 .AddSingleton<IConnectionProvider>(new ConnectionProvider(_configuration))
-                .Configure<CacheConfiguration>(_configuration.GetSection(_cacheSection))
                 .Configure<RankingConfiguration>(_configuration.GetSection(_rankingSection))
                 .Configure<TheEliteWebsiteConfiguration>(_configuration.GetSection(_theEliteWebsiteSection))
                 .AddSingleton<IReadRepository, ReadRepository>()

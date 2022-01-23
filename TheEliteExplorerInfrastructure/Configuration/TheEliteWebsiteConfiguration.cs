@@ -13,7 +13,7 @@
         /// History page partial URL.
         /// </summary>
         /// <remarks>
-        /// Use <see cref="System.String.Format(string, object, object)"/>: {0} for year and {1} for month
+        /// Use <see cref="string.Format(string, object, object)"/>: {0} for year and {1} for month
         /// </remarks>
         public string HistoryPage { get; set; }
         /// <summary>

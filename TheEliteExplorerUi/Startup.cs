@@ -42,7 +42,6 @@ namespace TheEliteExplorerUi
             services
                 .AddSingleton<IClockProvider, ClockProvider>()
                 .AddSingleton<IConnectionProvider>(new ConnectionProvider(Configuration))
-                .Configure<CacheConfiguration>(Configuration.GetSection(_cacheSection))
                 .Configure<RankingConfiguration>(Configuration.GetSection(_rankingSection))
                 .Configure<TheEliteWebsiteConfiguration>(Configuration.GetSection(_theEliteWebsiteSection))
                 .AddSingleton<IReadRepository, ReadRepository>()

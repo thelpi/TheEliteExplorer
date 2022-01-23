@@ -205,8 +205,7 @@ namespace TheEliteExplorerDomain.Providers
                         .Where(e => e.Stage == stage && e.Level == level)
                         .ToList();
 
-                    await RebuildRankingHistoryInternal(filteredEntries, players, stage, level)
-                        .ConfigureAwait(false);
+                    RebuildRankingHistoryInternal(filteredEntries, players, stage, level);
                 }
             }
         }
@@ -233,11 +232,10 @@ namespace TheEliteExplorerDomain.Providers
 
             var entries = await GetEntriesInternal(null, (stage, level), cache, players, playerAtSpecificDate).ConfigureAwait(false);
 
-            return await RebuildRankingHistoryInternal(entries, players, stage, level,
+            return RebuildRankingHistoryInternal(entries, players, stage, level,
                 playerAtSpecificDate == null
                     ? (DateTime?)null
-                    : playerAtSpecificDate.Item2)
-                .ConfigureAwait(false);
+                    : playerAtSpecificDate.Item2);
         }
 
         // Gets entries according to parameters (full game, or one stage and level)
@@ -305,21 +303,13 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         // Rebuilds ranking for a stage and a level
-        private async Task<List<RankingDto>> RebuildRankingHistoryInternal(
+        private List<RankingDto> RebuildRankingHistoryInternal(
             List<EntryDto> entries,
             IDictionary<long, PlayerDto> players,
             Stage stage,
             Level level,
             DateTime? oneShotAtDate = null)
         {
-            if (!oneShotAtDate.HasValue)
-            {
-                // Removes previous ranking history
-                await _writeRepository
-                    .DeleteStageLevelRankingHistory(stage, level)
-                    .ConfigureAwait(false);
-            }
-
             // Groups and sorts by date
             var entriesDateGroup = new SortedList<DateTime, List<EntryDto>>(
                 entries
@@ -390,13 +380,6 @@ namespace TheEliteExplorerDomain.Providers
 
                     rankingsToInsert.Add(ranking);
                 }
-            }
-
-            if (!oneShotAtDate.HasValue)
-            {
-                await _writeRepository
-                    .BulkInsertRankings(rankingsToInsert)
-                    .ConfigureAwait(false);
             }
 
             return rankingsToInsert;
