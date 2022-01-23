@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>D:\Ma programmation\csharp\Projects\TheEliteExplorer\TheEliteExplorerDomain\TheEliteExplorerDomain.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

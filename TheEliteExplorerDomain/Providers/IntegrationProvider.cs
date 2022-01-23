@@ -16,8 +16,6 @@ namespace TheEliteExplorerDomain.Providers
     /// <seealso cref="IIntegrationProvider"/>
     public sealed class IntegrationProvider : IIntegrationProvider
     {
-        private const decimal DuplicateEntriesRate = 0.5M;
-
         private readonly IWriteRepository _writeRepository;
         private readonly IReadRepository _readRepository;
         private readonly ITheEliteWebSiteParser _siteParser;
@@ -42,17 +40,17 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task ScanAllPlayersEntriesHistory(
+        public async Task ScanAllPlayersEntriesHistoryAsync(
             Game game)
         {
             var players = await _readRepository
-                .GetPlayers()
+                .GetPlayersAsync()
                 .ConfigureAwait(false);
 
             foreach (var player in  players)
             {
                 var entries = await _siteParser
-                    .GetPlayerEntriesHistory(game, player.UrlName)
+                    .GetPlayerEntriesHistoryAsync(game, player.UrlName)
                     .ConfigureAwait(false);
 
                 if (entries != null)
@@ -60,13 +58,13 @@ namespace TheEliteExplorerDomain.Providers
                     foreach (var stage in game.GetStages())
                     {
                         await _writeRepository
-                            .DeletePlayerStageEntries(stage, player.Id)
+                            .DeletePlayerStageEntriesAsync(stage, player.Id)
                             .ConfigureAwait(false);
                     }
 
                     foreach (var entry in entries)
                     {
-                        await CreateEntry(entry, game)
+                        await CreateEntryAsync(entry, game)
                             .ConfigureAwait(false);
                     }
                 }
@@ -74,12 +72,12 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task ScanPlayerEntriesHistory(
+        public async Task ScanPlayerEntriesHistoryAsync(
             Game game,
             long playerId)
         {
             var players = await _readRepository
-                .GetPlayers()
+                .GetPlayersAsync()
                 .ConfigureAwait(false);
 
             var player = players.FirstOrDefault(p => p.Id == playerId);
@@ -89,7 +87,7 @@ namespace TheEliteExplorerDomain.Providers
             }
 
             var entries = await _siteParser
-                .GetPlayerEntriesHistory(game, player.UrlName)
+                .GetPlayerEntriesHistoryAsync(game, player.UrlName)
                 .ConfigureAwait(false);
 
             if (entries != null)
@@ -97,31 +95,31 @@ namespace TheEliteExplorerDomain.Providers
                 foreach (var stage in game.GetStages())
                 {
                     await _writeRepository
-                        .DeletePlayerStageEntries(stage, playerId)
+                        .DeletePlayerStageEntriesAsync(stage, playerId)
                         .ConfigureAwait(false);
                 }
 
                 foreach (var entry in entries)
                 {
-                    await CreateEntry(entry, game)
+                    await CreateEntryAsync(entry, game)
                         .ConfigureAwait(false);
                 }
             }
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<Player>> GetCleanableDirtyPlayers()
+        public async Task<IReadOnlyCollection<Player>> GetCleanableDirtyPlayersAsync()
         {
             var okPlayers = new List<Player>();
 
             var players = await _readRepository
-                .GetDirtyPlayers()
+                .GetDirtyPlayersAsync()
                 .ConfigureAwait(false);
 
             foreach (var p in players)
             {
                 var pInfo = await _siteParser
-                        .GetPlayerInformation(p.UrlName, Player.DefaultPlayerHexColor)
+                        .GetPlayerInformationAsync(p.UrlName, Player.DefaultPlayerHexColor)
                         .ConfigureAwait(false);
 
                 if (pInfo != null)
@@ -134,45 +132,67 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task ScanTimePage(
+        public async Task ScanTimePageAsync(
             Game game,
             DateTime? startDate)
         {
-            var realStart = await GetStartDate(game, startDate)
+            var realStart = await GetStartDateAsync(game, startDate)
                 .ConfigureAwait(false);
 
             foreach (var loopDate in realStart.LoopBetweenDates(DateStep.Month))
             {
                 var results = await _siteParser
-                    .ExtractTimeEntries(game, loopDate.Year, loopDate.Month, realStart)
+                    .ExtractTimeEntriesAsync(game, loopDate.Year, loopDate.Month, realStart)
                     .ConfigureAwait(false);
 
                 foreach (var entry in results)
                 {
-                    await CreateEntry(entry, game).ConfigureAwait(false);
+                    await CreateEntryAsync(entry, game).ConfigureAwait(false);
                 }
             }
         }
 
         /// <inheritdoc />
-        public async Task ScanStageTimes(Stage stage)
+        public async Task ScanStageTimesAsync(Stage stage)
         {
-            var entries = await _siteParser.ExtractStageAllTimeEntries(stage).ConfigureAwait(false);
+            var entries = await _siteParser.ExtractStageAllTimeEntriesAsync(stage).ConfigureAwait(false);
 
             foreach (var entry in entries)
             {
-                await CreateEntry(entry, stage.GetGame()).ConfigureAwait(false);
+                await CreateEntryAsync(entry, stage.GetGame()).ConfigureAwait(false);
             }
         }
 
-        private async Task<DateTime> GetStartDate(
+        /// <inheritdoc />
+        public async Task CheckDirtyPlayersAsync()
+        {
+            var nonDirtyPlayers = await _readRepository
+                .GetPlayersAsync()
+                .ConfigureAwait(false);
+
+            foreach (var p in nonDirtyPlayers)
+            {
+                var res = await _siteParser
+                    .GetPlayerInformationAsync(p.UrlName, Player.DefaultPlayerHexColor)
+                    .ConfigureAwait(false);
+
+                if (res == null)
+                {
+                    await _writeRepository
+                        .UpdateDirtyPlayerAsync(p.Id)
+                        .ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task<DateTime> GetStartDateAsync(
             Game game,
             DateTime? startDate)
         {
             if (!startDate.HasValue)
             {
                 startDate = await _readRepository
-                    .GetLatestEntryDate()
+                    .GetLatestEntryDateAsync()
                     .ConfigureAwait(false);
 
                 if (!startDate.HasValue)
@@ -184,15 +204,15 @@ namespace TheEliteExplorerDomain.Providers
             return startDate.Value;
         }
 
-        private async Task CreateEntry(
+        private async Task CreateEntryAsync(
             EntryWebDto entry,
             Game game)
         {
             var players = await _readRepository
-                .GetPlayers()
+                .GetPlayersAsync()
                 .ConfigureAwait(false);
             var dirtyPlayers = await _readRepository
-                .GetDirtyPlayers()
+                .GetDirtyPlayersAsync()
                 .ConfigureAwait(false);
 
             var match = players
@@ -204,7 +224,7 @@ namespace TheEliteExplorerDomain.Providers
             if (match == null)
             {
                 playerId = await _writeRepository
-                    .InsertPlayer(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
+                    .InsertPlayerAsync(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
                     .ConfigureAwait(false);
             }
             else
@@ -214,7 +234,7 @@ namespace TheEliteExplorerDomain.Providers
 
             var requestEntry = entry.ToEntry(playerId);
 
-            var entries = await _readRepository.GetEntries(
+            var entries = await _readRepository.GetEntriesAsync(
                requestEntry.Stage,
                requestEntry.Level,
                requestEntry.Date?.Date,
@@ -228,35 +248,14 @@ namespace TheEliteExplorerDomain.Providers
             if (matchEntry == null)
             {
                 await _writeRepository
-                    .InsertTimeEntry(requestEntry, game)
+                    .InsertTimeEntryAsync(requestEntry, game)
                     .ConfigureAwait(false);
             }
             else if (!matchEntry.Date.HasValue && requestEntry.Date.HasValue)
             {
                 await _writeRepository
-                    .UpdateEntryDate(matchEntry.Id, requestEntry.Date.Value)
+                    .UpdateEntryDateAsync(matchEntry.Id, requestEntry.Date.Value)
                     .ConfigureAwait(false);
-            }
-        }
-
-        public async Task CheckDirtyPlayers()
-        {
-            var nonDirtyPlayers = await _readRepository
-                .GetPlayers()
-                .ConfigureAwait(false);
-
-            foreach (var p in nonDirtyPlayers)
-            {
-                var res = await _siteParser
-                    .GetPlayerInformation(p.UrlName, Player.DefaultPlayerHexColor)
-                    .ConfigureAwait(false);
-
-                if (res == null)
-                {
-                    await _writeRepository
-                        .UpdateDirtyPlayer(p.Id)
-                        .ConfigureAwait(false);
-                }
             }
         }
     }

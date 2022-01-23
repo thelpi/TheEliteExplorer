@@ -1,0 +1,1207 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>TheEliteExplorerDomain</name>
+    </assembly>
+    <members>
+        <member name="T:TheEliteExplorerDomain.Abstractions.IIntegrationProvider">
+            <summary>
+            Integration provider interface.
+            </summary>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.ScanAllPlayersEntriesHistoryAsync(TheEliteExplorerDomain.Enums.Game)">
+            <summary>
+            Scans and inserts time entries for every known player (non dirty); previous entries are removed.
+            </summary>
+            <param name="game">Game.</param>
+            <returns>Nothing.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.ScanPlayerEntriesHistoryAsync(TheEliteExplorerDomain.Enums.Game,System.Int64)">
+            <summary>
+            Scans and inserts time entries for a single player; previous entries are removed.
+            </summary>
+            <param name="game">Game.</param>
+            <param name="playerId">Player identifier.</param>
+            <returns>Nothing.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.GetCleanableDirtyPlayersAsync">
+            <summary>
+            Gets dirty players with valid time page.
+            </summary>
+            <returns>Collection of players.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.CheckDirtyPlayersAsync">
+            <summary>
+            Checks players for dirt
+            </summary>
+            <returns>Nothing.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.ScanTimePageAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime})">
+            <summary>
+            Scans and inserts time entries
+            </summary>
+            <param name="game">Game.</param>
+            <param name="startDate">
+            Start date; if <c>Null</c>, most recent date is used.
+            Date is rounded to the full month.
+            </param>
+            <returns>Nothing.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.ScanStageTimesAsync(TheEliteExplorerDomain.Enums.Stage)">
+            <summary>
+            Scans every time entry of a stage.
+            </summary>
+            <param name="stage">The stage.</param>
+            <returns>Nothing.</returns>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Abstractions.IReadRepository">
+            <summary>
+            Read operations in repository (interface).
+            </summary>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetPlayersAsync">
+            <summary>
+            Gets every players from the database.
+            </summary>
+            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.PlayerDto"/>; can't be <c>Null</c>.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetEntriesAsync(TheEliteExplorerDomain.Enums.Stage,TheEliteExplorerDomain.Enums.Level,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Gets every entries for a specified stage and level, between two dates.
+            </summary>
+            <param name="stage">Stage.</param>
+            <param name="level">Level.</param>
+            <param name="startDate">Start date (inclusive).</param>
+            <param name="endDate">End date (exclusive).</param>
+            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.EntryDto"/>; can't be <c>Null</c>.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetEntriesAsync(TheEliteExplorerDomain.Enums.Stage)">
+            <summary>
+            Gets every entry for a specified stage.
+            </summary>
+            <param name="stage">Stage.</param>
+            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.EntryDto"/>; can't be <c>Null</c>.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetEntriesCountAsync(TheEliteExplorerDomain.Enums.Stage,System.Nullable{TheEliteExplorerDomain.Enums.Level},System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Gets entries count for a specified stage and an optional level.
+            </summary>
+            <param name="stage">Stage.</param>
+            <param name="level">Level (<c>Null</c> for every level).</param>
+            <param name="startDate">Start date (inclusive).</param>
+            <param name="endDate">End date (exclusive).</param>
+            <returns>Entries count.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetLatestEntryDateAsync">
+            <summary>
+            Gets the most recent entry date.
+            </summary>
+            <returns>Most recent entry date</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetDirtyPlayersAsync">
+            <summary>
+            Gets every dirty player.
+            </summary>
+            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.PlayerDto"/>.</returns>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Abstractions.IStatisticsProvider">
+            <summary>
+            Statistics provider interface.
+            </summary>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetStagesEntriesCountAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.DateTime,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Gets entries count, and some related statistics, for every stage of the specified game.
+            </summary>
+            <param name="game">The game.</param>
+            <param name="startDate">Start date inclusive.</param>
+            <param name="endDate">End date exclusive.</param>
+            <param name="levelDetails"><c>True</c> to get detailed datas for each <see cref="T:TheEliteExplorerDomain.Enums.Level"/>.</param>
+            <param name="globalStartDate">Global start date for <see cref="P:TheEliteExplorerDomain.Models.StageEntryCount.TotalEntriesCount"/> (inclusive).</param>
+            <param name="globalEndDate">Global end date for <see cref="P:TheEliteExplorerDomain.Models.StageEntryCount.TotalEntriesCount"/> (exclusive).</param>
+            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Models.StageEntryCount"/>; one per stage (and level if <paramref name="levelDetails"/>) in the game.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetSweepsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{TheEliteExplorerDomain.Enums.Stage})">
+            <summary>
+            Gets sweeps.
+            </summary>
+            <param name="game">Game.</param>
+            <param name="untied">Untied y/n.</param>
+            <param name="startDate">Start date.</param>
+            <param name="endDate">End date.</param>
+            <param name="stage">Stage</param>
+            <returns>Collection of sweeps</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="startDate"/> is greater than <paramref name="endDate"/>.</exception>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetLastTiedWrsAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime)">
+            <summary>
+            Gets, at a specified date, the latest WR entry for every stage and level.
+            </summary>
+            <param name="game">Game</param>
+            <param name="date">Date</param>
+            <returns>Last WR entry by stage an level</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetRankingEntriesAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.Boolean,System.Nullable{System.Int64},System.Nullable{System.Int32},TheEliteExplorerDomain.Enums.Stage[],System.Nullable{System.Boolean})">
+            <summary>
+            Computes and gets the full ranking at the specified date.
+            </summary>
+            <param name="game">Game.</param>
+            <param name="rankingDate">Ranking date.</param>
+            <param name="full"><c>True</c> to get details for each ranking entry.</param>
+            <param name="simulatedPlayerId">Optionnal player identifier for which the ranking uses his latest entries instead of <paramref name="rankingDate"/> entries.</param>
+            <param name="monthsOfFreshTimes">Optionnal; if specified, ignores entries older than <paramref name="rankingDate"/> minus this number of months.</param>
+            <param name="skipStages">Stages to skip while computing the ranking.</param>
+            <param name="excludeWinners"><c>True</c> or <c>Null</c> to exclude players with WR or untied WR.</param>
+            <returns>
+            Collection of <see cref="T:TheEliteExplorerDomain.Models.RankingEntryLight"/>;
+            sorted by <see cref="P:TheEliteExplorerDomain.Models.RankingEntryLight.Points"/> descending.
+            </returns>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser">
+            <summary>
+            The-elite website parser interface.
+            </summary>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser.ExtractTimeEntriesAsync(TheEliteExplorerDomain.Enums.Game,System.Int32,System.Int32,System.Nullable{System.DateTime})">
+            <summary>
+            Extracts every time for a given period from the website "the-elite".
+            </summary>
+            <param name="game">The game.</param>
+            <param name="year">The year to scan.</param>
+            <param name="month">The month to scan.</param>
+            <param name="minimalDateToScan">
+            Optionnal date where to stop scan;
+            if <c>Null</c>, the full page will be scanned.
+            </param>
+            <returns>List of <see cref="T:TheEliteExplorerDomain.Dtos.EntryWebDto"/>.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser.ExtractStageAllTimeEntriesAsync(TheEliteExplorerDomain.Enums.Stage)">
+            <summary>
+            Extracts every time for a given stage from the website "the-elite".
+            </summary>
+            <param name="stage">Stage.</param>
+            <returns>List of <see cref="T:TheEliteExplorerDomain.Dtos.EntryWebDto"/>.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser.GetPlayerInformationAsync(System.String,System.String)">
+            <summary>
+            Gets information about a player.
+            </summary>
+            <param name="urlName">Player URL name.</param>
+            <param name="defaultHexPlayer">Default hexadecimal player color.</param>
+            <returns>Instance of <see cref="T:TheEliteExplorerDomain.Dtos.PlayerDto"/>; <c>Null</c> if not found.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser.GetPlayerEntriesHistoryAsync(TheEliteExplorerDomain.Enums.Game,System.String)">
+            <summary>
+            Gets entries history for a single player.
+            </summary>
+            <param name="game">Game.</param>
+            <param name="playerUrlName">Player URL name.</param>
+            <returns>Collection of entries; <c>Null</c> if the player history is not accessible.</returns>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Abstractions.IWriteRepository">
+            <summary>
+            Write operations in repository (interface).
+            </summary>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.UpdateEntryDateAsync(System.Int64,System.DateTime)">
+            <summary>
+            Updates the date of an entry.
+            </summary>
+            <param name="entryId">Entry identifier.</param>
+            <param name="date">Date of the entry.</param>
+            <returns>Nothing</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.InsertTimeEntryAsync(TheEliteExplorerDomain.Dtos.EntryDto,TheEliteExplorerDomain.Enums.Game)">
+            <summary>
+            Insert a time entry.
+            </summary>
+            <param name="requestEntry">Entry to insert.</param>
+            <param name="game">Game.</param>
+            <returns>Time entry identifier.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="requestEntry"/> is <c>Null</c>.</exception>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.InsertPlayerAsync(System.String,System.Nullable{System.DateTime},System.String)">
+            <summary>
+            Inserts a player; player will be flagged dirty.
+            </summary>
+            <remarks>If <paramref name="joinDate"/> is specified, it will be rounded without the time part.</remarks>
+            <param name="urlName">Player URL name.</param>
+            <param name="joinDate">Date of joining the elite.</param>
+            <param name="defaultHexColor">Default hexadecimal color.</param>
+            <returns>Player identifier.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.DeletePlayerStageEntriesAsync(TheEliteExplorerDomain.Enums.Stage,System.Int64)">
+            <summary>
+            Deletes every entry for a player for a stage.
+            </summary>
+            <param name="stage">Stage.</param>
+            <param name="playerId">Player identifier.</param>
+            <returns>Nothing.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.UpdateDirtyPlayerAsync(System.Int64)">
+            <summary>
+            Updates a plyer to dirty.
+            </summary>
+            <param name="playerId">Player identifier.</param>
+            <returns>Nothing.</returns>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Configuration.RankingConfiguration">
+            <summary>
+            Ranking configuration.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Configuration.RankingConfiguration.NoDateEntryRankingRule">
+            <summary>
+            Rule to apply for entry without date.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Dtos.EntryBaseDto">
+            <summary>
+            Time entry base DTO.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.EntryBaseDto.Stage">
+            <summary>
+            Stage.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.EntryBaseDto.Level">
+            <summary>
+            Level.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.EntryBaseDto.Time">
+            <summary>
+            Entry time, in seconds.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.EntryBaseDto.Date">
+            <summary>
+            Entry date.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.EntryBaseDto.Engine">
+            <summary>
+            Engine.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Dtos.EntryDto">
+            <summary>
+            Represents a row in the "entry" table.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.EntryDto.Id">
+            <summary>
+            "id" column value.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.EntryDto.PlayerId">
+            <summary>
+            "player_id" column value.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Dtos.EntryWebDto">
+            <summary>
+            Represents a time entry to process from the web datas.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.EntryWebDto.PlayerUrlName">
+            <summary>
+            Player URL name.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Dtos.PlayerDto">
+            <summary>
+            Represents a row in the "player" table.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.Id">
+            <summary>
+            "id" column value.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.UrlName">
+            <summary>
+            "url_name" column value.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.RealName">
+            <summary>
+            "real_name" column value.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.SurName">
+            <summary>
+            "surname" column value.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.ControlStyle">
+            <summary>
+            "control_style" column value.
+            </summary>
+            <remarks>Nullable.</remarks>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.Color">
+            <summary>
+            "color" column value.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.JoinDate">
+            <summary>
+            Date of joining the elite.
+            </summary>
+            <remarks>No time part.</remarks>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Dtos.RankingDto">
+            <summary>
+            Ranking DTO.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.PlayerId">
+            <summary>
+            Player identifier.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Stage">
+            <summary>
+            Stage.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Level">
+            <summary>
+            Leve.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Date">
+            <summary>
+            Date.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Time">
+            <summary>
+            Time.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Rank">
+            <summary>
+            Rank.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.EntryDate">
+            <summary>
+            Entry date.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Dtos.WrDto">
+            <summary>
+            Represents a row in the "wr" table.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.Stage">
+            <summary>
+            Stage.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.Level">
+            <summary>
+            Level.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.PlayerId">
+            <summary>
+            Player identifier.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.Untied">
+            <summary>
+            Is untied y/n.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.Time">
+            <summary>
+            Time.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.Date">
+            <summary>
+            Date.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.FirstTied">
+            <summary>
+            Is first tied y/n.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Enums.ControlStyle">
+            <summary>
+            Control styles enumeration.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.ControlStyle.OnePointOne">
+            <summary>
+            "1.1".
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.ControlStyle.OnePointTwo">
+            <summary>
+            "1.2".
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.ControlStyle.OnePointThree">
+            <summary>
+            "1.3".
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.ControlStyle.OnePointFour">
+            <summary>
+            "1.4".
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.ControlStyle.TwoPointOne">
+            <summary>
+            "2.1".
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.ControlStyle.TwoPointTwo">
+            <summary>
+            "2.2".
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.ControlStyle.TwoPointThree">
+            <summary>
+            "2.3".
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.ControlStyle.TwoPointFour">
+            <summary>
+            "2.4".
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Enums.Engine">
+            <summary>
+            Engines enumeration.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Engine.NTSC_J">
+            <summary>
+            Japanese NTSC.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Engine.NTSC">
+            <summary>
+            NTSC.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Engine.PAL">
+            <summary>
+            PAL.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Enums.Game">
+            <summary>
+            Games enumeration.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Game.GoldenEye">
+            <summary>
+            GoldenEye.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Game.PerfectDark">
+            <summary>
+            Perfect Dark.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Enums.Level">
+            <summary>
+            Levels of difficulty enumeration.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Level.Easy">
+            <summary>
+            Agent.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Level.Medium">
+            <summary>
+            [Secret / Special] agent.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Level.Hard">
+            <summary>
+            [00 / Perfect] agent.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Enums.NoDateEntryRankingRule">
+            <summary>
+            Ranking computing rules available to apply when an entry has no date.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.NoDateEntryRankingRule.Ignore">
+            <summary>
+            The entry is ignored.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.NoDateEntryRankingRule.Min">
+            <summary>
+            The lowest date is considered.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.NoDateEntryRankingRule.Max">
+            <summary>
+            The greatest date is considered.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.NoDateEntryRankingRule.Average">
+            <summary>
+            The average date is considered.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.NoDateEntryRankingRule.PlayerHabit">
+            <summary>
+            An arbitrary date based on player habits is considered.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Enums.Stage">
+            <summary>
+            Enumeration of stages for both games.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Dam">
+            <summary>
+            Dam.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Facility">
+            <summary>
+            Facility.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Runway">
+            <summary>
+            Runway.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Surface1">
+            <summary>
+            Surface 1.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Bunker1">
+            <summary>
+            Bunker 1.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Silo">
+            <summary>
+            Silo.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Frigate">
+            <summary>
+            Frigate.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Surface2">
+            <summary>
+            Surface 2.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Bunker2">
+            <summary>
+            Bunker 2.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Statue">
+            <summary>
+            Statue.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Archives">
+            <summary>
+            Archives.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Streets">
+            <summary>
+            Streets.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Depot">
+            <summary>
+            Depot.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Train">
+            <summary>
+            Train.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Jungle">
+            <summary>
+            Jungle.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Control">
+            <summary>
+            Control.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Caverns">
+            <summary>
+            Caverns.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Cradle">
+            <summary>
+            Cradle.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Aztec">
+            <summary>
+            Aztec.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Egypt">
+            <summary>
+            Egypt.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Defection">
+            <summary>
+            Defection.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Investigation">
+            <summary>
+            Investigation.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Extraction">
+            <summary>
+            Extraction.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Villa">
+            <summary>
+            Villa.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Chicago">
+            <summary>
+            Chicago.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.G5">
+            <summary>
+            G5.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Infiltration">
+            <summary>
+            Infiltration.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Rescue">
+            <summary>
+            Rescue.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.Escape">
+            <summary>
+            Escape.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.AirBase">
+            <summary>
+            Air base
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.AirForceOne">
+            <summary>
+            Air Force One
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.CrashSite">
+            <summary>
+            Crash site.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.PelagicII">
+            <summary>
+            Pelagic II.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.DeepSea">
+            <summary>
+            Deep sea.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.CI">
+            <summary>
+            Carrington Institute.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.AttackShip">
+            <summary>
+            Attack ship.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.SkedarRuins">
+            <summary>
+            Skedar ruins.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.MBR">
+            <summary>
+            Mr. Blonde's revenge.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.MaianSOS">
+            <summary>
+            Maian SOS
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Stage.War">
+            <summary>
+            WAR.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Extensions">
+            <summary>
+            Extension methods and tools.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Extensions.DefaultLabel">
+            <summary>
+            Default label for unknown data.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Extensions.PerfectDarkDuelStageFormatedName">
+            <summary>
+            Formated name of the Perfect Dark special stage "Duel".
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Extensions.StageFormatedNames">
+            <summary>
+            Formated names for stages of both games.
+            </summary>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Extensions.GetStageFromLabel(TheEliteExplorerDomain.Enums.Game,System.String)">
+            <summary>
+            Tries to get a stage from its label.
+            </summary>
+            <param name="game">Game.</param>
+            <param name="stageLabel">Stage label.</param>
+            <returns>Stage or <c>Null</c>.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Extensions.GetLevelFromLabel(TheEliteExplorerDomain.Enums.Game,System.String)">
+            <summary>
+            Tries to get a level from its label.
+            </summary>
+            <param name="game">Game.</param>
+            <param name="levelLabel">Level label.</param>
+            <returns>Level or <c>Null</c>.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Extensions.GetLabel(TheEliteExplorerDomain.Enums.Level,TheEliteExplorerDomain.Enums.Game)">
+            <summary>
+            Gets the label associated to a level for specified game.
+            </summary>
+            <param name="level">The level.</param>
+            <param name="game">The game.</param>
+            <returns>The label.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Extensions.ToControlStyle(System.String)">
+            <summary>
+            Tries to transform a string representing the control style into a <see cref="T:TheEliteExplorerDomain.Enums.ControlStyle"/>.
+            </summary>
+            <param name="controlStyleLabel">The control style label.</param>
+            <returns>The <see cref="T:TheEliteExplorerDomain.Enums.ControlStyle"/> value or <c>Null</c>.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Extensions.GetEliteFirstDate(TheEliteExplorerDomain.Enums.Game)">
+            <summary>
+            Gets the elite beginning date for the specified game.
+            </summary>
+            <param name="game">Game.</param>
+            <returns>Elite beginning date.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Extensions.GetGameUrlName(TheEliteExplorerDomain.Enums.Game)">
+            <summary>
+            Gets the elite URL name part for the specified game.
+            </summary>
+            <param name="game">Game.</param>
+            <returns>URL name part.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Extensions.InGameLifeSpan(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime})">
+            <summary>
+            Checks if a date is in the life span of the game.
+            </summary>
+            <param name="game">The game.</param>
+            <param name="date">The date.</param>
+            <returns><c>True</c> if the date is in the lifespan, or <c>Null</c>; <c>False</c> otherwise.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Extensions.GetStages(TheEliteExplorerDomain.Enums.Game)">
+            <summary>
+            Gets every stages of the specified game.
+            </summary>
+            <param name="game">The <see cref="T:TheEliteExplorerDomain.Enums.Game"/>.</param>
+            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Enums.Stage"/>.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Extensions.GetGame(TheEliteExplorerDomain.Enums.Stage)">
+            <summary>
+            Gets the game related to a stage.
+            </summary>
+            <param name="stage">Stage.</param>
+            <returns>Game.</returns>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Models.Player">
+            <summary>
+            Represents a player.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Models.Player.LastEmptyDate">
+            <summary>
+            Virtual date where submitted times should have a date, except for newcomers.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Models.Player.DefaultPlayerHexColor">
+            <summary>
+            Default player's hexadecimal color.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Player.RealName">
+            <summary>
+            Real name.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Player.SurName">
+            <summary>
+            Surname.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Player.ControlStyle">
+            <summary>
+            Control style.
+            </summary>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Models.Player.#ctor(TheEliteExplorerDomain.Dtos.PlayerDto)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="dto">Instance of <see cref="T:TheEliteExplorerDomain.Dtos.PlayerDto"/>.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="dto"/> is <c>Null</c>.</exception>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Models.Player.ToString">
+            <inheritdoc />
+        </member>
+        <member name="T:TheEliteExplorerDomain.Models.Ranking">
+            <summary>
+            Represents the default behavior for model items that can be ranked.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Ranking.Rank">
+            <summary>
+            Rank.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Ranking.SubRank">
+            <summary>
+            Sub rank.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Models.RankingEntry">
+            <summary>
+            Represents a ranking entry.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntry.LevelPoints">
+            <summary>
+            Points by <see cref="T:TheEliteExplorerDomain.Enums.Level"/>.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntry.LevelUntiedRecordsCount">
+            <summary>
+            Count of untied world records by <see cref="T:TheEliteExplorerDomain.Enums.Level"/>.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntry.LevelRecordsCount">
+            <summary>
+            Count of world records by <see cref="T:TheEliteExplorerDomain.Enums.Level"/>.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntry.LevelCumuledTime">
+            <summary>
+            Time cumuled on every stage, by level.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntry.Details">
+            <summary>
+            Detail of [ranking/points/time/date] for each level of each stage.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Models.RankingEntryLight">
+            <summary>
+            Represents a ranking entry.
+            </summary>
+            <seealso cref="T:TheEliteExplorerDomain.Models.Ranking"/>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Models.RankingEntryLight.UnsetTimeValueSeconds">
+            <summary>
+            When a time is unknown, the value used is <c>20</c> minutes.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.Game">
+            <summary>
+            Game.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.PlayerId">
+            <summary>
+            Player identifier.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.PlayerName">
+            <summary>
+            Player name (real name).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.PlayerColor">
+            <summary>
+            Player color.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.Points">
+            <summary>
+            Points.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.CumuledTime">
+            <summary>
+            Time cumuled on every level/stage.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.UntiedRecordsCount">
+            <summary>
+            Count of untied world records.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.RecordsCount">
+            <summary>
+            Count of world records.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Models.StageEntryCount">
+            <summary>
+            Entries count for a stage on a specific period
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.Level">
+            <summary>
+            The level (<c>Null</c> for every level).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.Stage">
+            <summary>
+            The stage
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.PeriodEntriesCount">
+            <summary>
+            Entries count in the period.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.TotalEntriesCount">
+            <summary>
+            Entries count overall.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.AllStagesEntriesCount">
+            <summary>
+            Entries count across all stages in the period.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.StartDate">
+            <summary>
+            Considered period start (inclusive).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.EndDate">
+            <summary>
+            Considered period end (exclusive).
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Models.StageSweep">
+            <summary>
+            Represents a sweep on stage (untied or not).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.Stage">
+            <summary>
+            Stage.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.StartDate">
+            <summary>
+            Start date.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.EndDate">
+            <summary>
+            End date (exclusive).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.Player">
+            <summary>
+            Player.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.Days">
+            <summary>
+            Days count.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.PlayerName">
+            <summary>
+            Player name.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.PlayerColor">
+            <summary>
+            Player color.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Models.StageWrStanding">
+            <summary>
+            Represents a world record standing.
+            </summary>
+            <seealso cref="T:TheEliteExplorerDomain.Models.Ranking"/>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.Level">
+            <summary>
+            Level.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.Stage">
+            <summary>
+            Stage.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StartDate">
+            <summary>
+            Date when the WR has been set.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StandingStartDate">
+            <summary>
+            Date when the world record has become the longest standing.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.EndDate">
+            <summary>
+            Date whent he WR has been beaten.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.Time">
+            <summary>
+            Time.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StartPlayerName">
+            <summary>
+            Player who sets the WR.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StartPlayerColor">
+            <summary>
+            <see cref="P:TheEliteExplorerDomain.Models.StageWrStanding.StartPlayerName"/> color.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.EndPlayerName">
+            <summary>
+            Player who beats the WR; <c>Null</c> if no one.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.EndPlayerColor">
+            <summary>
+            <see cref="P:TheEliteExplorerDomain.Models.StageWrStanding.EndPlayerName"/> color.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.Days">
+            <summary>
+            Days while being the WR.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StandingDays">
+            <summary>
+            Days while being the WR standing.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StillWr">
+            <summary>
+            Entry still the WR y/n.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Providers.IntegrationProvider">
+            <summary>
+            Integration provider.
+            </summary>
+            <seealso cref="T:TheEliteExplorerDomain.Abstractions.IIntegrationProvider"/>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.#ctor(TheEliteExplorerDomain.Abstractions.IWriteRepository,TheEliteExplorerDomain.Abstractions.IReadRepository,TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="writeRepository">Instance of <see cref="T:TheEliteExplorerDomain.Abstractions.IWriteRepository"/>.</param>
+            <param name="readRepository">Instance of <see cref="T:TheEliteExplorerDomain.Abstractions.IReadRepository"/>.</param>
+            <param name="siteParser">Instance of <see cref="T:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser"/>.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="writeRepository"/> is <c>Null</c>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="siteParser"/> is <c>Null</c>.</exception>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.ScanAllPlayersEntriesHistoryAsync(TheEliteExplorerDomain.Enums.Game)">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.ScanPlayerEntriesHistoryAsync(TheEliteExplorerDomain.Enums.Game,System.Int64)">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.GetCleanableDirtyPlayersAsync">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.ScanTimePageAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime})">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.ScanStageTimesAsync(TheEliteExplorerDomain.Enums.Stage)">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.CheckDirtyPlayersAsync">
+            <inheritdoc />
+        </member>
+        <member name="T:TheEliteExplorerDomain.Providers.StatisticsProvider">
+            <summary>
+            Stage statistics provider.
+            </summary>
+            <seealso cref="T:TheEliteExplorerDomain.Abstractions.IStatisticsProvider"/>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.#ctor(TheEliteExplorerDomain.Abstractions.IReadRepository,Microsoft.Extensions.Options.IOptions{TheEliteExplorerDomain.Configuration.RankingConfiguration})">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="configuration">Ranking configuration.</param>
+            <param name="readRepository">Instance of <see cref="T:TheEliteExplorerDomain.Abstractions.IReadRepository"/>.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetStagesEntriesCountAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.DateTime,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetRankingEntriesAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.Boolean,System.Nullable{System.Int64},System.Nullable{System.Int32},TheEliteExplorerDomain.Enums.Stage[],System.Nullable{System.Boolean})">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetSweepsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{TheEliteExplorerDomain.Enums.Stage})">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLastTiedWrsAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime)">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

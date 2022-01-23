@@ -17,16 +17,11 @@ namespace TheEliteExplorerInfrastructure.Repositories
     /// <seealso cref="BaseRepository"/>
     public sealed class ReadRepository : BaseRepository, IReadRepository
     {
-        private const string _getStageLevelWr = "select_stage_level_wr";
-        private const string _getRankingsPsName = "select_ranking";
-        private const string _getEveryPlayersPsName = "select_player";
-        private const string _getEntriesByCriteriaPsName = "select_entry";
-        private const string _getLatestEntryDatePsName = "select_latest_entry_date";
-        private const string _getDuplicatePlayersPsName = "select_duplicate_players";
         private const string _getEntriesByGamePsName = "select_all_entry";
+        private const string _getEntriesByCriteriaPsName = "select_entry";
         private const string _getEntriesCountPsName = "select_entry_count";
-        private const string _getEntriesByPlayerPsName = "select_player_entry";
-        private const string _getEntriesByEntryPsName = "select_entry_by_entry";
+        private const string _getLatestEntryDatePsName = "select_latest_entry_date";
+        private const string _getEveryPlayersPsName = "select_player";
 
         private readonly IConnectionProvider _connectionProvider;
 
@@ -41,60 +36,30 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntries(Stage stage, Level level, DateTime? startDate, DateTime? endDate)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(Stage stage, Level level, DateTime? startDate, DateTime? endDate)
         {
             if (startDate.HasValue || endDate.HasValue)
             {
-                return await GetEntriesWithoutCache(stage, level, startDate, endDate).ConfigureAwait(false);
+                return await GetEntriesByCriteriaInternalAsync(stage, level, startDate, endDate).ConfigureAwait(false);
             }
 
-            return await GetEntriesWithoutCache(stage, level, null, null).ConfigureAwait(false);
+            return await GetEntriesByCriteriaInternalAsync(stage, level, null, null).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetPlayerEntries(long playerId)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(Stage stage)
         {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                var results = await connection.QueryAsync<EntryDto>(
-                       ToPsName(_getEntriesByPlayerPsName),
-                       new { player_id = playerId },
-                        commandType: CommandType.StoredProcedure)
-                    .ConfigureAwait(false);
-
-                return results?.ToList() ?? new List<EntryDto>();
-            }
+            return await GetStageEntriesInternalAsync(stage).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesByEntry(long entryId)
+        public async Task<IReadOnlyCollection<PlayerDto>> GetPlayersAsync()
         {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                var results = await connection.QueryAsync<EntryDto>(
-                       ToPsName(_getEntriesByEntryPsName),
-                       new { entry_id = entryId },
-                        commandType: CommandType.StoredProcedure)
-                    .ConfigureAwait(false);
-
-                return results?.ToList() ?? new List<EntryDto>();
-            }
+            return await GetPlayersInternalAsync(false).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntries(Stage stage)
-        {
-            return await GetEntriesWithoutCache(stage).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<PlayerDto>> GetPlayers()
-        {
-            return await GetPlayersWithoutCache(false).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task<DateTime?> GetLatestEntryDate()
+        public async Task<DateTime?> GetLatestEntryDateAsync()
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -108,62 +73,13 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<DuplicatePlayerDto>> GetDuplicatePlayers()
+        public async Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync()
         {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                var duplicatePlayers = await connection.QueryAsync<DuplicatePlayerDto>(
-                    ToPsName(_getDuplicatePlayersPsName),
-                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
-                return duplicatePlayers.ToList();
-            }
+            return await GetPlayersInternalAsync(true).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayers()
-        {
-            return await GetPlayersWithoutCache(true).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<RankingDto>> GetStageLevelDateRankings(Stage stage, Level level, DateTime date)
-        {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                var rankings = await connection
-                    .QueryAsync<RankingDto>(
-                        ToPsName(_getRankingsPsName),
-                        new
-                        {
-                            stage_id = (long)stage,
-                            level_id = (long)level,
-                            date
-                        },
-                        commandType: CommandType.StoredProcedure)
-                    .ConfigureAwait(false);
-                return rankings.ToList();
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<WrDto>> GetStageLevelWrs(Stage stage, Level level)
-        {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                var wrs = await connection.QueryAsync<WrDto>(
-                    ToPsName(_getStageLevelWr),
-                    new
-                    {
-                        stage_id = (long)stage,
-                        level_id = (long)level
-                    },
-                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
-                return wrs.ToList();
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task<int> GetEntriesCount(Stage stage, Level? level, DateTime? startDate, DateTime? endDate)
+        public async Task<int> GetEntriesCountAsync(Stage stage, Level? level, DateTime? startDate, DateTime? endDate)
         {
             using (var connection = _connectionProvider.TheEliteConnection)
             {
@@ -182,7 +98,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
-        private async Task<List<PlayerDto>> GetPlayersWithoutCache(bool isDirty)
+        private async Task<List<PlayerDto>> GetPlayersInternalAsync(bool isDirty)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -198,7 +114,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
-        private async Task<List<EntryDto>> GetEntriesWithoutCache(Stage stage, Level level, DateTime? startDate, DateTime? endDate)
+        private async Task<List<EntryDto>> GetEntriesByCriteriaInternalAsync(Stage stage, Level level, DateTime? startDate, DateTime? endDate)
         {
             var entries = new List<EntryDto>();
 
@@ -224,7 +140,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
             return entries;
         }
 
-        private async Task<List<EntryDto>> GetEntriesWithoutCache(Stage stage)
+        private async Task<List<EntryDto>> GetStageEntriesInternalAsync(Stage stage)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {

@@ -33,14 +33,14 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertTimeEntry(EntryDto requestEntry, Game game)
+        public async Task<long> InsertTimeEntryAsync(EntryDto requestEntry, Game game)
         {
             if (requestEntry == null)
             {
                 throw new ArgumentNullException(nameof(requestEntry));
             }
 
-            long entryid = await InsertAndGetId(
+            long entryid = await InsertAndGetIdAsync(
                 _insertEntryPsName,
                 new
                 {
@@ -56,9 +56,9 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertPlayer(string urlName, DateTime? joinDate, string defaultHexColor)
+        public async Task<long> InsertPlayerAsync(string urlName, DateTime? joinDate, string defaultHexColor)
         {
-            return await InsertAndGetId(
+            return await InsertAndGetIdAsync(
                     _insertPlayerPsName,
                     new
                     {
@@ -74,7 +74,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task UpdateEntryDate(long entryId, DateTime date)
+        public async Task UpdateEntryDateAsync(long entryId, DateTime date)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -88,7 +88,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task UpdateDirtyPlayer(long playerId)
+        public async Task UpdateDirtyPlayerAsync(long playerId)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -102,7 +102,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task DeletePlayerStageEntries(Stage stage, long playerId)
+        public async Task DeletePlayerStageEntriesAsync(Stage stage, long playerId)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -117,7 +117,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
-        private async Task<long> InsertAndGetId(string psNameBase, object lambdaParameters)
+        private async Task<long> InsertAndGetIdAsync(string psNameBase, object lambdaParameters)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {

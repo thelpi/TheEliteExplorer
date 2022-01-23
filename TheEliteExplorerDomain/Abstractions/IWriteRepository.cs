@@ -16,7 +16,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="entryId">Entry identifier.</param>
         /// <param name="date">Date of the entry.</param>
         /// <returns>Nothing</returns>
-        Task UpdateEntryDate(long entryId, DateTime date);
+        Task UpdateEntryDateAsync(long entryId, DateTime date);
 
         /// <summary>
         /// Insert a time entry.
@@ -25,7 +25,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="game">Game.</param>
         /// <returns>Time entry identifier.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="requestEntry"/> is <c>Null</c>.</exception>
-        Task<long> InsertTimeEntry(EntryDto requestEntry, Game game);
+        Task<long> InsertTimeEntryAsync(EntryDto requestEntry, Game game);
 
         /// <summary>
         /// Inserts a player; player will be flagged dirty.
@@ -35,7 +35,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="joinDate">Date of joining the elite.</param>
         /// <param name="defaultHexColor">Default hexadecimal color.</param>
         /// <returns>Player identifier.</returns>
-        Task<long> InsertPlayer(string urlName, DateTime? joinDate, string defaultHexColor);
+        Task<long> InsertPlayerAsync(string urlName, DateTime? joinDate, string defaultHexColor);
 
         /// <summary>
         /// Deletes every entry for a player for a stage.
@@ -43,13 +43,13 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="stage">Stage.</param>
         /// <param name="playerId">Player identifier.</param>
         /// <returns>Nothing.</returns>
-        Task DeletePlayerStageEntries(Stage stage, long playerId);
+        Task DeletePlayerStageEntriesAsync(Stage stage, long playerId);
 
         /// <summary>
         /// Updates a plyer to dirty.
         /// </summary>
         /// <param name="playerId">Player identifier.</param>
         /// <returns>Nothing.</returns>
-        Task UpdateDirtyPlayer(long playerId);
+        Task UpdateDirtyPlayerAsync(long playerId);
     }
 }

@@ -43,14 +43,8 @@ namespace TheEliteExplorerUi
                 .AddSingleton<IClockProvider, ClockProvider>()
                 .AddSingleton<IConnectionProvider>(new ConnectionProvider(Configuration))
                 .Configure<RankingConfiguration>(Configuration.GetSection(_rankingSection))
-                .Configure<TheEliteWebsiteConfiguration>(Configuration.GetSection(_theEliteWebsiteSection))
                 .AddSingleton<IReadRepository, ReadRepository>()
-                .AddSingleton<IWriteRepository, WriteRepository>()
-                .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()
-                .AddSingleton<IRankingProvider, RankingProvider>()
-                .AddSingleton<IIntegrationProvider, IntegrationProvider>()
-                .AddSingleton<IWorldRecordProvider, WorldRecordProvider>()
-                .AddSingleton<IStageStatisticsProvider, StageStatisticsProvider>();
+                .AddSingleton<IStatisticsProvider, StatisticsProvider>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }

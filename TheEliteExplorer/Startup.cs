@@ -59,10 +59,8 @@ namespace TheEliteExplorer
                 .AddSingleton<IReadRepository, ReadRepository>()
                 .AddSingleton<IWriteRepository, WriteRepository>()
                 .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()
-                .AddSingleton<IRankingProvider, RankingProvider>()
                 .AddSingleton<IIntegrationProvider, IntegrationProvider>()
-                .AddSingleton<IWorldRecordProvider, WorldRecordProvider>()
-                .AddSingleton<IStageStatisticsProvider, StageStatisticsProvider>()
+                .AddSingleton<IStatisticsProvider, StatisticsProvider>()
                 .AddHostedService<CrawlerService>();
         }
 

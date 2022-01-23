@@ -43,17 +43,6 @@ namespace TheEliteExplorerCommon
         }
 
         /// <summary>
-        /// Tries to parse a string representing date (and optionnaly time) into a <see cref="DateTime"/>.
-        /// </summary>
-        /// <param name="dateTime">The string date.</param>
-        /// <returns>Instance of <see cref="DateTime"/> or <c>Null</c>.</returns>
-        public static DateTime? ToDateTime(this string dateTime)
-        {
-            return !string.IsNullOrWhiteSpace(dateTime) && DateTime.TryParse(dateTime, out DateTime dt) ?
-                dt : default(DateTime?);
-        }
-
-        /// <summary>
         /// Loops between a date and now with the step type and a step value of <c>1</c>.
         /// </summary>
         /// <param name="startDate">Start date.</param>

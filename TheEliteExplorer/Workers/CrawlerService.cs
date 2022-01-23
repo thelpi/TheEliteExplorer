@@ -33,19 +33,19 @@ namespace TheEliteExplorer.Workers
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                await CrawlGameTimes(Game.GoldenEye).ConfigureAwait(false);
-                await CrawlGameTimes(Game.PerfectDark).ConfigureAwait(false);
+                await CrawlGameTimesAsync(Game.GoldenEye).ConfigureAwait(false);
+                await CrawlGameTimesAsync(Game.PerfectDark).ConfigureAwait(false);
 
                 await Task.Delay(_delay, stoppingToken);
             }
         }
 
-        private async Task CrawlGameTimes(Game game)
+        private async Task CrawlGameTimesAsync(Game game)
         {
             try
             {
                 await _integrationProvider
-                    .ScanTimePage(game, null)
+                    .ScanTimePageAsync(game, null)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)

@@ -35,14 +35,14 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPost("games/{game}/new-entries")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ScanTimePage(
+        public async Task<IActionResult> ScanTimePageAsync(
             [FromRoute] Game game,
             [FromQuery] DateTime? startDate)
         {
             try
             {
                 await _integrationProvider
-                    .ScanTimePage(game, startDate)
+                    .ScanTimePageAsync(game, startDate)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -63,13 +63,13 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPost("stages/entries")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ScanTimePage(
+        public async Task<IActionResult> ScanTimePageAsync(
             [FromQuery] Stage[] stages)
         {
             foreach (var stage in stages)
             {
                 await _integrationProvider
-                    .ScanStageTimes(stage)
+                    .ScanStageTimesAsync(stage)
                     .ConfigureAwait(false);
             }
 
@@ -83,11 +83,11 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPut("games/{game}/entries")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ScanAllPlayersTimes(
+        public async Task<IActionResult> ScanAllPlayersTimesAsync(
             [FromRoute] Game game)
         {
             await _integrationProvider
-                .ScanAllPlayersEntriesHistory(game)
+                .ScanAllPlayersEntriesHistoryAsync(game)
                 .ConfigureAwait(false);
 
             return NoContent();
@@ -101,12 +101,12 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPut("games/{game}/players/{playerId}/entries")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ScanPlayerTimes(
+        public async Task<IActionResult> ScanPlayerTimesAsync(
             [FromRoute] Game game,
             [FromRoute] long playerId)
         {
             await _integrationProvider
-                .ScanPlayerEntriesHistory(game, playerId)
+                .ScanPlayerEntriesHistoryAsync(game, playerId)
                 .ConfigureAwait(false);
 
             return NoContent();
@@ -117,26 +117,26 @@ namespace TheEliteExplorer.Controllers
         /// </summary>
         /// <returns>Collection of players.</returns>
         [HttpGet("cleanable-dirty-players")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<ActionResult<IReadOnlyCollection<Player>>> GetCleanableDirtyPlayers()
+        [ProducesResponseType(typeof(IReadOnlyCollection<Player>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<IReadOnlyCollection<Player>>> GetCleanableDirtyPlayersAsync()
         {
             var players = await _integrationProvider
-                .GetCleanableDirtyPlayers()
+                .GetCleanableDirtyPlayersAsync()
                 .ConfigureAwait(false);
 
             return Ok(players);
         }
 
         /// <summary>
-        /// 
+        /// Checks for dirty players and update them in database.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Nothing.</returns>
         [HttpPost("dirty-players")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> CheckDirtyPlayers()
+        public async Task<IActionResult> CheckDirtyPlayersAsync()
         {
             await _integrationProvider
-                   .CheckDirtyPlayers()
+                   .CheckDirtyPlayersAsync()
                    .ConfigureAwait(false);
 
             return NoContent();

@@ -16,7 +16,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <param name="game">Game.</param>
         /// <returns>Nothing.</returns>
-        Task ScanAllPlayersEntriesHistory(Game game);
+        Task ScanAllPlayersEntriesHistoryAsync(Game game);
 
         /// <summary>
         /// Scans and inserts time entries for a single player; previous entries are removed.
@@ -24,19 +24,19 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="game">Game.</param>
         /// <param name="playerId">Player identifier.</param>
         /// <returns>Nothing.</returns>
-        Task ScanPlayerEntriesHistory(Game game, long playerId);
+        Task ScanPlayerEntriesHistoryAsync(Game game, long playerId);
 
         /// <summary>
         /// Gets dirty players with valid time page.
         /// </summary>
         /// <returns>Collection of players.</returns>
-        Task<IReadOnlyCollection<Player>> GetCleanableDirtyPlayers();
+        Task<IReadOnlyCollection<Player>> GetCleanableDirtyPlayersAsync();
 
         /// <summary>
         /// Checks players for dirt
         /// </summary>
         /// <returns>Nothing.</returns>
-        Task CheckDirtyPlayers();
+        Task CheckDirtyPlayersAsync();
 
         /// <summary>
         /// Scans and inserts time entries
@@ -47,13 +47,13 @@ namespace TheEliteExplorerDomain.Abstractions
         /// Date is rounded to the full month.
         /// </param>
         /// <returns>Nothing.</returns>
-        Task ScanTimePage(Game game, DateTime? startDate);
+        Task ScanTimePageAsync(Game game, DateTime? startDate);
 
         /// <summary>
         /// Scans every time entry of a stage.
         /// </summary>
         /// <param name="stage">The stage.</param>
         /// <returns>Nothing.</returns>
-        Task ScanStageTimes(Stage stage);
+        Task ScanStageTimesAsync(Stage stage);
     }
 }

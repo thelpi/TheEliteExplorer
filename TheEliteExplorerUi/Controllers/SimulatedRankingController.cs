@@ -23,84 +23,36 @@ namespace TheEliteExplorerUi.Controllers
         private const string PlayersViewName = "Players";
         private const string LastTiedWrViewName = "LastTiedWr";
         private const string PlayerDetailsViewName = "PlayerDetails";
-        private const string PlayersProgressionViewName = "PlayersProgression";
         private const string SweepsViewName = "Sweeps";
         private const string IndexViewName = "Index";
 
-        private readonly IRankingProvider _rankingProvider;
+        private readonly IStatisticsProvider _statisticsProvider;
         private readonly IReadRepository _repository;
-        private readonly IWorldRecordProvider _worldRecordProvider;
 
         public SimulatedRankingController(
-            IRankingProvider rankingProvider,
-            IReadRepository repository,
-            IWorldRecordProvider worldRecordProvider)
+            IStatisticsProvider statisticsProvider,
+            IReadRepository repository)
         {
-            _rankingProvider = rankingProvider;
+            _statisticsProvider = statisticsProvider;
             _repository = repository;
-            _worldRecordProvider = worldRecordProvider;
         }
 
         [HttpGet("/")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> IndexAsync()
         {
             return await DoAndCatchAsync(
                 IndexViewName,
                 "List of features",
                 async() =>
                 {
-                    var players = await _repository.GetPlayers().ConfigureAwait(false);
+                    var players = await _repository.GetPlayersAsync().ConfigureAwait(false);
 
                     return new IndexViewData { Players = players };
                 }).ConfigureAwait(false);
         }
 
-        /*[HttpGet("/game/{game}/progressions")]
-        public async Task<IActionResult> GetProgressions(
-            [FromRoute] Game game,
-            [FromQuery] ProgressionType progressType,
-            [FromQuery] int threshold)
-        {
-            return await DoAndCatchAsync(
-                PlayersProgressionViewName,
-                "Best progressions",
-                async () =>
-                {
-                    return await _rankingProvider
-                        .GetBestPlayerProgressions(game, progressType, threshold, 50)
-                        .ConfigureAwait(false);
-                }).ConfigureAwait(false);
-        }*/
-
-        /*[HttpGet("/game/{game}/stats")]
-        public async Task<IActionResult> GetWrStats([FromRoute] Game game)
-        {
-            var results = await _worldRecordProvider
-                .GetDateCountWrs(game)
-                .ConfigureAwait(false);
-
-            const string tab = "\t";
-            using (var w = new System.IO.StreamWriter($@"S:\iis_logs\stats{game}.csv"))
-            {
-                w.WriteLine(string.Join(tab, new[] { "Date", "WR count", "WR players", "UWR count", "UWR players" }));
-                foreach (var x in results)
-                {
-                    w.WriteLine(string.Join(tab, new[]
-                    {
-                        x.Date.ToString("yyyy-MM-dd"),
-                        x.TiedsCount.ToString(),
-                        x.TiedPlayers.Count.ToString(),
-                        x.UntiedsCount.ToString(),
-                        x.UntiedPlayers.Count.ToString()
-                    }));
-                }
-            }
-
-            return NoContent();
-        }*/
-
         [HttpGet("/games/{game}/sweeps")]
-        public async Task<IActionResult> GetSweeps(
+        public async Task<IActionResult> GetSweepsAsync(
             [FromRoute] Game game,
             [FromQuery] bool untied,
             [FromQuery] int? stage)
@@ -117,8 +69,8 @@ namespace TheEliteExplorerUi.Controllers
 
                     stage = stage.HasValue ? (game == Game.PerfectDark ? stage + 20 : stage) : null;
 
-                    var sweeps = await _worldRecordProvider
-                        .GetSweeps(game, untied, null, null, stage == null ? (Stage?)null : (Stage)stage.Value)
+                    var sweeps = await _statisticsProvider
+                        .GetSweepsAsync(game, untied, null, null, stage == null ? (Stage?)null : (Stage)stage.Value)
                         .ConfigureAwait(false);
 
                     return sweeps.OrderByDescending(s => s.Days).ToList();
@@ -126,7 +78,7 @@ namespace TheEliteExplorerUi.Controllers
         }
 
         [HttpGet("/games/{game}/last-tied-wr")]
-        public async Task<IActionResult> GetLastTiedWr(
+        public async Task<IActionResult> GetLastTiedWrAsync(
             [FromRoute] Game game,
             [FromQuery] DateTime? date)
         {
@@ -137,12 +89,12 @@ namespace TheEliteExplorerUi.Controllers
                 {
                     date = date ?? DateTime.Now;
 
-                    var entries = await _worldRecordProvider
-                        .GetLastTiedWrs(game, date.Value)
+                    var entries = await _statisticsProvider
+                        .GetLastTiedWrsAsync(game, date.Value)
                         .ConfigureAwait(false);
 
                     var players = await _repository
-                        .GetPlayers()
+                        .GetPlayersAsync()
                         .ConfigureAwait(false);
 
                     return entries.ToLastTiedWrViewData(date, players, StageImagePath);
@@ -150,21 +102,21 @@ namespace TheEliteExplorerUi.Controllers
         }
 
         [HttpGet("/players")]
-        public async Task<IActionResult> GetPlayers()
+        public async Task<IActionResult> GetPlayersAsync()
         {
             return await DoAndCatchAsync(
                 PlayersViewName,
                 "Players list",
                 async () =>
                 {
-                    var players = await _repository.GetPlayers().ConfigureAwait(false);
+                    var players = await _repository.GetPlayersAsync().ConfigureAwait(false);
 
                     return players.ToList();
                 }).ConfigureAwait(false);
         }
 
         [HttpGet("/games/{game}/player-rankings")]
-        public async Task<IActionResult> ByPlayer(
+        public async Task<IActionResult> GetRankingByPlayerAsync(
             [FromRoute] Game game,
             [FromQuery] long playerId,
             [FromQuery] DateTime? rankingDate)
@@ -175,12 +127,12 @@ namespace TheEliteExplorerUi.Controllers
                 return BadRequest();
             }
 
-            return await SimulateRankingInternal(game, rankingDate, playerId)
+            return await SimulateRankingInternalAsync(game, rankingDate, playerId)
                 .ConfigureAwait(false);
         }
 
         [HttpGet("/games/{game}/time-frame-rankings")]
-        public async Task<IActionResult> ByDateRange(
+        public async Task<IActionResult> GetRankingByTimeFrameAsync(
             [FromRoute] Game game,
             [FromQuery] DateTime? rankingDate,
             [FromQuery] int monthsPrior)
@@ -191,12 +143,12 @@ namespace TheEliteExplorerUi.Controllers
                 return BadRequest();
             }
 
-            return await SimulateRankingInternal(game, rankingDate, monthsPrior: monthsPrior)
+            return await SimulateRankingInternalAsync(game, rankingDate, monthsPrior: monthsPrior)
                 .ConfigureAwait(false);
         }
 
         [HttpGet("/games/{game}/losers-bracket-rankings")]
-        public async Task<IActionResult> ByStagesSkip(
+        public async Task<IActionResult> GetRankingWithNoWrAsync(
             [FromRoute] Game game,
             [FromQuery] DateTime? rankingDate,
             [FromQuery] bool untied)
@@ -206,12 +158,12 @@ namespace TheEliteExplorerUi.Controllers
                 return BadRequest();
             }
 
-            return await SimulateRankingInternal(game, rankingDate, excludeWinners: (untied ? (bool?)null : true))
+            return await SimulateRankingInternalAsync(game, rankingDate, excludeWinners: (untied ? (bool?)null : true))
                 .ConfigureAwait(false);
         }
 
         [HttpGet("/games/{game}/cherry-pick-rankings")]
-        public async Task<IActionResult> ByStagesSkip(
+        public async Task<IActionResult> GetRankingByStageCherryPickAsync(
             [FromRoute] Game game,
             [FromQuery] DateTime? rankingDate,
             [FromQuery] Stage[] skipStages)
@@ -221,12 +173,12 @@ namespace TheEliteExplorerUi.Controllers
                 return BadRequest();
             }
 
-            return await SimulateRankingInternal(game, rankingDate, skipStages: skipStages)
+            return await SimulateRankingInternalAsync(game, rankingDate, skipStages: skipStages)
                 .ConfigureAwait(false);
         }
 
         [HttpGet("/games/{game}/players/{playerId}/details")]
-        public async Task<IActionResult> GetPlayerDetailsForSpecifiedRanking(
+        public async Task<IActionResult> GetPlayerDetailsForSpecifiedRankingAsync(
             [FromRoute] Game game,
             [FromRoute] long playerId,
             [FromQuery] DateTime? rankingDate,
@@ -238,7 +190,7 @@ namespace TheEliteExplorerUi.Controllers
                 $"PlayerID {playerId} - {game.ToString()} times",
                 async () =>
                 {
-                    var rankingEntries = await GetRankingsWithParams(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, false).ConfigureAwait(false);
+                    var rankingEntries = await GetRankingsWithParamsAsync(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, false).ConfigureAwait(false);
 
                     var pRanking = rankingEntries.Single(r => r.PlayerId == playerId);
 
@@ -246,7 +198,7 @@ namespace TheEliteExplorerUi.Controllers
                 }).ConfigureAwait(false);
         }
 
-        private async Task<IActionResult> SimulateRankingInternal(
+        private async Task<IActionResult> SimulateRankingInternalAsync(
             Game game,
             DateTime? rankingDate,
             long? playerId = null,
@@ -259,7 +211,7 @@ namespace TheEliteExplorerUi.Controllers
                 "The GoldenEye/PerfectDark World Records and Rankings SIMULATOR",
                 async () =>
                 {
-                    var rankingEntries = await GetRankingsWithParams(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, excludeWinners).ConfigureAwait(false);
+                    var rankingEntries = await GetRankingsWithParamsAsync(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, excludeWinners).ConfigureAwait(false);
 
                     var pointsRankingEntries = rankingEntries
                         .Where(r => r.Rank <= MaxRankDisplay)
@@ -293,7 +245,7 @@ namespace TheEliteExplorerUi.Controllers
                 }).ConfigureAwait(false);
         }
 
-        private async Task<List<RankingEntry>> GetRankingsWithParams(
+        private async Task<List<RankingEntry>> GetRankingsWithParamsAsync(
             Game game,
             DateTime rankingDate,
             long? playerId,
@@ -301,8 +253,8 @@ namespace TheEliteExplorerUi.Controllers
             Stage[] skipStages,
             bool? excludeWinners)
         {
-            var rankingEntriesBase = await _rankingProvider
-                                .GetRankingEntries(game, rankingDate, true, playerId, monthsPrior, skipStages, excludeWinners)
+            var rankingEntriesBase = await _statisticsProvider
+                                .GetRankingEntriesAsync(game, rankingDate, true, playerId, monthsPrior, skipStages, excludeWinners)
                                 .ConfigureAwait(false);
             
             return rankingEntriesBase.Select(r => r as RankingEntry).ToList();
