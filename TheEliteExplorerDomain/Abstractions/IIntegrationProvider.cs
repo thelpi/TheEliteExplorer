@@ -55,5 +55,12 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="stage">The stage.</param>
         /// <returns>Nothing.</returns>
         Task ScanStageTimesAsync(Stage stage);
+
+        /// <summary>
+        /// Cleans a specified dirty player.
+        /// </summary>
+        /// <param name="playerId">Player identifier.</param>
+        /// <returns><c>True</c> if success; <c>False</c> otherwise.</returns>
+        Task<bool> CleanDirtyPlayerAsync(long playerId);
     }
 }

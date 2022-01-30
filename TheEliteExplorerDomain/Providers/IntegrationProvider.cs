@@ -164,6 +164,30 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
+        public async Task<bool> CleanDirtyPlayerAsync(long playerId)
+        {
+            var players = await _readRepository
+                .GetDirtyPlayersAsync()
+                .ConfigureAwait(false);
+
+            var p = players.SingleOrDefault(_ => _.Id == playerId);
+            if (p == null)
+                return false;
+
+            var pInfo = await _siteParser
+                .GetPlayerInformationAsync(p.UrlName, Player.DefaultPlayerHexColor)
+                .ConfigureAwait(false);
+            if (pInfo == null)
+                return false;
+
+            await _writeRepository
+                .CleanPlayerAsync(pInfo)
+                .ConfigureAwait(false);
+
+            return true;
+        }
+
+        /// <inheritdoc />
         public async Task CheckDirtyPlayersAsync()
         {
             var nonDirtyPlayers = await _readRepository

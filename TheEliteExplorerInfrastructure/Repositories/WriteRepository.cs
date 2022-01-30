@@ -18,6 +18,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _insertPlayerPsName = "insert_player";
         private const string _insertEntryPsName = "insert_entry";
         private const string _updateDirtyPlayerPsName = "update_dirty_player";
+        private const string _updateCleanPlayerPsName = "update_player";
         private const string _deletePlayerEntriesPsName = "delete_player_entry";
 
         private readonly IConnectionProvider _connectionProvider;
@@ -114,6 +115,27 @@ namespace TheEliteExplorerInfrastructure.Repositories
                         player_id = playerId
                     },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task CleanPlayerAsync(PlayerDto player)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection
+                    .QueryAsync(
+                        ToPsName(_updateCleanPlayerPsName),
+                        new
+                        {
+                            id = player.Id,
+                            real_name = player.RealName,
+                            surname = player.SurName,
+                            color = player.Color,
+                            control_style = player.ControlStyle
+                        },
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
             }
         }
 

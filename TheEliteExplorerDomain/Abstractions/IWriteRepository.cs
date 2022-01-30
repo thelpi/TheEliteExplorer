@@ -51,5 +51,12 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="playerId">Player identifier.</param>
         /// <returns>Nothing.</returns>
         Task UpdateDirtyPlayerAsync(long playerId);
+
+        /// <summary>
+        /// Cleans a dirty player.
+        /// </summary>
+        /// <param name="player">Player information.</param>
+        /// <returns>Nothing</returns>
+        Task CleanPlayerAsync(PlayerDto player);
     }
 }

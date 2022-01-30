@@ -54,6 +54,13 @@
             <param name="stage">The stage.</param>
             <returns>Nothing.</returns>
         </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.CleanDirtyPlayerAsync(System.Int64)">
+            <summary>
+            Cleans a specified dirty player.
+            </summary>
+            <param name="playerId">Player identifier.</param>
+            <returns><c>True</c> if success; <c>False</c> otherwise.</returns>
+        </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.IReadRepository">
             <summary>
             Read operations in repository (interface).
@@ -244,6 +251,13 @@
             </summary>
             <param name="playerId">Player identifier.</param>
             <returns>Nothing.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.CleanPlayerAsync(TheEliteExplorerDomain.Dtos.PlayerDto)">
+            <summary>
+            Cleans a dirty player.
+            </summary>
+            <param name="player">Player information.</param>
+            <returns>Nothing</returns>
         </member>
         <member name="T:TheEliteExplorerDomain.Configuration.RankingConfiguration">
             <summary>
@@ -1171,6 +1185,9 @@
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.ScanStageTimesAsync(TheEliteExplorerDomain.Enums.Stage)">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.CleanDirtyPlayerAsync(System.Int64)">
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.CheckDirtyPlayersAsync">

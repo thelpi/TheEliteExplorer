@@ -141,5 +141,28 @@ namespace TheEliteExplorer.Controllers
 
             return NoContent();
         }
+
+        /// <summary>
+        /// Cleans a dirty player.
+        /// </summary>
+        /// <param name="playerId">Player identifier.</param>
+        /// <returns>Nothing.</returns>
+        [HttpPatch("dirty-players/{playerId}")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> CleanDirtyPlayerAsync([FromRoute] long playerId)
+        {
+            if (playerId <= 0)
+            {
+                return BadRequest();
+            }
+
+            var success = await _integrationProvider
+                .CleanDirtyPlayerAsync(playerId)
+                .ConfigureAwait(false);
+
+            return success ? (IActionResult)NoContent() : NotFound();
+        }
     }
 }
