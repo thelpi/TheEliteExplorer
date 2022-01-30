@@ -62,5 +62,11 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="playerId">Player identifier.</param>
         /// <returns><c>True</c> if success; <c>False</c> otherwise.</returns>
         Task<bool> CleanDirtyPlayerAsync(long playerId);
+
+        /// <summary>
+        /// Resets the join date of every player.
+        /// </summary>
+        /// <returns>Nothing.</returns>
+        Task ResetPlayersJoinDateAsync();
     }
 }

@@ -19,7 +19,9 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _insertEntryPsName = "insert_entry";
         private const string _updateDirtyPlayerPsName = "update_dirty_player";
         private const string _updateCleanPlayerPsName = "update_player";
+        private const string _updatePlayersJoinDatePsName = "update_player_join_date";
         private const string _deletePlayerEntriesPsName = "delete_player_entry";
+        private const string _updateEntryDate = "update_entry_date";
 
         private readonly IConnectionProvider _connectionProvider;
 
@@ -79,11 +81,11 @@ namespace TheEliteExplorerInfrastructure.Repositories
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
-                // lazy !
                 await connection
                     .QueryAsync(
-                        "UPDATE [dbo].[entry] SET [date] = @date WHERE [id] = @entryId",
-                        new { date, entryId })
+                        ToPsName(_updateEntryDate),
+                        new { date, entryId },
+                        commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
             }
         }
@@ -134,6 +136,19 @@ namespace TheEliteExplorerInfrastructure.Repositories
                             color = player.Color,
                             control_style = player.ControlStyle
                         },
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task ResetPlayersJoinDateAsync()
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection
+                    .QueryAsync(
+                        ToPsName(_updatePlayersJoinDatePsName),
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
             }

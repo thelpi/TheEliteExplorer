@@ -209,6 +209,14 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
+        /// <inheritdoc />
+        public async Task ResetPlayersJoinDateAsync()
+        {
+            await _writeRepository
+                .ResetPlayersJoinDateAsync()
+                .ConfigureAwait(false);
+        }
+
         private async Task<DateTime> GetStartDateAsync(
             Game game,
             DateTime? startDate)

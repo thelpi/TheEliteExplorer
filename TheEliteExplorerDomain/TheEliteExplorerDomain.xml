@@ -61,6 +61,12 @@
             <param name="playerId">Player identifier.</param>
             <returns><c>True</c> if success; <c>False</c> otherwise.</returns>
         </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.ResetPlayersJoinDateAsync">
+            <summary>
+            Resets the join date of every player.
+            </summary>
+            <returns>Nothing.</returns>
+        </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.IReadRepository">
             <summary>
             Read operations in repository (interface).
@@ -258,6 +264,12 @@
             </summary>
             <param name="player">Player information.</param>
             <returns>Nothing</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.ResetPlayersJoinDateAsync">
+            <summary>
+            Resets the join date of every player.
+            </summary>
+            <returns>Nothing.</returns>
         </member>
         <member name="T:TheEliteExplorerDomain.Configuration.RankingConfiguration">
             <summary>
@@ -1191,6 +1203,9 @@
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.CheckDirtyPlayersAsync">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.ResetPlayersJoinDateAsync">
             <inheritdoc />
         </member>
         <member name="T:TheEliteExplorerDomain.Providers.StatisticsProvider">
