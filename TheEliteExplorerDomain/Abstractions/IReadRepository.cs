@@ -64,6 +64,6 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="rankingDate">Ranking date.</param>
         /// <param name="noDateRule">Rule to apply for empty dates.</param>
         /// <returns>Collection of <see cref="RankingBaseDto"/>.</returns>
-        Task<IReadOnlyCollection<RankingBaseDto>> GetStageLevelRankingAsync(Stage stage, Level level, DateTime rankingDate, NoDateEntryRankingRule noDateRule);
+        Task<IReadOnlyList<RankingBaseDto>> GetStageLevelRankingAsync(Stage stage, Level level, DateTime rankingDate, NoDateEntryRankingRule noDateRule);
     }
 }

@@ -673,5 +673,65 @@ namespace TheEliteExplorerDomain.Providers
 
             return sweeps;
         }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<GameRank>> GetGameRankingAsync(
+            Game game,
+            DateTime rankingDate,
+            NoDateEntryRankingRule noDateEntryRankingRule,
+            bool byTime)
+        {
+            var rankingDict = (await GetPlayersDictionaryAsync().ConfigureAwait(false))
+                .ToDictionary(_ => _.Key, _ => new GameRank(new Player(_.Value)));
+
+            const int BasePoints = 100;
+
+            foreach (var stage in game.GetStages())
+            {
+                foreach (var level in SystemExtensions.Enumerate<Level>())
+                {
+                    var stageLevelRk = await _readRepository
+                        .GetStageLevelRankingAsync(stage, level, rankingDate, noDateEntryRankingRule)
+                        .ConfigureAwait(false);
+
+                    var currentPoints = BasePoints;
+                    long currentTime = 0;
+                    for (var i = 0; i < stageLevelRk.Count; i++)
+                    {
+                        var slRk = stageLevelRk[i];
+                        var rk = rankingDict[slRk.PlayerId];
+
+                        var points = currentPoints;
+                        if (currentTime > 0 && currentTime != slRk.Time && points > 0)
+                        {
+                            points = BasePoints - i - (i == 1 ? 2 : 3);
+                        }
+
+                        rk.AddEntry(slRk, points);
+
+                        currentTime = slRk.Time;
+                        currentPoints = points;
+                    }
+                }
+            }
+
+            foreach (var key in rankingDict.Keys)
+            {
+                rankingDict[key].FillMissingTimes(
+                    game.GetStages().Count * Enum.GetValues(typeof(Level)).Length);
+            }
+
+            var ranking = byTime
+                ? rankingDict.Select(_ => _.Value).OrderBy(_ => _.Time).ToList()
+                : rankingDict.Select(_ => _.Value).OrderByDescending(_ => _.Points).ToList();
+
+            return ranking
+                .Select((_, i) => i == 0
+                    ? _.WithRank(i, 0, false)
+                    : _.WithRank(i, ranking[i - 1].Rank, byTime
+                        ? ranking[i - 1].Time == _.Time
+                        : ranking[i - 1].Points == _.Points))
+                .ToList();
+        }
     }
 }

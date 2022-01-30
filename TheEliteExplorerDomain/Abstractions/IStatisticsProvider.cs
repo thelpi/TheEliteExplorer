@@ -72,5 +72,19 @@ namespace TheEliteExplorerDomain.Abstractions
             int? monthsOfFreshTimes = null,
             Stage[] skipStages = null,
             bool? excludeWinners = false);
+
+        /// <summary>
+        /// Gets the full ranking at any date for a game.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="rankingDate">Ranking date.</param>
+        /// <param name="noDateEntryRankingRule">No date entry ranking rule.</param>
+        /// <param name="byTime">Ranking by time; otherwise by points.</param>
+        /// <returns>Full ranking.</returns>
+        Task<IReadOnlyCollection<GameRank>> GetGameRankingAsync(
+            Game game,
+            DateTime rankingDate,
+            NoDateEntryRankingRule noDateEntryRankingRule,
+            bool byTime);
     }
 }
