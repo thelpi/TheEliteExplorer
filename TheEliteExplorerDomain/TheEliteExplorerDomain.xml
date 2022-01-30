@@ -117,6 +117,16 @@
             </summary>
             <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.PlayerDto"/>.</returns>
         </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetStageLevelRankingAsync(TheEliteExplorerDomain.Enums.Stage,TheEliteExplorerDomain.Enums.Level,System.DateTime,TheEliteExplorerDomain.Enums.NoDateEntryRankingRule)">
+            <summary>
+            Gets the ranking for a stage and level at a specified date.
+            </summary>
+            <param name="stage">Stage.</param>
+            <param name="level">Level.</param>
+            <param name="rankingDate">Ranking date.</param>
+            <param name="noDateRule">Rule to apply for empty dates.</param>
+            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.RankingBaseDto"/>.</returns>
+        </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.IStatisticsProvider">
             <summary>
             Statistics provider interface.
@@ -378,14 +388,44 @@
             </summary>
             <remarks>No time part.</remarks>
         </member>
+        <member name="T:TheEliteExplorerDomain.Dtos.RankingBaseDto">
+            <summary>
+            Ranking base DTO.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.PlayerId">
+            <summary>
+            Player identifier.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.EntryDate">
+            <summary>
+            Entry date.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.Time">
+            <summary>
+            Time.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.IsSimulatedDate">
+            <summary>
+            Date is simulated y/n.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.EntryId">
+            <summary>
+            Entry identifier.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.SystemId">
+            <summary>
+            System identifier.
+            </summary>
+        </member>
         <member name="T:TheEliteExplorerDomain.Dtos.RankingDto">
             <summary>
             Ranking DTO.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.PlayerId">
-            <summary>
-            Player identifier.
             </summary>
         </member>
         <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Stage">
@@ -403,19 +443,9 @@
             Date.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Time">
-            <summary>
-            Time.
-            </summary>
-        </member>
         <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Rank">
             <summary>
             Rank.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.EntryDate">
-            <summary>
-            Entry date.
             </summary>
         </member>
         <member name="T:TheEliteExplorerDomain.Dtos.WrDto">

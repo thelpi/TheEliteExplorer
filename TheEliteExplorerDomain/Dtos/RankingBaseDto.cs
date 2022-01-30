@@ -1,4 +1,5 @@
 ﻿using System;
+using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerDomain.Dtos
 {
@@ -23,5 +24,13 @@ namespace TheEliteExplorerDomain.Dtos
         /// Date is simulated y/n.
         /// </summary>
         public bool IsSimulatedDate { get; set; }
+        /// <summary>
+        /// Entry identifier.
+        /// </summary>
+        public long EntryId { get; set; }
+        /// <summary>
+        /// System identifier.
+        /// </summary>
+        public Engine? SystemId { get; set; }
     }
 }
