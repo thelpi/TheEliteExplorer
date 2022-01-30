@@ -22,6 +22,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _getEntriesCountPsName = "select_entry_count";
         private const string _getLatestEntryDatePsName = "select_latest_entry_date";
         private const string _getEveryPlayersPsName = "select_player";
+        private const string _getStageLevelRankingPsName = "select_stage_level_ranking";
 
         private readonly IConnectionProvider _connectionProvider;
 
@@ -95,6 +96,28 @@ namespace TheEliteExplorerInfrastructure.Repositories
                         },
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<RankingBaseDto>> GetStageLevelRankingAsync(Stage stage, Level level, DateTime rankingDate, NoDateEntryRankingRule noDateRule)
+        {
+            using (var connection = _connectionProvider.TheEliteConnection)
+            {
+                return (
+                    await connection
+                        .QueryAsync<RankingBaseDto>(
+                            ToPsName(_getStageLevelRankingPsName),
+                            new
+                            {
+                                stage_id = (long)stage,
+                                level_id = (long)level,
+                                date = rankingDate,
+                                rule_id = (long)noDateRule
+                            },
+                            commandType: CommandType.StoredProcedure)
+                        .ConfigureAwait(false)
+                ).ToList();
             }
         }
 

@@ -6,12 +6,8 @@ namespace TheEliteExplorerDomain.Dtos
     /// <summary>
     /// Ranking DTO.
     /// </summary>
-    public class RankingDto
+    public class RankingDto : RankingBaseDto
     {
-        /// <summary>
-        /// Player identifier.
-        /// </summary>
-        public long PlayerId { get; set; }
         /// <summary>
         /// Stage.
         /// </summary>
@@ -25,16 +21,8 @@ namespace TheEliteExplorerDomain.Dtos
         /// </summary>
         public DateTime Date { get; set; }
         /// <summary>
-        /// Time.
-        /// </summary>
-        public long Time { get; set; }
-        /// <summary>
         /// Rank.
         /// </summary>
         public int Rank { get; set; }
-        /// <summary>
-        /// Entry date.
-        /// </summary>
-        public DateTime? EntryDate { get; set; }
     }
 }

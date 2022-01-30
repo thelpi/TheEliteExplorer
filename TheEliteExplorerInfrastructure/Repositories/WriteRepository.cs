@@ -21,7 +21,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _updateCleanPlayerPsName = "update_player";
         private const string _updatePlayersJoinDatePsName = "update_player_join_date";
         private const string _deletePlayerEntriesPsName = "delete_player_entry";
-        private const string _updateEntryDate = "update_entry_date";
+        private const string _updateEntryDatePsName = "update_entry_date";
 
         private readonly IConnectionProvider _connectionProvider;
 
@@ -83,7 +83,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
             {
                 await connection
                     .QueryAsync(
-                        ToPsName(_updateEntryDate),
+                        ToPsName(_updateEntryDatePsName),
                         new { date, entryId },
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
