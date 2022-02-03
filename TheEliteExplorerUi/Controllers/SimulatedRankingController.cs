@@ -25,6 +25,7 @@ namespace TheEliteExplorerUi.Controllers
         private const string PlayerDetailsViewName = "PlayerDetails";
         private const string SweepsViewName = "Sweeps";
         private const string IndexViewName = "Index";
+        private const string RankingBoxesViewName = "RankingBoxes";
 
         private readonly IStatisticsProvider _statisticsProvider;
         private readonly IReadRepository _repository;
@@ -49,6 +50,59 @@ namespace TheEliteExplorerUi.Controllers
 
                     return new IndexViewData { Players = players };
                 }).ConfigureAwait(false);
+        }
+
+        [HttpGet("/games/{game}/ranking")]
+        public async Task<IActionResult> GetFGameRankingAsync(
+            [FromRoute] Game game,
+            [FromQuery] DateTime? rankingDate)
+        {
+            return await DoAndCatchAsync(
+                RankingBoxesViewName,
+                $"{game} ranking",
+                async() =>
+                {
+                    var ranking = await _statisticsProvider
+                        .GetGameRankingAsync(game, (rankingDate ?? DateTime.Now).Date, NoDateEntryRankingRule.Average)
+                        .ConfigureAwait(false);
+
+                    var pointsRankingData = new List<PointsRankingItemData>();
+                    foreach (var entry in ranking.OrderBy(r => r.PointsRank))
+                    {
+                        pointsRankingData.Add(new PointsRankingItemData
+                        {
+                            EasyPoints = entry.LevelPoints[Level.Easy],
+                            HardPoints = entry.LevelPoints[Level.Hard],
+                            MediumPoints = entry.LevelPoints[Level.Medium],
+                            PlayerColor = entry.Player.Color,
+                            PlayerName = game == Game.PerfectDark
+                                ? entry.Player.SurName
+                                : entry.Player.RealName,
+                            Rank = entry.PointsRank,
+                            TotalPoints = entry.Points
+                        });
+                    }
+
+                    var timeRankingData = new List<TimeRankingItemData>();
+                    foreach (var entry in ranking.OrderBy(r => r.TimeRank))
+                    {
+                        timeRankingData.Add(new TimeRankingItemData
+                        {
+                            EasyTime = entry.LevelTime[Level.Easy],
+                            HardTime = entry.LevelTime[Level.Hard],
+                            MediumTime = entry.LevelTime[Level.Medium],
+                            PlayerColor = entry.Player.Color,
+                            PlayerName = game == Game.PerfectDark
+                                ? entry.Player.SurName
+                                : entry.Player.RealName,
+                            Rank = entry.TimeRank,
+                            TotalTime = entry.Time
+                        });
+                    }
+
+                    return new Tuple<List<PointsRankingItemData>, List<TimeRankingItemData>>(pointsRankingData, timeRankingData);
+                })
+                .ConfigureAwait(false);
         }
 
         [HttpGet("/games/{game}/sweeps")]

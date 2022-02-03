@@ -678,11 +678,10 @@ namespace TheEliteExplorerDomain.Providers
         public async Task<IReadOnlyCollection<GameRank>> GetGameRankingAsync(
             Game game,
             DateTime rankingDate,
-            NoDateEntryRankingRule noDateEntryRankingRule,
-            bool byTime)
+            NoDateEntryRankingRule noDateEntryRankingRule)
         {
             var rankingDict = (await GetPlayersDictionaryAsync().ConfigureAwait(false))
-                .ToDictionary(_ => _.Key, _ => new GameRank(new Player(_.Value)));
+                .ToDictionary(_ => _.Key, _ => new GameRank(_.Value));
 
             const int BasePoints = 100;
 
@@ -707,7 +706,7 @@ namespace TheEliteExplorerDomain.Providers
                             points = BasePoints - i - (i == 1 ? 2 : 3);
                         }
 
-                        rk.AddEntry(slRk, points);
+                        rk.AddEntry(slRk, points, level);
 
                         currentTime = slRk.Time;
                         currentPoints = points;
@@ -721,17 +720,19 @@ namespace TheEliteExplorerDomain.Providers
                     game.GetStages().Count * Enum.GetValues(typeof(Level)).Length);
             }
 
-            var ranking = byTime
-                ? rankingDict.Select(_ => _.Value).OrderBy(_ => _.Time).ToList()
-                : rankingDict.Select(_ => _.Value).OrderByDescending(_ => _.Points).ToList();
+            var gr = new List<GameRank>();
+            foreach (var rkKey in rankingDict.Keys)
+            {
+                var rk = rankingDict[rkKey];
 
-            return ranking
-                .Select((_, i) => i == 0
-                    ? _.WithRank(i, 0, false)
-                    : _.WithRank(i, ranking[i - 1].Rank, byTime
-                        ? ranking[i - 1].Time == _.Time
-                        : ranking[i - 1].Points == _.Points))
-                .ToList();
+                rk.PointsRank = rankingDict.Values.Count(_ => _.Points > rk.Points) + 1;
+
+                rk.TimeRank = rankingDict.Values.Count(_ => _.Time < rk.Time) + 1;
+
+                gr.Add(rk);
+            }
+
+            return gr;
         }
     }
 }

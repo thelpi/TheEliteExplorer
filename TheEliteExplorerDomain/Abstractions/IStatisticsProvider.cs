@@ -79,12 +79,10 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="game">Game.</param>
         /// <param name="rankingDate">Ranking date.</param>
         /// <param name="noDateEntryRankingRule">No date entry ranking rule.</param>
-        /// <param name="byTime">Ranking by time; otherwise by points.</param>
         /// <returns>Full ranking.</returns>
         Task<IReadOnlyCollection<GameRank>> GetGameRankingAsync(
             Game game,
             DateTime rankingDate,
-            NoDateEntryRankingRule noDateEntryRankingRule,
-            bool byTime);
+            NoDateEntryRankingRule noDateEntryRankingRule);
     }
 }

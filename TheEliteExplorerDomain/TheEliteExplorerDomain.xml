@@ -180,14 +180,13 @@
             sorted by <see cref="P:TheEliteExplorerDomain.Models.RankingEntryLight.Points"/> descending.
             </returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetGameRankingAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,TheEliteExplorerDomain.Enums.NoDateEntryRankingRule,System.Boolean)">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetGameRankingAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,TheEliteExplorerDomain.Enums.NoDateEntryRankingRule)">
             <summary>
             Gets the full ranking at any date for a game.
             </summary>
             <param name="game">Game.</param>
             <param name="rankingDate">Ranking date.</param>
             <param name="noDateEntryRankingRule">No date entry ranking rule.</param>
-            <param name="byTime">Ranking by time; otherwise by points.</param>
             <returns>Full ranking.</returns>
         </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser">
@@ -925,14 +924,14 @@
             Represents a ranking entry for a game.
             </summary>
         </member>
-        <member name="F:TheEliteExplorerDomain.Models.GameRank.UnsetTime">
+        <member name="P:TheEliteExplorerDomain.Models.GameRank.TimeRank">
             <summary>
-            Time simulated, in seconds, when no entry found.
+            Time rank.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.GameRank.Rank">
+        <member name="P:TheEliteExplorerDomain.Models.GameRank.PointsRank">
             <summary>
-            Rank.
+            Points rank.
             </summary>
         </member>
         <member name="P:TheEliteExplorerDomain.Models.GameRank.Player">
@@ -950,9 +949,14 @@
             Time (in seconds).
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.GameRank.Times">
+        <member name="P:TheEliteExplorerDomain.Models.GameRank.LevelPoints">
             <summary>
-            Count of stage/level tuples with time.
+            Points by level
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.GameRank.LevelTime">
+            <summary>
+            Time by level
             </summary>
         </member>
         <member name="T:TheEliteExplorerDomain.Models.Player">
@@ -1310,7 +1314,7 @@
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLastTiedWrsAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime)">
             <inheritdoc />
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetGameRankingAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,TheEliteExplorerDomain.Enums.NoDateEntryRankingRule,System.Boolean)">
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetGameRankingAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,TheEliteExplorerDomain.Enums.NoDateEntryRankingRule)">
             <inheritdoc />
         </member>
     </members>
