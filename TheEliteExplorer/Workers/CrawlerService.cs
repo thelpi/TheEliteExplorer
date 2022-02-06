@@ -31,7 +31,7 @@ namespace TheEliteExplorer.Workers
         /// <inheritdoc />
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested && false)
             {
                 await CrawlGameTimesAsync(Game.GoldenEye).ConfigureAwait(false);
                 await CrawlGameTimesAsync(Game.PerfectDark).ConfigureAwait(false);

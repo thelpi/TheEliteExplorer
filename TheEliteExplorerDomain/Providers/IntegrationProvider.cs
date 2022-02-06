@@ -180,6 +180,8 @@ namespace TheEliteExplorerDomain.Providers
             if (pInfo == null)
                 return false;
 
+            pInfo.Id = playerId;
+
             await _writeRepository
                 .CleanPlayerAsync(pInfo)
                 .ConfigureAwait(false);
