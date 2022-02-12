@@ -17,7 +17,7 @@ namespace TheEliteExplorerUi.Controllers
     {
         private const string LogsFilePath = @"S:\iis_logs\global_app.log";
 
-        private const int MaxRankDisplay = 50;
+        private const int MaxRankDisplay = 500;
         private const string StageImagePath = @"/images/{0}.jpg";
         private const string RankingViewName = "SimulatedRanking";
         private const string PlayersViewName = "Players";
@@ -52,7 +52,7 @@ namespace TheEliteExplorerUi.Controllers
                 }).ConfigureAwait(false);
         }
 
-        [HttpGet("/games/{game}/ranking")]
+        /*[HttpGet("/games/{game}/ranking")]
         public async Task<IActionResult> GetFGameRankingAsync(
             [FromRoute] Game game,
             [FromQuery] DateTime? rankingDate)
@@ -103,7 +103,7 @@ namespace TheEliteExplorerUi.Controllers
                     return new Tuple<List<PointsRankingItemData>, List<TimeRankingItemData>>(pointsRankingData, timeRankingData);
                 })
                 .ConfigureAwait(false);
-        }
+        }*/
 
         [HttpGet("/games/{game}/sweeps")]
         public async Task<IActionResult> GetSweepsAsync(

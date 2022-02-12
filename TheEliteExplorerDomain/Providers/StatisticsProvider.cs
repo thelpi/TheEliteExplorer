@@ -21,18 +21,24 @@ namespace TheEliteExplorerDomain.Providers
     {
         private readonly IReadRepository _readRepository;
         private readonly RankingConfiguration _configuration;
+        private readonly IWriteRepository _writeRepository;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Ranking configuration.</param>
         /// <param name="readRepository">Instance of <see cref="IReadRepository"/>.</param>
+        /// <param name="writeRepository">Instance of <see cref="IWriteRepository"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
-        public StatisticsProvider(IReadRepository readRepository,
-            IOptions<RankingConfiguration> configuration)
+        /// <exception cref="ArgumentNullException"><paramref name="writeRepository"/> is <c>Null</c>.</exception>
+        public StatisticsProvider(
+            IReadRepository readRepository,
+            IOptions<RankingConfiguration> configuration,
+            IWriteRepository writeRepository)
         {
             _readRepository = readRepository ?? throw new ArgumentNullException(nameof(readRepository));
+            _writeRepository = writeRepository ?? throw new ArgumentNullException(nameof(writeRepository));
             _configuration = configuration?.Value ?? throw new ArgumentNullException(nameof(configuration));
         }
 
@@ -162,6 +168,36 @@ namespace TheEliteExplorerDomain.Providers
             return daysByStage.ToDictionary(_ => _.Key, _ => _.Value);
         }
 
+        /// <inheritdoc />
+        public async Task GeneratePermanentRankingsBetweenDatesAsync(Game game, DateTime fromDate, DateTime? toDate, long rankingTypeId)
+        {
+            var startDate = fromDate.Date;
+            var endDate = (toDate ?? ServiceProviderAccessor.ClockProvider.Now).Date;
+
+            var players = await GetPlayersAsync().ConfigureAwait(false);
+
+            var entriesCache = new ConcurrentDictionary<(Stage, Level), List<EntryDto>>();
+
+            try
+            {
+                foreach (var date in startDate.LoopBetweenDates(endDate, DateStep.Day))
+                {
+                    var rankings = await ComputeRankingEntriesAllStagesAndLevelsAsync(players, game, date.Date, null, null, null, entriesCache, rankingTypeId).ConfigureAwait(false);
+
+                    foreach (var ranking in rankings)
+                    {
+                        await _writeRepository
+                            .InsertRankingEntryAsync(ranking)
+                            .ConfigureAwait(false);
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
         private async Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntriesPrivateAsync(
             IDictionary<long, PlayerDto> players,
             Game game,
@@ -171,23 +207,11 @@ namespace TheEliteExplorerDomain.Providers
             int? monthsOfFreshTimes = null,
             Stage[] skipStages = null,
             bool? excludeWinners = false,
-            Dictionary<(Stage, Level), List<EntryDto>> cache = null)
+            ConcurrentDictionary<(Stage, Level), List<EntryDto>> cache = null)
         {
             rankingDate = rankingDate.Date;
 
-            var finalEntries = new List<RankingDto>();
-            foreach (var stage in game.GetStages())
-            {
-                if (skipStages?.Contains(stage) == true) continue;
-
-                foreach (var level in SystemExtensions.Enumerate<Level>())
-                {
-                    var stageLevelRankings = await RebuildRankingHistoryInternalAsync(players, stage, level, cache,
-                            new Tuple<long?, DateTime, int?>(simulatedPlayerId, rankingDate, monthsOfFreshTimes))
-                        .ConfigureAwait(false);
-                    finalEntries.AddRange(stageLevelRankings);
-                }
-            }
+            var finalEntries = await ComputeRankingEntriesAllStagesAndLevelsAsync(players, game, rankingDate, simulatedPlayerId, monthsOfFreshTimes, skipStages, cache).ConfigureAwait(false);
 
             if (excludeWinners != false)
             {
@@ -246,30 +270,76 @@ namespace TheEliteExplorerDomain.Providers
                 .WithRanks(r => r.Points);
         }
 
+        private async Task<List<RankingDto>> ComputeRankingEntriesAllStagesAndLevelsAsync(
+            IDictionary<long, PlayerDto> players,
+            Game game,
+            DateTime rankingDate,
+            long? simulatedPlayerId,
+            int? monthsOfFreshTimes,
+            Stage[] skipStages,
+            ConcurrentDictionary<(Stage, Level), List<EntryDto>> cache,
+            long rankingTypeId = 0)
+        {
+            var finalEntries = new List<RankingDto>();
+
+            var tasks = new List<Task>();
+            foreach (var level in SystemExtensions.Enumerate<Level>())
+            {
+                tasks.Add(GetStageLevelRankingInternalAsync(players, game, level, finalEntries,
+                    rankingDate, simulatedPlayerId, monthsOfFreshTimes, skipStages, cache, rankingTypeId));
+            }
+
+            await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
+
+            return finalEntries;
+        }
+
+        private async Task GetStageLevelRankingInternalAsync(
+            IDictionary<long, PlayerDto> players,
+            Game game,
+            Level level,
+            List<RankingDto> finalEntries,
+            DateTime rankingDate,
+            long? simulatedPlayerId,
+            int? monthsOfFreshTimes,
+            Stage[] skipStages,
+            ConcurrentDictionary<(Stage, Level), List<EntryDto>> cache,
+            long rankingTypeId)
+        {
+            foreach (var stage in game.GetStages())
+            {
+                if (skipStages?.Contains(stage) == true) continue;
+
+                var stageLevelRankings = await RebuildRankingHistoryInternalAsync(players, stage, level, cache,
+                            new Tuple<long?, DateTime, int?>(simulatedPlayerId, rankingDate, monthsOfFreshTimes), rankingTypeId)
+                        .ConfigureAwait(false);
+                finalEntries.AddRange(stageLevelRankings);
+            }
+        }
+
         // internal logic or ranking building (simulated or not)
         private async Task<List<RankingDto>> RebuildRankingHistoryInternalAsync(
             IDictionary<long, PlayerDto> players,
             Stage stage,
             Level level,
-            Dictionary<(Stage, Level), List<EntryDto>> cache,
-            Tuple<long?, DateTime, int?> playerAtSpecificDate = null)
+            ConcurrentDictionary<(Stage, Level), List<EntryDto>> cache,
+            Tuple<long?, DateTime, int?> playerAtSpecificDate = null,
+            long rankingTypeId = 0)
         {
-            players = players ?? await GetPlayersAsync()
-                .ConfigureAwait(false);
-
             var entries = await GetEntriesInternalAsync(null, (stage, level), cache, players, playerAtSpecificDate).ConfigureAwait(false);
 
             return RebuildRankingHistoryInternalAsync(entries, players, stage, level,
                 playerAtSpecificDate == null
                     ? (DateTime?)null
-                    : playerAtSpecificDate.Item2);
+                    : playerAtSpecificDate.Item2,
+                rankingTypeId);
         }
 
         // Gets entries according to parameters (full game, or one stage and level)
         private async Task<List<EntryDto>> GetEntriesInternalAsync(
             Game? game,
             (Stage Stage, Level Level)? stageAndLevel,
-            Dictionary<(Stage Stage, Level Level), List<EntryDto>> cache,
+            ConcurrentDictionary<(Stage Stage, Level Level), List<EntryDto>> cache,
             IDictionary<long, PlayerDto> players,
             Tuple<long?, DateTime, int?> playerAtSpecificDate = null)
         {
@@ -309,7 +379,7 @@ namespace TheEliteExplorerDomain.Providers
 
             if (stageAndLevel.HasValue && cache != null && !cache.ContainsKey(stageAndLevel.Value))
             {
-                cache.Add(stageAndLevel.Value, new List<EntryDto>(entries));
+                cache.TryAdd(stageAndLevel.Value, new List<EntryDto>(entries));
             }
 
             if (playerAtSpecificDate != null)
@@ -335,7 +405,8 @@ namespace TheEliteExplorerDomain.Providers
             IDictionary<long, PlayerDto> players,
             Stage stage,
             Level level,
-            DateTime? oneShotAtDate = null)
+            DateTime? oneShotAtDate = null,
+            long typeId = 0)
         {
             // Groups and sorts by date
             var entriesDateGroup = new SortedList<DateTime, List<EntryDto>>(
@@ -357,6 +428,10 @@ namespace TheEliteExplorerDomain.Providers
             if (oneShotAtDate.HasValue)
             {
                 eligiblesDates = eligiblesDates.Skip(eligiblesDates.Count - 1).ToList();
+                if (typeId > 0 && oneShotAtDate.Value != eligiblesDates.Single())
+                {
+                    return new List<RankingDto>();
+                }
             }
 
             var rankingsToInsert = new List<RankingDto>();
@@ -372,6 +447,7 @@ namespace TheEliteExplorerDomain.Providers
                     .GroupBy(e => e.PlayerId)
                     .Select(eGroup => eGroup.First(e => e.Time == eGroup.Min(et => et.Time)))
                     .OrderBy(e => e.Time)
+                    .ThenBy(e => e.Date.Value)
                     .ToList();
 
                 var pos = 1;
@@ -402,7 +478,9 @@ namespace TheEliteExplorerDomain.Providers
                         Rank = pos,
                         Stage = entry.Stage,
                         Time = entry.Time,
-                        EntryDate = entry.Date
+                        EntryDate = entry.Date.Value,
+                        IsSimulatedDate = entry.IsSimulatedDate,
+                        RankingTypeId = typeId
                     };
 
                     rankingsToInsert.Add(ranking);
@@ -461,6 +539,7 @@ namespace TheEliteExplorerDomain.Providers
                     {
                         // use the another engine/system date as the current date
                         entry.Date = sameEntry.Date;
+                        entry.IsSimulatedDate = true;
                     }
                     else
                     {
@@ -480,12 +559,15 @@ namespace TheEliteExplorerDomain.Providers
                         {
                             case NoDateEntryRankingRule.Average:
                                 entry.Date = realMin.AddDays((realMax - realMin).TotalDays / 2).Date;
+                                entry.IsSimulatedDate = true;
                                 break;
                             case NoDateEntryRankingRule.Max:
                                 entry.Date = realMax;
+                                entry.IsSimulatedDate = true;
                                 break;
                             case NoDateEntryRankingRule.Min:
                                 entry.Date = realMin;
+                                entry.IsSimulatedDate = true;
                                 break;
                             case NoDateEntryRankingRule.PlayerHabit:
                                 var entriesBetween = dateMinMaxPlayer[entry.PlayerId].Entries
@@ -501,6 +583,7 @@ namespace TheEliteExplorerDomain.Providers
                                     var avgDays = entriesBetween.Average();
                                     entry.Date = ServiceProviderAccessor.ClockProvider.Now.AddDays(-avgDays).Date;
                                 }
+                                entry.IsSimulatedDate = true;
                                 break;
                         }
                     }
@@ -672,67 +755,6 @@ namespace TheEliteExplorerDomain.Providers
             }
 
             return sweeps;
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<GameRank>> GetGameRankingAsync(
-            Game game,
-            DateTime rankingDate,
-            NoDateEntryRankingRule noDateEntryRankingRule)
-        {
-            var rankingDict = (await GetPlayersDictionaryAsync().ConfigureAwait(false))
-                .ToDictionary(_ => _.Key, _ => new GameRank(_.Value));
-
-            const int BasePoints = 100;
-
-            foreach (var stage in game.GetStages())
-            {
-                foreach (var level in SystemExtensions.Enumerate<Level>())
-                {
-                    var stageLevelRk = await _readRepository
-                        .GetStageLevelRankingAsync(stage, level, rankingDate, noDateEntryRankingRule)
-                        .ConfigureAwait(false);
-
-                    var currentPoints = BasePoints;
-                    long currentTime = 0;
-                    for (var i = 0; i < stageLevelRk.Count; i++)
-                    {
-                        var slRk = stageLevelRk[i];
-                        var rk = rankingDict[slRk.PlayerId];
-
-                        var points = currentPoints;
-                        if (currentTime > 0 && currentTime != slRk.Time && points > 0)
-                        {
-                            points = BasePoints - i - (i == 1 ? 2 : 3);
-                        }
-
-                        rk.AddEntry(slRk, points, level);
-
-                        currentTime = slRk.Time;
-                        currentPoints = points;
-                    }
-                }
-            }
-
-            foreach (var key in rankingDict.Keys)
-            {
-                rankingDict[key].FillMissingTimes(
-                    game.GetStages().Count * Enum.GetValues(typeof(Level)).Length);
-            }
-
-            var gr = new List<GameRank>();
-            foreach (var rkKey in rankingDict.Keys)
-            {
-                var rk = rankingDict[rkKey];
-
-                rk.PointsRank = rankingDict.Values.Count(_ => _.Points > rk.Points) + 1;
-
-                rk.TimeRank = rankingDict.Values.Count(_ => _.Time < rk.Time) + 1;
-
-                gr.Add(rk);
-            }
-
-            return gr;
         }
     }
 }

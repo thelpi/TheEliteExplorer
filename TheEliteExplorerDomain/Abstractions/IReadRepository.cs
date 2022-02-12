@@ -55,15 +55,5 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <returns>Collection of <see cref="PlayerDto"/>.</returns>
         Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync();
-
-        /// <summary>
-        /// Gets the ranking for a stage and level at a specified date.
-        /// </summary>
-        /// <param name="stage">Stage.</param>
-        /// <param name="level">Level.</param>
-        /// <param name="rankingDate">Ranking date.</param>
-        /// <param name="noDateRule">Rule to apply for empty dates.</param>
-        /// <returns>Collection of <see cref="RankingBaseDto"/>.</returns>
-        Task<IReadOnlyList<RankingBaseDto>> GetStageLevelRankingAsync(Stage stage, Level level, DateTime rankingDate, NoDateEntryRankingRule noDateRule);
     }
 }

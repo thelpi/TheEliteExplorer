@@ -13,5 +13,9 @@
         /// "player_id" column value.
         /// </summary>
         public long PlayerId { get; set; }
+        /// <summary>
+        /// Is simulated date y/n.
+        /// </summary>
+        public bool IsSimulatedDate { get; set; }
     }
 }

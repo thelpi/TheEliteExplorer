@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
@@ -15,16 +16,45 @@ namespace TheEliteExplorer.Controllers
     /// <seealso cref="Controller"/>
     public class IntegrationController : Controller
     {
+        private const long StandardRankingTypeId = 1;
+
         private readonly IIntegrationProvider _integrationProvider;
+        private readonly IStatisticsProvider _statisticsProvider;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="integrationProvider">Instance of <see cref="IIntegrationProvider"/>.</param>
+        /// <param name="statisticsProvider">Instance of <see cref="IStatisticsProvider"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="integrationProvider"/> is <c>Null</c>.</exception>
-        public IntegrationController(IIntegrationProvider integrationProvider)
+        /// <exception cref="ArgumentNullException"><paramref name="statisticsProvider"/> is <c>Null</c>.</exception>
+        public IntegrationController(
+            IIntegrationProvider integrationProvider,
+            IStatisticsProvider statisticsProvider)
         {
             _integrationProvider = integrationProvider ?? throw new ArgumentNullException(nameof(integrationProvider));
+            _statisticsProvider = statisticsProvider ?? throw new ArgumentNullException(nameof(statisticsProvider));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="game">The game.</param>
+        /// <param name="startDate"></param>
+        /// <returns></returns>
+        [HttpPost("games/{game}/rankings")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> GenerateStandardRankingsAsync(
+            [FromRoute] Game game,
+            [FromQuery] DateTime? startDate)
+        {
+            var realStartDate = (startDate ?? game.GetEliteFirstDate()).Date;
+
+            await _statisticsProvider
+                .GeneratePermanentRankingsBetweenDatesAsync(game, realStartDate, null, StandardRankingTypeId)
+                .ConfigureAwait(false);
+
+            return NoContent();
         }
 
         /// <summary>

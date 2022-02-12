@@ -99,28 +99,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
-        /// <inheritdoc />
-        public async Task<IReadOnlyList<RankingBaseDto>> GetStageLevelRankingAsync(Stage stage, Level level, DateTime rankingDate, NoDateEntryRankingRule noDateRule)
-        {
-            using (var connection = _connectionProvider.TheEliteConnection)
-            {
-                return (
-                    await connection
-                        .QueryAsync<RankingBaseDto>(
-                            ToPsName(_getStageLevelRankingPsName),
-                            new
-                            {
-                                stage_id = (long)stage,
-                                level_id = (long)level,
-                                date = rankingDate,
-                                rule_id = (long)noDateRule
-                            },
-                            commandType: CommandType.StoredProcedure)
-                        .ConfigureAwait(false)
-                ).ToList();
-            }
-        }
-
         private async Task<List<PlayerDto>> GetPlayersInternalAsync(bool isDirty)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)

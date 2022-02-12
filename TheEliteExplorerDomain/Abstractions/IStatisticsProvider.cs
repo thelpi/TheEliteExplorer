@@ -74,15 +74,17 @@ namespace TheEliteExplorerDomain.Abstractions
             bool? excludeWinners = false);
 
         /// <summary>
-        /// Gets the full ranking at any date for a game.
+        /// Generates a permanent typed ranking for each day between two dates.
         /// </summary>
         /// <param name="game">Game.</param>
-        /// <param name="rankingDate">Ranking date.</param>
-        /// <param name="noDateEntryRankingRule">No date entry ranking rule.</param>
-        /// <returns>Full ranking.</returns>
-        Task<IReadOnlyCollection<GameRank>> GetGameRankingAsync(
+        /// <param name="fromDate">Start date.</param>
+        /// <param name="toDate">End date (<c>Null</c> for current).</param>
+        /// <param name="rankingTypeId">Ranking type identifier.</param>
+        /// <returns>Nothing.</returns>
+        Task GeneratePermanentRankingsBetweenDatesAsync(
             Game game,
-            DateTime rankingDate,
-            NoDateEntryRankingRule noDateEntryRankingRule);
+            DateTime fromDate,
+            DateTime? toDate,
+            long rankingTypeId);
     }
 }

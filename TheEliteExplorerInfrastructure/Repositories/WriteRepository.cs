@@ -22,6 +22,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _updatePlayersJoinDatePsName = "update_player_join_date";
         private const string _deletePlayerEntriesPsName = "delete_player_entry";
         private const string _updateEntryDatePsName = "update_entry_date";
+        private const string _insertRankingEntryPsName = "insert_ranking_entry";
 
         private readonly IConnectionProvider _connectionProvider;
 
@@ -149,6 +150,31 @@ namespace TheEliteExplorerInfrastructure.Repositories
                 await connection
                     .QueryAsync(
                         ToPsName(_updatePlayersJoinDatePsName),
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task InsertRankingEntryAsync(RankingDto ranking)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection
+                    .QueryAsync(
+                        ToPsName(_insertRankingEntryPsName),
+                        new
+                        {
+                            @ranking_type_id = ranking.RankingTypeId,
+                            @stage_id  = (long)ranking.Stage,
+                            @level_id = (long)ranking.Level,
+                            @player_id = ranking.PlayerId,
+                            @time = ranking.Time,
+                            @date = ranking.Date,
+                            @rank = ranking.Rank,
+                            @entry_date = ranking.EntryDate,
+                            @is_simulated_date = ranking.IsSimulatedDate ? 1 : 0
+                        },
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
             }

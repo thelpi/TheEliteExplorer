@@ -64,5 +64,12 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <returns>Nothing.</returns>
         Task ResetPlayersJoinDateAsync();
+
+        /// <summary>
+        /// Inserts a ranking entry.
+        /// </summary>
+        /// <param name="ranking">Ranking information.</param>
+        /// <returns>Nothing.</returns>
+        Task InsertRankingEntryAsync(RankingDto ranking);
     }
 }

@@ -117,16 +117,6 @@
             </summary>
             <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.PlayerDto"/>.</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetStageLevelRankingAsync(TheEliteExplorerDomain.Enums.Stage,TheEliteExplorerDomain.Enums.Level,System.DateTime,TheEliteExplorerDomain.Enums.NoDateEntryRankingRule)">
-            <summary>
-            Gets the ranking for a stage and level at a specified date.
-            </summary>
-            <param name="stage">Stage.</param>
-            <param name="level">Level.</param>
-            <param name="rankingDate">Ranking date.</param>
-            <param name="noDateRule">Rule to apply for empty dates.</param>
-            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.RankingBaseDto"/>.</returns>
-        </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.IStatisticsProvider">
             <summary>
             Statistics provider interface.
@@ -180,14 +170,15 @@
             sorted by <see cref="P:TheEliteExplorerDomain.Models.RankingEntryLight.Points"/> descending.
             </returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetGameRankingAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,TheEliteExplorerDomain.Enums.NoDateEntryRankingRule)">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GeneratePermanentRankingsBetweenDatesAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.Nullable{System.DateTime},System.Int64)">
             <summary>
-            Gets the full ranking at any date for a game.
+            Generates a permanent typed ranking for each day between two dates.
             </summary>
             <param name="game">Game.</param>
-            <param name="rankingDate">Ranking date.</param>
-            <param name="noDateEntryRankingRule">No date entry ranking rule.</param>
-            <returns>Full ranking.</returns>
+            <param name="fromDate">Start date.</param>
+            <param name="toDate">End date (<c>Null</c> for current).</param>
+            <param name="rankingTypeId">Ranking type identifier.</param>
+            <returns>Nothing.</returns>
         </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser">
             <summary>
@@ -290,6 +281,13 @@
             </summary>
             <returns>Nothing.</returns>
         </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.InsertRankingEntryAsync(TheEliteExplorerDomain.Dtos.RankingDto)">
+            <summary>
+            Inserts a ranking entry.
+            </summary>
+            <param name="ranking">Ranking information.</param>
+            <returns>Nothing.</returns>
+        </member>
         <member name="T:TheEliteExplorerDomain.Configuration.RankingConfiguration">
             <summary>
             Ranking configuration.
@@ -345,6 +343,11 @@
             "player_id" column value.
             </summary>
         </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.EntryDto.IsSimulatedDate">
+            <summary>
+            Is simulated date y/n.
+            </summary>
+        </member>
         <member name="T:TheEliteExplorerDomain.Dtos.EntryWebDto">
             <summary>
             Represents a time entry to process from the web datas.
@@ -397,44 +400,24 @@
             </summary>
             <remarks>No time part.</remarks>
         </member>
-        <member name="T:TheEliteExplorerDomain.Dtos.RankingBaseDto">
+        <member name="T:TheEliteExplorerDomain.Dtos.RankingDto">
             <summary>
-            Ranking base DTO.
+            Ranking DTO.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.PlayerId">
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.RankingTypeId">
+            <summary>
+            Ranking type identifier.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.PlayerId">
             <summary>
             Player identifier.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.EntryDate">
-            <summary>
-            Entry date.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.Time">
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Time">
             <summary>
             Time.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.IsSimulatedDate">
-            <summary>
-            Date is simulated y/n.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.EntryId">
-            <summary>
-            Entry identifier.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.RankingBaseDto.SystemId">
-            <summary>
-            System identifier.
-            </summary>
-        </member>
-        <member name="T:TheEliteExplorerDomain.Dtos.RankingDto">
-            <summary>
-            Ranking DTO.
             </summary>
         </member>
         <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Stage">
@@ -455,6 +438,16 @@
         <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.Rank">
             <summary>
             Rank.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.EntryDate">
+            <summary>
+            Entry date.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.RankingDto.IsSimulatedDate">
+            <summary>
+            Is <see cref="P:TheEliteExplorerDomain.Dtos.RankingDto.EntryDate"/> simulated y/n.
             </summary>
         </member>
         <member name="T:TheEliteExplorerDomain.Dtos.WrDto">
@@ -919,46 +912,6 @@
             <param name="stage">Stage.</param>
             <returns>Game.</returns>
         </member>
-        <member name="T:TheEliteExplorerDomain.Models.GameRank">
-            <summary>
-            Represents a ranking entry for a game.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.GameRank.TimeRank">
-            <summary>
-            Time rank.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.GameRank.PointsRank">
-            <summary>
-            Points rank.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.GameRank.Player">
-            <summary>
-            Player details.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.GameRank.Points">
-            <summary>
-            Points.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.GameRank.Time">
-            <summary>
-            Time (in seconds).
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.GameRank.LevelPoints">
-            <summary>
-            Points by level
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.GameRank.LevelTime">
-            <summary>
-            Time by level
-            </summary>
-        </member>
         <member name="T:TheEliteExplorerDomain.Models.Player">
             <summary>
             Represents a player.
@@ -1293,14 +1246,16 @@
             </summary>
             <seealso cref="T:TheEliteExplorerDomain.Abstractions.IStatisticsProvider"/>
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.#ctor(TheEliteExplorerDomain.Abstractions.IReadRepository,Microsoft.Extensions.Options.IOptions{TheEliteExplorerDomain.Configuration.RankingConfiguration})">
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.#ctor(TheEliteExplorerDomain.Abstractions.IReadRepository,Microsoft.Extensions.Options.IOptions{TheEliteExplorerDomain.Configuration.RankingConfiguration},TheEliteExplorerDomain.Abstractions.IWriteRepository)">
             <summary>
             Constructor.
             </summary>
             <param name="configuration">Ranking configuration.</param>
             <param name="readRepository">Instance of <see cref="T:TheEliteExplorerDomain.Abstractions.IReadRepository"/>.</param>
+            <param name="writeRepository">Instance of <see cref="T:TheEliteExplorerDomain.Abstractions.IWriteRepository"/>.</param>
             <exception cref="T:System.ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
             <exception cref="T:System.ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="writeRepository"/> is <c>Null</c>.</exception>
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetStagesEntriesCountAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.DateTime,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
             <inheritdoc />
@@ -1314,7 +1269,7 @@
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLastTiedWrsAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime)">
             <inheritdoc />
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetGameRankingAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,TheEliteExplorerDomain.Enums.NoDateEntryRankingRule)">
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GeneratePermanentRankingsBetweenDatesAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.Nullable{System.DateTime},System.Int64)">
             <inheritdoc />
         </member>
     </members>
