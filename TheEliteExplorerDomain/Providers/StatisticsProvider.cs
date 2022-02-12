@@ -404,9 +404,9 @@ namespace TheEliteExplorerDomain.Providers
             var rankingEntries = new List<RankingDto>();
 
             var tasks = new List<Task>();
-            foreach (var level in SystemExtensions.Enumerate<Level>())
+            foreach (var stage in request.Game.GetStages())
             {
-                tasks.Add(GetLevelAllStageRankingAsync(request, rankingEntries, level));
+                tasks.Add(GetStageAllLevelRankingAsync(request, rankingEntries, stage));
             }
 
             await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
@@ -414,13 +414,13 @@ namespace TheEliteExplorerDomain.Providers
             return rankingEntries;
         }
 
-        // Gets the ranking entries for every stage for a single level
-        private async Task GetLevelAllStageRankingAsync(
+        // Gets the ranking entries for every level for a single stage
+        private async Task GetStageAllLevelRankingAsync(
             RankingRequest request,
             List<RankingDto> rankingEntries,
-            Level level)
+            Stage stage)
         {
-            foreach (var stage in request.Game.GetStages())
+            foreach (var level in SystemExtensions.Enumerate<Level>())
             {
                 if (!request.SkipStages.Contains(stage))
                 {
