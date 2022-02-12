@@ -76,8 +76,25 @@ namespace TheEliteExplorer.Controllers
             [FromQuery] bool full,
             [FromQuery] long? simulatedPlayerId)
         {
+            var request = new RankingRequest
+            {
+                Game = game,
+                FullDetails = full
+            };
+
+            var now = ServiceProviderAccessor.ClockProvider.Now;
+            if (simulatedPlayerId.HasValue && date.HasValue)
+            {
+                request.PlayerVsLegacy = (simulatedPlayerId.Value, date.Value);
+                request.RankingDate = now;
+            }
+            else
+            {
+                request.RankingDate = date ?? now;
+            }
+
             var rankingEntries = await _statisticsProvider
-                .GetRankingEntriesAsync(game, date ?? ServiceProviderAccessor.ClockProvider.Now, full, simulatedPlayerId)
+                .GetRankingEntriesAsync(request)
                 .ConfigureAwait(false);
 
             return Ok(PaginatedCollection<RankingEntryLight>.CreateInstance(rankingEntries, page, count));

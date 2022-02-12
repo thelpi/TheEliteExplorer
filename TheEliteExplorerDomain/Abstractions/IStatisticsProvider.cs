@@ -53,27 +53,14 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <summary>
         /// Computes and gets the full ranking at the specified date.
         /// </summary>
-        /// <param name="game">Game.</param>
-        /// <param name="rankingDate">Ranking date.</param>
-        /// <param name="full"><c>True</c> to get details for each ranking entry.</param>
-        /// <param name="simulatedPlayerId">Optionnal player identifier for which the ranking uses his latest entries instead of <paramref name="rankingDate"/> entries.</param>
-        /// <param name="monthsOfFreshTimes">Optionnal; if specified, ignores entries older than <paramref name="rankingDate"/> minus this number of months.</param>
-        /// <param name="skipStages">Stages to skip while computing the ranking.</param>
-        /// <param name="excludeWinners"><c>True</c> or <c>Null</c> to exclude players with WR or untied WR.</param>
+        /// <param name="request">Ranking request.</param>
         /// <returns>
         /// Collection of <see cref="RankingEntryLight"/>;
         /// sorted by <see cref="RankingEntryLight.Points"/> descending.
         /// </returns>
-        Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntriesAsync(
-            Game game,
-            DateTime rankingDate,
-            bool full,
-            long? simulatedPlayerId = null,
-            int? monthsOfFreshTimes = null,
-            Stage[] skipStages = null,
-            bool? excludeWinners = false);
+        Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntriesAsync(RankingRequest request);
 
-        /// <summary>
+        /*/// <summary>
         /// Generates a permanent typed ranking for each day between two dates.
         /// </summary>
         /// <param name="game">Game.</param>
@@ -85,6 +72,6 @@ namespace TheEliteExplorerDomain.Abstractions
             Game game,
             DateTime fromDate,
             DateTime? toDate,
-            long rankingTypeId);
+            long rankingTypeId);*/
     }
 }

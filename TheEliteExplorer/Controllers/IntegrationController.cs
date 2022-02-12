@@ -36,7 +36,7 @@ namespace TheEliteExplorer.Controllers
             _statisticsProvider = statisticsProvider ?? throw new ArgumentNullException(nameof(statisticsProvider));
         }
 
-        /// <summary>
+        /*/// <summary>
         /// 
         /// </summary>
         /// <param name="game">The game.</param>
@@ -55,7 +55,7 @@ namespace TheEliteExplorer.Controllers
                 .ConfigureAwait(false);
 
             return NoContent();
-        }
+        }*/
 
         /// <summary>
         /// Scans the site to get new times and new players to integrate in the database.

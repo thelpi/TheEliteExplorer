@@ -154,31 +154,15 @@
             <param name="date">Date</param>
             <returns>Last WR entry by stage an level</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetRankingEntriesAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.Boolean,System.Nullable{System.Int64},System.Nullable{System.Int32},TheEliteExplorerDomain.Enums.Stage[],System.Nullable{System.Boolean})">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetRankingEntriesAsync(TheEliteExplorerDomain.Models.RankingRequest)">
             <summary>
             Computes and gets the full ranking at the specified date.
             </summary>
-            <param name="game">Game.</param>
-            <param name="rankingDate">Ranking date.</param>
-            <param name="full"><c>True</c> to get details for each ranking entry.</param>
-            <param name="simulatedPlayerId">Optionnal player identifier for which the ranking uses his latest entries instead of <paramref name="rankingDate"/> entries.</param>
-            <param name="monthsOfFreshTimes">Optionnal; if specified, ignores entries older than <paramref name="rankingDate"/> minus this number of months.</param>
-            <param name="skipStages">Stages to skip while computing the ranking.</param>
-            <param name="excludeWinners"><c>True</c> or <c>Null</c> to exclude players with WR or untied WR.</param>
+            <param name="request">Ranking request.</param>
             <returns>
             Collection of <see cref="T:TheEliteExplorerDomain.Models.RankingEntryLight"/>;
             sorted by <see cref="P:TheEliteExplorerDomain.Models.RankingEntryLight.Points"/> descending.
             </returns>
-        </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GeneratePermanentRankingsBetweenDatesAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.Nullable{System.DateTime},System.Int64)">
-            <summary>
-            Generates a permanent typed ranking for each day between two dates.
-            </summary>
-            <param name="game">Game.</param>
-            <param name="fromDate">Start date.</param>
-            <param name="toDate">End date (<c>Null</c> for current).</param>
-            <param name="rankingTypeId">Ranking type identifier.</param>
-            <returns>Nothing.</returns>
         </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser">
             <summary>
@@ -1048,6 +1032,61 @@
             Count of world records.
             </summary>
         </member>
+        <member name="T:TheEliteExplorerDomain.Models.RankingRequest">
+            <summary>
+            Ranking request parameters
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingRequest.Game">
+            <summary>
+            Game.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingRequest.RankingDate">
+            <summary>
+            Ranking date.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingRequest.RankingStartDate">
+            <summary>
+            Start date to consider entries (optionnal).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingRequest.PlayerVsLegacy">
+            <summary>
+            Player at <see cref="P:TheEliteExplorerDomain.Models.RankingRequest.RankingDate"/> versus everyone else at specified date (optionnal).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingRequest.SkipStages">
+            <summary>
+            Stages to skip.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingRequest.ExcludePlayer">
+            <summary>
+            Type of player to exclude (optionnal).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingRequest.FullDetails">
+            <summary>
+            Get full details about ranking or not.
+            </summary>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Models.RankingRequest.ExcludePlayerType">
+            <summary>
+            Enumeration of different cases of players to exclude from the ranking
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Models.RankingRequest.ExcludePlayerType.HasUntied">
+            <summary>
+            Remove players with untied WR.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Models.RankingRequest.ExcludePlayerType.HasWorldRecord">
+            <summary>
+            Remove players with WR.
+            </summary>
+        </member>
         <member name="T:TheEliteExplorerDomain.Models.StageEntryCount">
             <summary>
             Entries count for a stage on a specific period
@@ -1242,34 +1281,29 @@
         </member>
         <member name="T:TheEliteExplorerDomain.Providers.StatisticsProvider">
             <summary>
-            Stage statistics provider.
+            Statistics provider.
             </summary>
             <seealso cref="T:TheEliteExplorerDomain.Abstractions.IStatisticsProvider"/>
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.#ctor(TheEliteExplorerDomain.Abstractions.IReadRepository,Microsoft.Extensions.Options.IOptions{TheEliteExplorerDomain.Configuration.RankingConfiguration},TheEliteExplorerDomain.Abstractions.IWriteRepository)">
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.#ctor(TheEliteExplorerDomain.Abstractions.IReadRepository,Microsoft.Extensions.Options.IOptions{TheEliteExplorerDomain.Configuration.RankingConfiguration})">
             <summary>
             Constructor.
             </summary>
             <param name="configuration">Ranking configuration.</param>
             <param name="readRepository">Instance of <see cref="T:TheEliteExplorerDomain.Abstractions.IReadRepository"/>.</param>
-            <param name="writeRepository">Instance of <see cref="T:TheEliteExplorerDomain.Abstractions.IWriteRepository"/>.</param>
             <exception cref="T:System.ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
             <exception cref="T:System.ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
-            <exception cref="T:System.ArgumentNullException"><paramref name="writeRepository"/> is <c>Null</c>.</exception>
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetStagesEntriesCountAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.DateTime,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
             <inheritdoc />
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetRankingEntriesAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.Boolean,System.Nullable{System.Int64},System.Nullable{System.Int32},TheEliteExplorerDomain.Enums.Stage[],System.Nullable{System.Boolean})">
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetRankingEntriesAsync(TheEliteExplorerDomain.Models.RankingRequest)">
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetSweepsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{TheEliteExplorerDomain.Enums.Stage})">
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLastTiedWrsAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime)">
-            <inheritdoc />
-        </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GeneratePermanentRankingsBetweenDatesAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.Nullable{System.DateTime},System.Int64)">
             <inheritdoc />
         </member>
     </members>

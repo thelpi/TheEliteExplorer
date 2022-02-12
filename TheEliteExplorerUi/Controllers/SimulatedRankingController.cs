@@ -307,9 +307,35 @@ namespace TheEliteExplorerUi.Controllers
             Stage[] skipStages,
             bool? excludeWinners)
         {
+            var request = new RankingRequest
+            {
+                Game = game,
+                FullDetails = true,
+                SkipStages = skipStages,
+                RankingDate = rankingDate
+            };
+            
+            if (playerId.HasValue)
+            {
+                request.PlayerVsLegacy = (playerId.Value, rankingDate);
+                request.RankingDate = DateTime.Now;
+            }
+
+            if (excludeWinners != false)
+            {
+                request.ExcludePlayer = excludeWinners.HasValue
+                    ? RankingRequest.ExcludePlayerType.HasWorldRecord
+                    : RankingRequest.ExcludePlayerType.HasUntied;
+            }
+
+            if (monthsPrior.HasValue)
+            {
+                request.RankingStartDate = rankingDate.AddMonths(-monthsPrior.Value);
+            }
+
             var rankingEntriesBase = await _statisticsProvider
-                                .GetRankingEntriesAsync(game, rankingDate, true, playerId, monthsPrior, skipStages, excludeWinners)
-                                .ConfigureAwait(false);
+                .GetRankingEntriesAsync(request)
+                .ConfigureAwait(false);
             
             return rankingEntriesBase.Select(r => r as RankingEntry).ToList();
         }
