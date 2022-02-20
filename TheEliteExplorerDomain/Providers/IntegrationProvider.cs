@@ -211,14 +211,6 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
-        /// <inheritdoc />
-        public async Task ResetPlayersJoinDateAsync()
-        {
-            await _writeRepository
-                .ResetPlayersJoinDateAsync()
-                .ConfigureAwait(false);
-        }
-
         private async Task<DateTime> GetStartDateAsync(
             Game game,
             DateTime? startDate)
@@ -258,7 +250,7 @@ namespace TheEliteExplorerDomain.Providers
             if (match == null)
             {
                 playerId = await _writeRepository
-                    .InsertPlayerAsync(entry.PlayerUrlName, entry.Date, Player.DefaultPlayerHexColor)
+                    .InsertPlayerAsync(entry.PlayerUrlName, Player.DefaultPlayerHexColor)
                     .ConfigureAwait(false);
             }
             else

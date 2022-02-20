@@ -19,7 +19,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _insertEntryPsName = "insert_entry";
         private const string _updateDirtyPlayerPsName = "update_dirty_player";
         private const string _updateCleanPlayerPsName = "update_player";
-        private const string _updatePlayersJoinDatePsName = "update_player_join_date";
         private const string _deletePlayerEntriesPsName = "delete_player_entry";
         private const string _updateEntryDatePsName = "update_entry_date";
         private const string _insertRankingEntryPsName = "insert_ranking_entry";
@@ -60,7 +59,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertPlayerAsync(string urlName, DateTime? joinDate, string defaultHexColor)
+        public async Task<long> InsertPlayerAsync(string urlName, string defaultHexColor)
         {
             return await InsertAndGetIdAsync(
                     _insertPlayerPsName,
@@ -71,8 +70,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                         surname = urlName,
                         color = defaultHexColor,
                         control_style = default(string),
-                        is_dirty = 1,
-                        join_date = joinDate?.Date
+                        is_dirty = 1
                     })
                 .ConfigureAwait(false);
         }
@@ -137,19 +135,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
                             color = player.Color,
                             control_style = player.ControlStyle
                         },
-                        commandType: CommandType.StoredProcedure)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task ResetPlayersJoinDateAsync()
-        {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                await connection
-                    .QueryAsync(
-                        ToPsName(_updatePlayersJoinDatePsName),
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
             }

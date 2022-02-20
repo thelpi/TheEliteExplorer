@@ -167,20 +167,5 @@ namespace TheEliteExplorer.Controllers
 
             return success ? (IActionResult)NoContent() : NotFound();
         }
-
-        /// <summary>
-        /// Resets the join date of every player.
-        /// </summary>
-        /// <returns>Nothing.</returns>
-        [HttpPut("player-join-dates")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ResetPlayersJoinDateAsync()
-        {
-            await _integrationProvider
-                .ResetPlayersJoinDateAsync()
-                .ConfigureAwait(false);
-
-            return NoContent();
-        }
     }
 }

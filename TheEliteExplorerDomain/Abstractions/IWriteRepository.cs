@@ -30,12 +30,10 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <summary>
         /// Inserts a player; player will be flagged dirty.
         /// </summary>
-        /// <remarks>If <paramref name="joinDate"/> is specified, it will be rounded without the time part.</remarks>
         /// <param name="urlName">Player URL name.</param>
-        /// <param name="joinDate">Date of joining the elite.</param>
         /// <param name="defaultHexColor">Default hexadecimal color.</param>
         /// <returns>Player identifier.</returns>
-        Task<long> InsertPlayerAsync(string urlName, DateTime? joinDate, string defaultHexColor);
+        Task<long> InsertPlayerAsync(string urlName, string defaultHexColor);
 
         /// <summary>
         /// Deletes every entry for a player for a stage.
@@ -58,12 +56,6 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="player">Player information.</param>
         /// <returns>Nothing</returns>
         Task CleanPlayerAsync(PlayerDto player);
-
-        /// <summary>
-        /// Resets the join date of every player.
-        /// </summary>
-        /// <returns>Nothing.</returns>
-        Task ResetPlayersJoinDateAsync();
 
         /// <summary>
         /// Inserts a ranking entry.

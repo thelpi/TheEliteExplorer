@@ -61,12 +61,6 @@
             <param name="playerId">Player identifier.</param>
             <returns><c>True</c> if success; <c>False</c> otherwise.</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.ResetPlayersJoinDateAsync">
-            <summary>
-            Resets the join date of every player.
-            </summary>
-            <returns>Nothing.</returns>
-        </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.IReadRepository">
             <summary>
             Read operations in repository (interface).
@@ -227,13 +221,11 @@
             <returns>Time entry identifier.</returns>
             <exception cref="T:System.ArgumentNullException"><paramref name="requestEntry"/> is <c>Null</c>.</exception>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.InsertPlayerAsync(System.String,System.Nullable{System.DateTime},System.String)">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.InsertPlayerAsync(System.String,System.String)">
             <summary>
             Inserts a player; player will be flagged dirty.
             </summary>
-            <remarks>If <paramref name="joinDate"/> is specified, it will be rounded without the time part.</remarks>
             <param name="urlName">Player URL name.</param>
-            <param name="joinDate">Date of joining the elite.</param>
             <param name="defaultHexColor">Default hexadecimal color.</param>
             <returns>Player identifier.</returns>
         </member>
@@ -258,12 +250,6 @@
             </summary>
             <param name="player">Player information.</param>
             <returns>Nothing</returns>
-        </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.ResetPlayersJoinDateAsync">
-            <summary>
-            Resets the join date of every player.
-            </summary>
-            <returns>Nothing.</returns>
         </member>
         <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.InsertRankingEntryAsync(TheEliteExplorerDomain.Dtos.RankingDto)">
             <summary>
@@ -1284,9 +1270,6 @@
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.CheckDirtyPlayersAsync">
-            <inheritdoc />
-        </member>
-        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.ResetPlayersJoinDateAsync">
             <inheritdoc />
         </member>
         <member name="T:TheEliteExplorerDomain.Providers.StatisticsProvider">
