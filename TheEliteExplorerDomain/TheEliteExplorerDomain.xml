@@ -1077,6 +1077,11 @@
             Specific engine.
             </summary>
         </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingRequest.IncludeUnknownEngine">
+            <summary>
+            If <see cref="P:TheEliteExplorerDomain.Models.RankingRequest.Engine"/> is specified, considers as valid entries with an unset engine.
+            </summary>
+        </member>
         <member name="T:TheEliteExplorerDomain.Models.RankingRequest.ExcludePlayerType">
             <summary>
             Enumeration of different cases of players to exclude from the ranking
