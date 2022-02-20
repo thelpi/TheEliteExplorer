@@ -256,7 +256,11 @@ namespace TheEliteExplorerDomain.Providers
                 {
                     if (!dateMinMaxPlayer.ContainsKey(entry.PlayerId))
                     {
-                        var dateMin = players[entry.PlayerId].JoinDate ?? game.GetEliteFirstDate();
+                        var dateMin = entries
+                            .Where(e => e.PlayerId == entry.PlayerId && e.Date.HasValue)
+                            .Select(e => e.Date.Value)
+                            .Concat(game.GetEliteFirstDate().Yield())
+                            .Min();
                         var dateMax = entries.Where(e => e.PlayerId == entry.PlayerId).Max(e => e.Date ?? Player.LastEmptyDate);
                         dateMinMaxPlayer.Add(entry.PlayerId, (dateMin, dateMax, entries.Where(e => e.PlayerId == entry.PlayerId).ToList()));
                     }

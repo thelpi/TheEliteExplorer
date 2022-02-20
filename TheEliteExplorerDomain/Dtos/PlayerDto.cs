@@ -32,10 +32,5 @@ namespace TheEliteExplorerDomain.Dtos
         /// "color" column value.
         /// </summary>
         public string Color { get; set; }
-        /// <summary>
-        /// Date of joining the elite.
-        /// </summary>
-        /// <remarks>No time part.</remarks>
-        public DateTime? JoinDate { get; set; }
     }
 }

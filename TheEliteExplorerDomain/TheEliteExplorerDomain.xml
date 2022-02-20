@@ -364,12 +364,6 @@
             "color" column value.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.JoinDate">
-            <summary>
-            Date of joining the elite.
-            </summary>
-            <remarks>No time part.</remarks>
-        </member>
         <member name="T:TheEliteExplorerDomain.Dtos.RankingDto">
             <summary>
             Ranking DTO.
