@@ -401,7 +401,7 @@ namespace TheEliteExplorerDomain.Providers
         // Gets the full game ranking entries
         private async Task<List<RankingDto>> GetFullGameRankingAsync(RankingRequest request)
         {
-            var rankingEntries = new List<RankingDto>();
+            var rankingEntries = new ConcurrentBag<RankingDto>();
 
             var tasks = new List<Task>();
             foreach (var stage in request.Game.GetStages())
@@ -411,13 +411,13 @@ namespace TheEliteExplorerDomain.Providers
 
             await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
 
-            return rankingEntries;
+            return rankingEntries.ToList();
         }
 
         // Gets the ranking entries for every level for a single stage
         private async Task GetStageAllLevelRankingAsync(
             RankingRequest request,
-            List<RankingDto> rankingEntries,
+            ConcurrentBag<RankingDto> rankingEntries,
             Stage stage)
         {
             foreach (var level in SystemExtensions.Enumerate<Level>())
@@ -426,7 +426,8 @@ namespace TheEliteExplorerDomain.Providers
                 {
                     var stageLevelRankings = await GetStageLevelRankingAsync(request, stage, level)
                         .ConfigureAwait(false);
-                    rankingEntries.AddRange(stageLevelRankings);
+                    foreach (var slr in stageLevelRankings)
+                        rankingEntries.Add(slr);
                 }
             }
         }
@@ -524,6 +525,12 @@ namespace TheEliteExplorerDomain.Providers
             if (!request.Entries.ContainsKey((stage, level)))
             {
                 request.Entries.TryAdd((stage, level), new List<EntryDto>(entries));
+            }
+
+            if (request.Engine.HasValue)
+            {
+                entries.RemoveAll(_ => (_.Engine.HasValue && _.Engine.Value != request.Engine.Value)
+                    || (!request.IncludeUnknownEngine && !_.Engine.HasValue));
             }
 
             if (request.RankingStartDate.HasValue)

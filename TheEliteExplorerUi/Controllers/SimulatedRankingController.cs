@@ -201,6 +201,26 @@ namespace TheEliteExplorerUi.Controllers
                 .ConfigureAwait(false);
         }
 
+        [HttpGet("/games/{game}/engine-rankings")]
+        public async Task<IActionResult> GetRankingByEngineAsync(
+            [FromRoute] Game game,
+            [FromQuery] DateTime? rankingDate,
+            [FromQuery] int engine)
+        {
+            if (!Enum.TryParse(typeof(Game), game.ToString(), out _))
+            {
+                return BadRequest();
+            }
+
+            if (!SystemExtensions.Enumerate<Engine>().Any(e => engine == (int)e))
+            {
+                return BadRequest();
+            }
+
+            return await SimulateRankingInternalAsync(game, rankingDate, engine: engine)
+                .ConfigureAwait(false);
+        }
+
         [HttpGet("/games/{game}/losers-bracket-rankings")]
         public async Task<IActionResult> GetRankingWithNoWrAsync(
             [FromRoute] Game game,
@@ -237,14 +257,17 @@ namespace TheEliteExplorerUi.Controllers
             [FromRoute] long playerId,
             [FromQuery] DateTime? rankingDate,
             [FromQuery] Stage[] skipStages,
-            [FromQuery] int? monthsPrior)
+            [FromQuery] int? monthsPrior,
+            [FromQuery] int? engine)
         {
             return await DoAndCatchAsync(
                 PlayerDetailsViewName,
                 $"PlayerID {playerId} - {game.ToString()} times",
                 async () =>
                 {
-                    var rankingEntries = await GetRankingsWithParamsAsync(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, false).ConfigureAwait(false);
+                    var rankingEntries = await GetRankingsWithParamsAsync(game,
+                        rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, false, engine)
+                    .ConfigureAwait(false);
 
                     var pRanking = rankingEntries.Single(r => r.PlayerId == playerId);
 
@@ -258,14 +281,15 @@ namespace TheEliteExplorerUi.Controllers
             long? playerId = null,
             int? monthsPrior = null,
             Stage[] skipStages = null,
-            bool? excludeWinners = false)
+            bool? excludeWinners = false,
+            int? engine = null)
         {
             return await DoAndCatchAsync(
                 RankingViewName,
                 "The GoldenEye/PerfectDark World Records and Rankings SIMULATOR",
                 async () =>
                 {
-                    var rankingEntries = await GetRankingsWithParamsAsync(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, excludeWinners).ConfigureAwait(false);
+                    var rankingEntries = await GetRankingsWithParamsAsync(game, rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, excludeWinners, engine).ConfigureAwait(false);
 
                     var pointsRankingEntries = rankingEntries
                         .Where(r => r.Rank <= MaxRankDisplay)
@@ -305,14 +329,17 @@ namespace TheEliteExplorerUi.Controllers
             long? playerId,
             int? monthsPrior,
             Stage[] skipStages,
-            bool? excludeWinners)
+            bool? excludeWinners,
+            int? engine)
         {
             var request = new RankingRequest
             {
                 Game = game,
                 FullDetails = true,
                 SkipStages = skipStages,
-                RankingDate = rankingDate
+                RankingDate = rankingDate,
+                Engine = (Engine?)engine,
+                IncludeUnknownEngine = true
             };
             
             if (playerId.HasValue)

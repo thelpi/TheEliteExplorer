@@ -1072,6 +1072,11 @@
             Get full details about ranking or not.
             </summary>
         </member>
+        <member name="P:TheEliteExplorerDomain.Models.RankingRequest.Engine">
+            <summary>
+            Specific engine.
+            </summary>
+        </member>
         <member name="T:TheEliteExplorerDomain.Models.RankingRequest.ExcludePlayerType">
             <summary>
             Enumeration of different cases of players to exclude from the ranking

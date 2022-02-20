@@ -73,6 +73,16 @@ namespace TheEliteExplorerDomain.Models
         /// </summary>
         public bool FullDetails { get; set; }
 
+        /// <summary>
+        /// Specific engine.
+        /// </summary>
+        public Engine? Engine { get; set; }
+
+        /// <summary>
+        /// If <see cref="Engine"/> is specified, considers as valid entries with an unset engine.
+        /// </summary>
+        public bool IncludeUnknownEngine { get; set; }
+
         // Full collection of players by identifier.
         internal IReadOnlyDictionary<long, PlayerDto> Players { get; set; }
 
