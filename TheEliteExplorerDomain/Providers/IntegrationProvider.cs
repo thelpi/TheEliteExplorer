@@ -139,7 +139,7 @@ namespace TheEliteExplorerDomain.Providers
             var realStart = await GetStartDateAsync(game, startDate)
                 .ConfigureAwait(false);
 
-            foreach (var loopDate in realStart.LoopBetweenDates(DateStep.Month))
+            foreach (var loopDate in realStart.LoopBetweenDates(DateStep.Month).Reverse())
             {
                 var results = await _siteParser
                     .ExtractTimeEntriesAsync(game, loopDate.Year, loopDate.Month, realStart)

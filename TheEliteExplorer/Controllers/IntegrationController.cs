@@ -42,19 +42,9 @@ namespace TheEliteExplorer.Controllers
             [FromRoute] Game game,
             [FromQuery] DateTime? startDate)
         {
-            try
-            {
-                await _integrationProvider
-                    .ScanTimePageAsync(game, startDate)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                using (var w = new System.IO.StreamWriter($@"S:\iis_logs\api_global_app.log", true))
-                {
-                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")}\t{ex.Message}\t{ex.StackTrace}");
-                }
-            }
+            await _integrationProvider
+                .ScanTimePageAsync(game, startDate)
+                .ConfigureAwait(false);
 
             return NoContent();
         }

@@ -42,19 +42,9 @@ namespace TheEliteExplorer.Workers
 
         private async Task CrawlGameTimesAsync(Game game)
         {
-            try
-            {
-                await _integrationProvider
-                    .ScanTimePageAsync(game, null)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                using (var w = new StreamWriter($@"S:\iis_logs\api_global_app.log", true))
-                {
-                    w.WriteLine($"{DateTime.Now.ToString("yyyyMMddhhmmss")}\t{ex.Message}\t{ex.StackTrace}");
-                }
-            }
+            await _integrationProvider
+                .ScanTimePageAsync(game, null)
+                .ConfigureAwait(false);
         }
     }
 }
