@@ -30,7 +30,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// Gets dirty players with valid time page.
         /// </summary>
         /// <returns>Collection of players.</returns>
-        Task<IReadOnlyCollection<Player>> GetCleanableDirtyPlayersAsync();
+        Task<IReadOnlyCollection<Dtos.PlayerDto>> GetCleanableDirtyPlayersAsync();
 
         /// <summary>
         /// Checks players for dirt

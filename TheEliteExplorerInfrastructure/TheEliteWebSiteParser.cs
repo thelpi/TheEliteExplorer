@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -35,7 +36,7 @@ namespace TheEliteExplorerInfrastructure
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<EntryWebDto>> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan)
         {
-            var linksValues = new List<EntryWebDto>();
+            var linksValues = new ConcurrentBag<EntryWebDto>();
 
             string uri = string.Format(_configuration.HistoryPage, year, month);
 
@@ -52,23 +53,37 @@ namespace TheEliteExplorerInfrastructure
 
             const string timeClass = "time";
 
-            HtmlNodeCollection links = htmlDoc.DocumentNode.SelectNodes("//a");
+            var linksOk = new List<HtmlNode>();
+
+            var links = htmlDoc.DocumentNode.SelectNodes("//a");
             foreach (HtmlNode link in links)
             {
-                bool useLink = link.Attributes.Contains("class")
-                    && link.Attributes["class"].Value == timeClass;
-
-                if (useLink)
+                if (link.Attributes.Contains("class")
+                    && link.Attributes["class"].Value == timeClass)
                 {
-                    var linkValues = await ExtractTimeLinkDetailsAsync(game, link, minimalDateToScan).ConfigureAwait(false);
-                    if (linkValues != null)
-                    {
-                        linksValues.Add(linkValues);
-                    }
+                    linksOk.Add(link);
                 }
             }
 
+            const int parallel = 4;
+            for (var i = 0; i < linksOk.Count; i += parallel)
+            {
+                await Task
+                    .WhenAll(linksOk.Skip(i).Take(parallel).Select(link =>
+                        ProcessLinkAndAddToListAsync(game, minimalDateToScan, linksValues, link)))
+                    .ConfigureAwait(false);
+            }
+
             return linksValues;
+        }
+
+        private async Task ProcessLinkAndAddToListAsync(Game game, DateTime? minimalDateToScan, ConcurrentBag<EntryWebDto> linksValues, HtmlNode link)
+        {
+            var linkValues = await ExtractTimeLinkDetailsAsync(game, link, minimalDateToScan).ConfigureAwait(false);
+            if (linkValues != null)
+            {
+                linksValues.Add(linkValues);
+            }
         }
 
         /// <inheritdoc />
