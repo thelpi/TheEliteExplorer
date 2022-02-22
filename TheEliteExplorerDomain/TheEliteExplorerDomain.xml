@@ -414,46 +414,6 @@
             Is <see cref="P:TheEliteExplorerDomain.Dtos.RankingDto.EntryDate"/> simulated y/n.
             </summary>
         </member>
-        <member name="T:TheEliteExplorerDomain.Dtos.WrDto">
-            <summary>
-            Represents a row in the "wr" table.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.Stage">
-            <summary>
-            Stage.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.Level">
-            <summary>
-            Level.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.PlayerId">
-            <summary>
-            Player identifier.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.Untied">
-            <summary>
-            Is untied y/n.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.Time">
-            <summary>
-            Time.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.Date">
-            <summary>
-            Date.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Dtos.WrDto.FirstTied">
-            <summary>
-            Is first tied y/n.
-            </summary>
-        </member>
         <member name="T:TheEliteExplorerDomain.Enums.ControlStyle">
             <summary>
             Control styles enumeration.
@@ -1157,76 +1117,73 @@
             Player color.
             </summary>
         </member>
-        <member name="T:TheEliteExplorerDomain.Models.StageWrStanding">
+        <member name="T:TheEliteExplorerDomain.Models.Wr">
             <summary>
-            Represents a world record standing.
-            </summary>
-            <seealso cref="T:TheEliteExplorerDomain.Models.Ranking"/>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.Level">
-            <summary>
-            Level.
+            Represents a world record.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.Stage">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.Stage">
             <summary>
             Stage.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StartDate">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.Level">
             <summary>
-            Date when the WR has been set.
+            Level.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StandingStartDate">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.Time">
             <summary>
-            Date when the world record has become the longest standing.
+            Time (seconds).
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.EndDate">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.Player">
             <summary>
-            Date whent he WR has been beaten.
+            Player.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.Time">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.Date">
             <summary>
-            Time.
+            Date.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StartPlayerName">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.Engine">
             <summary>
-            Player who sets the WR.
+            Engine.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StartPlayerColor">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.UntiedSlayPlayer">
             <summary>
-            <see cref="P:TheEliteExplorerDomain.Models.StageWrStanding.StartPlayerName"/> color.
+            Player who slays the untied wr (<c>Null</c> if still untied wr).
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.EndPlayerName">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.UntiedSlayDate">
             <summary>
-            Player who beats the WR; <c>Null</c> if no one.
+            Date of untied slay (<c>Null</c> if still untied wr).
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.EndPlayerColor">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.Holders">
             <summary>
-            <see cref="P:TheEliteExplorerDomain.Models.StageWrStanding.EndPlayerName"/> color.
+            Every players who holds the wr.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.Days">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.SlayDate">
             <summary>
-            Days while being the WR.
+            Date of slay (<c>Null</c> if still wr).
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StandingDays">
+        <member name="P:TheEliteExplorerDomain.Models.Wr.SlayPlayer">
             <summary>
-            Days while being the WR standing.
+            Player who slays the wr (<c>Null</c> if still wr).
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageWrStanding.StillWr">
+        <member name="M:TheEliteExplorerDomain.Models.Wr.GetDaysBeforeSlay(System.DateTime,System.Boolean)">
             <summary>
-            Entry still the WR y/n.
+            Gets the number of days this time has been a (untied) wr.
             </summary>
+            <param name="date">Reference date.</param>
+            <param name="untied"><c>True</c> to check untied.</param>
+            <returns>Number of days.</returns>
         </member>
         <member name="T:TheEliteExplorerDomain.Providers.IntegrationProvider">
             <summary>

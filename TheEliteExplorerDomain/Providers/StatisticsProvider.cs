@@ -221,115 +221,6 @@ namespace TheEliteExplorerDomain.Providers
 
         #endregion IStatisticsProvider implementation
 
-        #region Generic private methods
-
-        // Gets a adictionary of every player by identifier (including dirty, but not banned)
-        private async Task<IReadOnlyDictionary<long, PlayerDto>> GetPlayersAsync()
-        {
-            var playersSourceClean = await _readRepository
-                .GetPlayersAsync()
-                .ConfigureAwait(false);
-
-            var playersSourceDirty = await _readRepository
-                .GetDirtyPlayersAsync()
-                .ConfigureAwait(false);
-
-            return playersSourceClean.Concat(playersSourceDirty).ToDictionary(p => p.Id, p => p);
-        }
-
-        // Sets a fake date on emtries without it
-        private void ManageDateLessEntries(
-            Game game,
-            IReadOnlyDictionary<long, PlayerDto> players,
-            List<EntryDto> entries)
-        {
-            if (_configuration.NoDateEntryRankingRule == NoDateEntryRankingRule.Ignore)
-            {
-                entries.RemoveAll(e => !e.Date.HasValue);
-            }
-            else
-            {
-                var dateMinMaxPlayer = new Dictionary<long, (DateTime Min, DateTime Max, IReadOnlyCollection<EntryDto> Entries)>();
-
-                var dateLessEntries = entries.Where(e => !e.Date.HasValue).ToList();
-                foreach (var entry in dateLessEntries)
-                {
-                    if (!dateMinMaxPlayer.ContainsKey(entry.PlayerId))
-                    {
-                        var dateMin = entries
-                            .Where(e => e.PlayerId == entry.PlayerId && e.Date.HasValue)
-                            .Select(e => e.Date.Value)
-                            .Concat(game.GetEliteFirstDate().Yield())
-                            .Min();
-                        var dateMax = entries.Where(e => e.PlayerId == entry.PlayerId).Max(e => e.Date ?? Player.LastEmptyDate);
-                        dateMinMaxPlayer.Add(entry.PlayerId, (dateMin, dateMax, entries.Where(e => e.PlayerId == entry.PlayerId).ToList()));
-                    }
-
-                    // Same time with a known date (possible for another engine/system)
-                    var sameEntry = dateMinMaxPlayer[entry.PlayerId].Entries.FirstOrDefault(e => e.Stage == entry.Stage && e.Level == entry.Level && e.Time == entry.Time && e.Date.HasValue);
-                    // Better time (closest to current) with a known date
-                    var betterEntry = dateMinMaxPlayer[entry.PlayerId].Entries.OrderBy(e => e.Time).FirstOrDefault(e => e.Stage == entry.Stage && e.Level == entry.Level && e.Time < entry.Time && e.Date.HasValue);
-                    // Worse time (closest to current) with a known date
-                    var worseEntry = dateMinMaxPlayer[entry.PlayerId].Entries.OrderByDescending(e => e.Time).FirstOrDefault(e => e.Stage == entry.Stage && e.Level == entry.Level && e.Time < entry.Time && e.Date.HasValue);
-
-                    if (sameEntry != null)
-                    {
-                        // use the another engine/system date as the current date
-                        entry.Date = sameEntry.Date;
-                        entry.IsSimulatedDate = true;
-                    }
-                    else
-                    {
-                        var realMin = dateMinMaxPlayer[entry.PlayerId].Min;
-                        if (worseEntry != null && worseEntry.Date > realMin)
-                        {
-                            realMin = worseEntry.Date.Value;
-                        }
-
-                        var realMax = dateMinMaxPlayer[entry.PlayerId].Max;
-                        if (betterEntry != null && betterEntry.Date < realMax)
-                        {
-                            realMax = betterEntry.Date.Value;
-                        }
-
-                        switch (_configuration.NoDateEntryRankingRule)
-                        {
-                            case NoDateEntryRankingRule.Average:
-                                entry.Date = realMin.AddDays((realMax - realMin).TotalDays / 2).Date;
-                                entry.IsSimulatedDate = true;
-                                break;
-                            case NoDateEntryRankingRule.Max:
-                                entry.Date = realMax;
-                                entry.IsSimulatedDate = true;
-                                break;
-                            case NoDateEntryRankingRule.Min:
-                                entry.Date = realMin;
-                                entry.IsSimulatedDate = true;
-                                break;
-                            case NoDateEntryRankingRule.PlayerHabit:
-                                var entriesBetween = dateMinMaxPlayer[entry.PlayerId].Entries
-                                    .Where(e => e.Date < realMax && e.Date > realMin)
-                                    .Select(e => Convert.ToInt32((ServiceProviderAccessor.ClockProvider.Now - e.Date.Value).TotalDays))
-                                    .ToList();
-                                if (entriesBetween.Count == 0)
-                                {
-                                    entry.Date = realMin.AddDays((realMax - realMin).TotalDays / 2).Date;
-                                }
-                                else
-                                {
-                                    var avgDays = entriesBetween.Average();
-                                    entry.Date = ServiceProviderAccessor.ClockProvider.Now.AddDays(-avgDays).Date;
-                                }
-                                entry.IsSimulatedDate = true;
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-
-        #endregion Generic private methods
-
         #region Ranking private methods
 
         // Gets the full game ranking
@@ -543,6 +434,111 @@ namespace TheEliteExplorerDomain.Providers
 
         #endregion Ranking private methods
 
+        // Gets a adictionary of every player by identifier (including dirty, but not banned)
+        private async Task<IReadOnlyDictionary<long, PlayerDto>> GetPlayersAsync()
+        {
+            var playersSourceClean = await _readRepository
+                .GetPlayersAsync()
+                .ConfigureAwait(false);
+
+            var playersSourceDirty = await _readRepository
+                .GetDirtyPlayersAsync()
+                .ConfigureAwait(false);
+
+            return playersSourceClean.Concat(playersSourceDirty).ToDictionary(p => p.Id, p => p);
+        }
+
+        // Sets a fake date on emtries without it
+        private void ManageDateLessEntries(
+            Game game,
+            IReadOnlyDictionary<long, PlayerDto> players,
+            List<EntryDto> entries)
+        {
+            if (_configuration.NoDateEntryRankingRule == NoDateEntryRankingRule.Ignore)
+            {
+                entries.RemoveAll(e => !e.Date.HasValue);
+            }
+            else
+            {
+                var dateMinMaxPlayer = new Dictionary<long, (DateTime Min, DateTime Max, IReadOnlyCollection<EntryDto> Entries)>();
+
+                var dateLessEntries = entries.Where(e => !e.Date.HasValue).ToList();
+                foreach (var entry in dateLessEntries)
+                {
+                    if (!dateMinMaxPlayer.ContainsKey(entry.PlayerId))
+                    {
+                        var dateMin = entries
+                            .Where(e => e.PlayerId == entry.PlayerId && e.Date.HasValue)
+                            .Select(e => e.Date.Value)
+                            .Concat(game.GetEliteFirstDate().Yield())
+                            .Min();
+                        var dateMax = entries.Where(e => e.PlayerId == entry.PlayerId).Max(e => e.Date ?? Player.LastEmptyDate);
+                        dateMinMaxPlayer.Add(entry.PlayerId, (dateMin, dateMax, entries.Where(e => e.PlayerId == entry.PlayerId).ToList()));
+                    }
+
+                    // Same time with a known date (possible for another engine/system)
+                    var sameEntry = dateMinMaxPlayer[entry.PlayerId].Entries.FirstOrDefault(e => e.Stage == entry.Stage && e.Level == entry.Level && e.Time == entry.Time && e.Date.HasValue);
+                    // Better time (closest to current) with a known date
+                    var betterEntry = dateMinMaxPlayer[entry.PlayerId].Entries.OrderBy(e => e.Time).FirstOrDefault(e => e.Stage == entry.Stage && e.Level == entry.Level && e.Time < entry.Time && e.Date.HasValue);
+                    // Worse time (closest to current) with a known date
+                    var worseEntry = dateMinMaxPlayer[entry.PlayerId].Entries.OrderByDescending(e => e.Time).FirstOrDefault(e => e.Stage == entry.Stage && e.Level == entry.Level && e.Time < entry.Time && e.Date.HasValue);
+
+                    if (sameEntry != null)
+                    {
+                        // use the another engine/system date as the current date
+                        entry.Date = sameEntry.Date;
+                        entry.IsSimulatedDate = true;
+                    }
+                    else
+                    {
+                        var realMin = dateMinMaxPlayer[entry.PlayerId].Min;
+                        if (worseEntry != null && worseEntry.Date > realMin)
+                        {
+                            realMin = worseEntry.Date.Value;
+                        }
+
+                        var realMax = dateMinMaxPlayer[entry.PlayerId].Max;
+                        if (betterEntry != null && betterEntry.Date < realMax)
+                        {
+                            realMax = betterEntry.Date.Value;
+                        }
+
+                        switch (_configuration.NoDateEntryRankingRule)
+                        {
+                            case NoDateEntryRankingRule.Average:
+                                entry.Date = realMin.AddDays((realMax - realMin).TotalDays / 2).Date;
+                                entry.IsSimulatedDate = true;
+                                break;
+                            case NoDateEntryRankingRule.Max:
+                                entry.Date = realMax;
+                                entry.IsSimulatedDate = true;
+                                break;
+                            case NoDateEntryRankingRule.Min:
+                                entry.Date = realMin;
+                                entry.IsSimulatedDate = true;
+                                break;
+                            case NoDateEntryRankingRule.PlayerHabit:
+                                var entriesBetween = dateMinMaxPlayer[entry.PlayerId].Entries
+                                    .Where(e => e.Date < realMax && e.Date > realMin)
+                                    .Select(e => Convert.ToInt32((ServiceProviderAccessor.ClockProvider.Now - e.Date.Value).TotalDays))
+                                    .ToList();
+                                if (entriesBetween.Count == 0)
+                                {
+                                    entry.Date = realMin.AddDays((realMax - realMin).TotalDays / 2).Date;
+                                }
+                                else
+                                {
+                                    var avgDays = entriesBetween.Average();
+                                    entry.Date = ServiceProviderAccessor.ClockProvider.Now.AddDays(-avgDays).Date;
+                                }
+                                entry.IsSimulatedDate = true;
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
         private async Task GetSingleStageGetLastTiedWrsAsync(
             ConcurrentDictionary<Stage, Dictionary<Level, (EntryDto, bool)>> daysByStage,
             DateTime date,
@@ -624,6 +620,49 @@ namespace TheEliteExplorerDomain.Providers
             return untiedSweepPlayerId.HasValue
                 ? (untiedSweepPlayerId.Value, currentDate.Date, stage).Yield()
                 : Enumerable.Empty<(long, DateTime, Stage)>();
+        }
+        
+        private IReadOnlyCollection<Wr> GetStageLevelWorldRecords(
+            IReadOnlyCollection<EntryDto> allEntries,
+            IReadOnlyDictionary<long, PlayerDto> players,
+            Stage stage,
+            Level level,
+            DateTime? endDate)
+        {
+            endDate = (endDate ?? ServiceProviderAccessor.ClockProvider.Now).Date;
+
+            var wrs = new List<Wr>();
+
+            var entries = allEntries
+                .Where(e => e.Stage == stage && e.Level == level && e.Date <= endDate)
+                .GroupBy(e => e.Date.Value)
+                .OrderBy(e => e.Key)
+                .ToDictionary(eg => eg.Key, eg => eg.OrderBy(e => e.Time).ToList());
+            
+            long bestTime;
+            Wr currentWr = null;
+            foreach (var entryDate in entries.Keys)
+            {
+                var firstEntry = entries[entryDate][0];
+                var currentBestTime = firstEntry.Time;
+
+                if (currentWr == null || currentWr.Time > currentBestTime)
+                {
+                    var firstPlayer = players[firstEntry.PlayerId];
+
+                    if (currentWr != null)
+                        currentWr.AddSlayer(firstPlayer, entryDate);
+
+                    currentWr = new Wr(stage, level, currentBestTime, firstPlayer, entryDate, firstEntry.Engine);
+                    wrs.Add(currentWr);
+                    bestTime = currentBestTime;
+                }
+
+                foreach (var currentEntry in entries[entryDate].Where(e => e.Time == currentBestTime))
+                    currentWr.AddHolder(players[currentEntry.PlayerId], entryDate, currentEntry.Engine);
+            }
+
+            return wrs;
         }
     }
 }
