@@ -328,16 +328,6 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
-        // Loops on every stages and levels of a list of entries
-        private static IEnumerable<(Stage, Level, IEnumerable<RankingDto>)> LoopByStageAndLevel(
-            IEnumerable<RankingDto> rankings)
-        {
-            foreach (var group in rankings.GroupBy(r => new { r.Stage, r.Level }))
-            {
-                yield return (group.Key.Stage, group.Key.Level, group);
-            }
-        }
-
         #endregion Generic private methods
 
         #region Ranking private methods
@@ -380,9 +370,9 @@ namespace TheEliteExplorerDomain.Providers
                     : new RankingEntryLight(request.Game, request.Players[e.Key]))
                 .ToList();
 
-            foreach (var entryGroup in LoopByStageAndLevel(finalEntries))
+            foreach (var entryGroup in finalEntries.GroupBy(r => new { r.Stage, r.Level }))
             {
-                foreach (var timesGroup in entryGroup.Item3.GroupBy(l => l.Time).OrderBy(l => l.Key))
+                foreach (var timesGroup in entryGroup.GroupBy(l => l.Time).OrderBy(l => l.Key))
                 {
                     var rank = timesGroup.First().Rank;
                     bool isUntied = rank == 1 && timesGroup.Count() == 1;
