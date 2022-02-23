@@ -60,6 +60,18 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </returns>
         Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntriesAsync(RankingRequest request);
 
+        /// <summary>
+        /// Gets ambiguous world records; ie same date between two milestones.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="untiedSlayAmbiguous">
+        /// <c>True</c> to check between untied (1th) and slay (2nd);
+        /// otherwise checks between slay (2nd) and third.
+        /// </param>
+        /// <returns>Collection of ambiguous world records.</returns>
+        Task<IReadOnlyCollection<WrBase>> GetAmbiguousWorldRecordsAsync(
+            Game game,
+            bool untiedSlayAmbiguous);
         /*/// <summary>
         /// Generates a permanent typed ranking for each day between two dates.
         /// </summary>

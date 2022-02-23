@@ -9,24 +9,9 @@ namespace TheEliteExplorerDomain.Models
     /// <summary>
     /// Represents a world record.
     /// </summary>
-    public class Wr
+    public class Wr : WrBase
     {
         private readonly List<(PlayerDto, DateTime, Engine?)> _holders = new List<(PlayerDto, DateTime, Engine?)>();
-
-        /// <summary>
-        /// Stage.
-        /// </summary>
-        public Stage Stage { get; }
-
-        /// <summary>
-        /// Level.
-        /// </summary>
-        public Level Level { get; }
-
-        /// <summary>
-        /// Time (seconds).
-        /// </summary>
-        public long Time { get; }
 
         /// <summary>
         /// Player.
@@ -69,10 +54,8 @@ namespace TheEliteExplorerDomain.Models
         public PlayerDto SlayPlayer { get; private set; }
 
         internal Wr(Stage stage, Level level, long time, PlayerDto player, DateTime date, Engine? engine)
+            : base(stage, level, time)
         {
-            Stage = stage;
-            Level = level;
-            Time = time;
             _holders.Add((player, date.Date, engine));
         }
 
@@ -88,6 +71,11 @@ namespace TheEliteExplorerDomain.Models
         {
             SlayPlayer = player;
             SlayDate = date.Date;
+        }
+
+        internal bool CheckAmbiguousHolders(int i)
+        {
+            return _holders.Count > i && _holders[i - 1].Item2 == _holders[i].Item2;
         }
 
         /// <summary>
@@ -106,6 +94,12 @@ namespace TheEliteExplorerDomain.Models
                 endDate = SlayDate.Value;
 
             return (int)Math.Floor((endDate - Date).TotalDays);
+        }
+
+        // TODO: ugly
+        internal WrBase ToBase()
+        {
+            return new WrBase(Stage, Level, Time);
         }
     }
 }

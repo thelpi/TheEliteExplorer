@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -211,6 +212,28 @@ namespace TheEliteExplorerCommon
             }
 
             return (webEx.Response as HttpWebResponse).StatusCode == HttpStatusCode.NotFound;
+        }
+
+        /// <summary>
+        /// Adds multiple elements into a concurrent bag.
+        /// </summary>
+        /// <typeparam name="T">Element type.</typeparam>
+        /// <param name="bag">Concurrent bag.</param>
+        /// <param name="toAdd">Elements to add.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="bag"/> is <c>Null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="toAdd"/> is <c>Null</c>.</exception>
+        public static void AddRange<T>(this ConcurrentBag<T> bag, IEnumerable<T> toAdd)
+        {
+            if (bag == null)
+                throw new ArgumentNullException(nameof(bag));
+
+            if (toAdd == null)
+                throw new ArgumentNullException(nameof(toAdd));
+
+            foreach (var element in toAdd)
+            {
+                bag.Add(element);
+            }
         }
     }
 }

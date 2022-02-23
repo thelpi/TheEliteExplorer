@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -121,6 +122,28 @@ namespace TheEliteExplorer.Controllers
                 .ConfigureAwait(false);
 
             return Ok(sweeps);
+        }
+
+        /// <summary>
+        /// Gets ambiguous world records.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="untiedSlayAmbiguous">
+        /// <c>True</c> to check between untied (1th) and slay (2nd);
+        /// otherwise checks between slay (2nd) and third.
+        /// </param>
+        /// <returns>Collection of untied sweeps.</returns>
+        [HttpGet("games/{game}/ambiguous-world-records")]
+        [ProducesResponseType(typeof(IReadOnlyCollection<WrBase>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<IReadOnlyCollection<WrBase>>> GetAmbiguousWorldRecordsAsync(
+            [FromRoute] Game game,
+            [FromQuery][Required] bool untiedSlayAmbiguous)
+        {
+            var wrs = await _statisticsProvider
+                .GetAmbiguousWorldRecordsAsync(game, untiedSlayAmbiguous)
+                .ConfigureAwait(false);
+
+            return Ok(wrs);
         }
     }
 }

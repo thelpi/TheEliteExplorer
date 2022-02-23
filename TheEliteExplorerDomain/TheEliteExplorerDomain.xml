@@ -158,6 +158,17 @@
             sorted by <see cref="P:TheEliteExplorerDomain.Models.RankingEntryLight.Points"/> descending.
             </returns>
         </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetAmbiguousWorldRecordsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean)">
+            <summary>
+            Gets ambiguous world records; ie same date between two milestones.
+            </summary>
+            <param name="game">Game.</param>
+            <param name="untiedSlayAmbiguous">
+            <c>True</c> to check between untied (1th) and slay (2nd);
+            otherwise checks between slay (2nd) and third.
+            </param>
+            <returns>Collection of ambiguous world records.</returns>
+        </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser">
             <summary>
             The-elite website parser interface.
@@ -1122,21 +1133,6 @@
             Represents a world record.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.Wr.Stage">
-            <summary>
-            Stage.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.Wr.Level">
-            <summary>
-            Level.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.Wr.Time">
-            <summary>
-            Time (seconds).
-            </summary>
-        </member>
         <member name="P:TheEliteExplorerDomain.Models.Wr.Player">
             <summary>
             Player.
@@ -1184,6 +1180,26 @@
             <param name="date">Reference date.</param>
             <param name="untied"><c>True</c> to check untied.</param>
             <returns>Number of days.</returns>
+        </member>
+        <member name="T:TheEliteExplorerDomain.Models.WrBase">
+            <summary>
+            Represents a world record base.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.WrBase.Stage">
+            <summary>
+            Stage.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.WrBase.Level">
+            <summary>
+            Level.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.WrBase.Time">
+            <summary>
+            Time (seconds).
+            </summary>
         </member>
         <member name="T:TheEliteExplorerDomain.Providers.IntegrationProvider">
             <summary>
@@ -1250,7 +1266,7 @@
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLastTiedWrsAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime)">
             <inheritdoc />
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetWorldRecordsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime})">
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetAmbiguousWorldRecordsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean)">
             <inheritdoc />
         </member>
     </members>

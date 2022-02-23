@@ -147,9 +147,8 @@ namespace TheEliteExplorerDomain.Providers
                     {
                         if (stage == null || stg == stage)
                         {
-                            var sweeps = GetPotentialSweeps(untied, entriesGroups, currentDate, stg);
-                            foreach (var sw in sweeps)
-                                sweepsRaw.Add(sw);
+                            sweepsRaw.AddRange(
+                                GetPotentialSweeps(untied, entriesGroups, currentDate, stg));
                         }
                     }
                 }
@@ -184,7 +183,7 @@ namespace TheEliteExplorerDomain.Providers
             var tasks = new List<Task>();
             foreach (var stage in game.GetStages())
             {
-                tasks.Add(new Task(async () =>
+                tasks.Add(Task.Run(async () =>
                 {
                     var stageDatas = new Dictionary<Level, (EntryDto, bool)>();
                     foreach (var level in SystemExtensions.Enumerate<Level>())
@@ -313,7 +312,7 @@ namespace TheEliteExplorerDomain.Providers
             var tasks = new List<Task>();
             foreach (var stage in request.Game.GetStages())
             {
-                tasks.Add(new Task(async () =>
+                tasks.Add(Task.Run(async () =>
                 {
                     foreach (var level in SystemExtensions.Enumerate<Level>())
                     {
@@ -321,8 +320,7 @@ namespace TheEliteExplorerDomain.Providers
                         {
                             var stageLevelRankings = await GetStageLevelRankingAsync(request, stage, level)
                                 .ConfigureAwait(false);
-                            foreach (var slr in stageLevelRankings)
-                                rankingEntries.Add(slr);
+                            rankingEntries.AddRange(stageLevelRankings);
                         }
                     }
                 }));
@@ -641,8 +639,8 @@ namespace TheEliteExplorerDomain.Providers
                 .GroupBy(e => e.Date.Value)
                 .OrderBy(e => e.Key)
                 .ToDictionary(eg => eg.Key, eg => eg.OrderBy(e => e.Time).ToList());
-            
-            long bestTime;
+
+            long bestTime = 1200;
             Wr currentWr = null;
             foreach (var entryDate in entries.Keys)
             {
@@ -661,15 +659,14 @@ namespace TheEliteExplorerDomain.Providers
                     bestTime = currentBestTime;
                 }
 
-                foreach (var currentEntry in entries[entryDate].Where(e => e.Time == currentBestTime))
+                foreach (var currentEntry in entries[entryDate].Where(e => e.Time == bestTime))
                     currentWr.AddHolder(players[currentEntry.PlayerId], entryDate, currentEntry.Engine);
             }
 
             return wrs;
         }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<Wr>> GetWorldRecordsAsync(
+        
+        private async Task<IReadOnlyCollection<Wr>> GetWorldRecordsAsync(
             Game game,
             DateTime? endDate)
         {
@@ -683,11 +680,12 @@ namespace TheEliteExplorerDomain.Providers
             {
                 foreach (var level in SystemExtensions.Enumerate<Level>())
                 {
-                    tasks.Add(new Task(async () =>
+                    tasks.Add(Task.Run(async () =>
                     {
                         var entries = await GetStageLevelEntriesCoreAsync(players, stage, level).ConfigureAwait(false);
 
-                        GetStageLevelWorldRecords(entries, players, stage, level, endDate);
+                        wrs.AddRange(
+                            GetStageLevelWorldRecords(entries, players, stage, level, endDate));
                     }));
                 }
             }
@@ -695,6 +693,26 @@ namespace TheEliteExplorerDomain.Providers
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             return wrs;
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<WrBase>> GetAmbiguousWorldRecordsAsync(
+            Game game,
+            bool untiedSlayAmbiguous)
+        {
+            var syncWr = new List<WrBase>();
+
+            var wrs = await GetWorldRecordsAsync(game, null).ConfigureAwait(false);
+            foreach (var wr in wrs)
+            {
+                if ((untiedSlayAmbiguous && wr.CheckAmbiguousHolders(1))
+                    || (!untiedSlayAmbiguous && wr.CheckAmbiguousHolders(2)))
+                {
+                    syncWr.Add(wr.ToBase());
+                }
+            }
+
+            return syncWr;
         }
     }
 }
