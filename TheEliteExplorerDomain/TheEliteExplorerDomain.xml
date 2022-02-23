@@ -1250,5 +1250,8 @@
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLastTiedWrsAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime)">
             <inheritdoc />
         </member>
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetWorldRecordsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime})">
+            <inheritdoc />
+        </member>
     </members>
 </doc>
