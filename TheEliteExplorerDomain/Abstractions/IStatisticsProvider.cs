@@ -72,18 +72,5 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<WrBase>> GetAmbiguousWorldRecordsAsync(
             Game game,
             bool untiedSlayAmbiguous);
-        /*/// <summary>
-        /// Generates a permanent typed ranking for each day between two dates.
-        /// </summary>
-        /// <param name="game">Game.</param>
-        /// <param name="fromDate">Start date.</param>
-        /// <param name="toDate">End date (<c>Null</c> for current).</param>
-        /// <param name="rankingTypeId">Ranking type identifier.</param>
-        /// <returns>Nothing.</returns>
-        Task GeneratePermanentRankingsBetweenDatesAsync(
-            Game game,
-            DateTime fromDate,
-            DateTime? toDate,
-            long rankingTypeId);*/
     }
 }

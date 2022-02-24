@@ -90,7 +90,8 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntriesAsync(RankingRequest request)
+        public async Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntriesAsync(
+            RankingRequest request)
         {
             request.Players = await GetPlayersAsync().ConfigureAwait(false);
 
@@ -176,7 +177,9 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<Stage, Dictionary<Level, (EntryDto, bool)>>> GetLastTiedWrsAsync(Game game, DateTime date)
+        public async Task<Dictionary<Stage, Dictionary<Level, (EntryDto, bool)>>> GetLastTiedWrsAsync(
+            Game game,
+            DateTime date)
         {
             var daysByStage = new ConcurrentDictionary<Stage, Dictionary<Level, (EntryDto, bool)>>();
 
@@ -211,34 +214,25 @@ namespace TheEliteExplorerDomain.Providers
             return daysByStage.ToDictionary(_ => _.Key, _ => _.Value);
         }
 
-        /*/// <inheritdoc />
-        public async Task GeneratePermanentRankingsBetweenDatesAsync(Game game, DateTime fromDate, DateTime? toDate, long rankingTypeId)
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<WrBase>> GetAmbiguousWorldRecordsAsync(
+            Game game,
+            bool untiedSlayAmbiguous)
         {
-            var startDate = fromDate.Date;
-            var endDate = (toDate ?? ServiceProviderAccessor.ClockProvider.Now).Date;
+            var syncWr = new List<WrBase>();
 
-            var request = new RankingRequest
+            var wrs = await GetWorldRecordsAsync(game, null).ConfigureAwait(false);
+            foreach (var wr in wrs)
             {
-                Entries = new ConcurrentDictionary<(Stage, Level), IReadOnlyCollection<EntryDto>>(),
-                Game = game,
-                Players = await GetPlayersAsync().ConfigureAwait(false)
-            };
-
-            foreach (var date in startDate.LoopBetweenDates(endDate, DateStep.Day))
-            {
-                request.RankingDate = date;
-
-                var rankings = await GetFullGameRankingAsync(request)
-                    .ConfigureAwait(false);
-
-                foreach (var ranking in rankings)
+                if ((untiedSlayAmbiguous && wr.CheckAmbiguousHolders(1))
+                    || (!untiedSlayAmbiguous && wr.CheckAmbiguousHolders(2)))
                 {
-                    await _writeRepository
-                        .InsertRankingEntryAsync(ranking)
-                        .ConfigureAwait(false);
+                    syncWr.Add(wr.ToBase());
                 }
             }
-        }*/
+
+            return syncWr;
+        }
 
         #endregion IStatisticsProvider implementation
 
@@ -691,26 +685,6 @@ namespace TheEliteExplorerDomain.Providers
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             return wrs;
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<WrBase>> GetAmbiguousWorldRecordsAsync(
-            Game game,
-            bool untiedSlayAmbiguous)
-        {
-            var syncWr = new List<WrBase>();
-
-            var wrs = await GetWorldRecordsAsync(game, null).ConfigureAwait(false);
-            foreach (var wr in wrs)
-            {
-                if ((untiedSlayAmbiguous && wr.CheckAmbiguousHolders(1))
-                    || (!untiedSlayAmbiguous && wr.CheckAmbiguousHolders(2)))
-                {
-                    syncWr.Add(wr.ToBase());
-                }
-            }
-
-            return syncWr;
         }
     }
 }

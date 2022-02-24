@@ -4,6 +4,7 @@ using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerDomain.Models
 {
+    // TODO: complete this class
     /// <summary>
     /// Represents a player.
     /// </summary>
