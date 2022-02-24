@@ -635,32 +635,31 @@ namespace TheEliteExplorerDomain.Providers
             var wrs = new List<Wr>();
 
             var entries = allEntries
-                .Where(e => e.Stage == stage && e.Level == level && e.Date <= endDate)
+                .Where(e => e.Date <= endDate)
                 .GroupBy(e => e.Date.Value)
                 .OrderBy(e => e.Key)
-                .ToDictionary(eg => eg.Key, eg => eg.OrderBy(e => e.Time).ToList());
+                .ToDictionary(eg => eg.Key, eg => eg.OrderByDescending(e => e.Time).ToList());
 
-            long bestTime = 1200;
+            var bestTime = entries[entries.Keys.First()].Select(_ => _.Time).Min();
             Wr currentWr = null;
             foreach (var entryDate in entries.Keys)
             {
-                var firstEntry = entries[entryDate][0];
-                var currentBestTime = firstEntry.Time;
-
-                if (currentWr == null || currentWr.Time > currentBestTime)
+                var betterOrEqualEntries = entries[entryDate].Where(e => e.Time <= bestTime);
+                foreach (var entry in betterOrEqualEntries)
                 {
-                    var firstPlayer = players[firstEntry.PlayerId];
+                    var player = players[entry.PlayerId];
 
-                    if (currentWr != null)
-                        currentWr.AddSlayer(firstPlayer, entryDate);
+                    if (entry.Time == bestTime && currentWr != null)
+                        currentWr.AddHolder(player, entryDate, entry.Engine);
+                    else
+                    {
+                        currentWr?.AddSlayer(player, entryDate);
 
-                    currentWr = new Wr(stage, level, currentBestTime, firstPlayer, entryDate, firstEntry.Engine);
-                    wrs.Add(currentWr);
-                    bestTime = currentBestTime;
+                        currentWr = new Wr(stage, level, entry.Time, player, entryDate, entry.Engine);
+                        wrs.Add(currentWr);
+                        bestTime = entry.Time;
+                    }
                 }
-
-                foreach (var currentEntry in entries[entryDate].Where(e => e.Time == bestTime))
-                    currentWr.AddHolder(players[currentEntry.PlayerId], entryDate, currentEntry.Engine);
             }
 
             return wrs;
