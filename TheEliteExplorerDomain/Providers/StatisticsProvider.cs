@@ -448,7 +448,7 @@ namespace TheEliteExplorerDomain.Providers
                 .ToList();
 
             // Sets date for every entry
-            ManageDateLessEntries(stage.GetGame(), players, entries);
+            ManageDateLessEntries(stage.GetGame(), entries);
 
             if (entriesCache?.ContainsKey((stage, level)) == false)
             {
@@ -474,10 +474,9 @@ namespace TheEliteExplorerDomain.Providers
             return playersSourceClean.Concat(playersSourceDirty).ToDictionary(p => p.Id, p => p);
         }
 
-        // Sets a fake date on emtries without it
+        // Sets a fake date on entries without it
         private void ManageDateLessEntries(
             Game game,
-            IReadOnlyDictionary<long, PlayerDto> players,
             List<EntryDto> entries)
         {
             if (_configuration.NoDateEntryRankingRule == NoDateEntryRankingRule.Ignore)
