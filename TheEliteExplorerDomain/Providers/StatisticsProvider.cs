@@ -140,20 +140,28 @@ namespace TheEliteExplorerDomain.Providers
                     DateStep.Day)
                 .GroupBy(d => d.DayOfWeek)
                 .ToDictionary(d => d.Key, d => d);
-            Parallel.ForEach(Enum.GetValues(typeof(DayOfWeek)).Cast<DayOfWeek>(), dow =>
+
+            var tasks = new List<Task>();
+
+            foreach (var dow in SystemExtensions.Enumerate<DayOfWeek>())
             {
-                foreach (var currentDate in dates[dow])
+                tasks.Add(Task.Run(() =>
                 {
-                    foreach (var stg in game.GetStages())
+                    foreach (var currentDate in dates[dow])
                     {
-                        if (stage == null || stg == stage)
+                        foreach (var stg in game.GetStages())
                         {
-                            sweepsRaw.AddRange(
-                                GetPotentialSweeps(untied, entriesGroups, currentDate, stg));
+                            if (stage == null || stg == stage)
+                            {
+                                sweepsRaw.AddRange(
+                                    GetPotentialSweeps(untied, entriesGroups, currentDate, stg));
+                            }
                         }
                     }
-                }
-            });
+                }));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
 
             var finalSweeps = new List<StageSweep>();
 
