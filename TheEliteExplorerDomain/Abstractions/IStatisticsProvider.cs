@@ -72,5 +72,17 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<WrBase>> GetAmbiguousWorldRecordsAsync(
             Game game,
             bool untiedSlayAmbiguous);
+
+        /// <summary>
+        /// Gets longest standing times.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="endDate">End date ton consider; <c>Null</c> for now.</param>
+        /// <param name="standingType">Type of standing request.</param>
+        /// <returns>Ordered collection of <see cref="Standing"/>.</returns>
+        Task<IReadOnlyCollection<Standing>> GetLongestStandingsAsync(
+            Game game,
+            DateTime? endDate,
+            StandingType standingType)
     }
 }

@@ -760,6 +760,36 @@
             WAR.
             </summary>
         </member>
+        <member name="T:TheEliteExplorerDomain.Enums.StandingType">
+            <summary>
+            Possible rules for longest standind world records.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.StandingType.Untied">
+            <summary>
+            Longest standing untied.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.StandingType.UntiedExceptSelf">
+            <summary>
+            Longest standing untied, excluding slay by the same player while being untied.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.StandingType.Unslayed">
+            <summary>
+            Longest standing unslayed.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.StandingType.UnslayedExceptSelf">
+            <summary>
+            Longest standing unslayed, excluding slay by the same player.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.StandingType.BetweenTwoTimes">
+            <summary>
+            Longest standing without being tied or slayed.
+            </summary>
+        </member>
         <member name="T:TheEliteExplorerDomain.Extensions">
             <summary>
             Extension methods and tools.
@@ -1128,6 +1158,53 @@
             Player color.
             </summary>
         </member>
+        <member name="T:TheEliteExplorerDomain.Models.Standing">
+            <summary>
+            Represents a standing while being untied or unslayed.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Standing.Stage">
+            <summary>
+            Stage.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Standing.Level">
+            <summary>
+            Level.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Standing.StartDate">
+            <summary>
+            Start date.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Standing.EndDate">
+            <summary>
+            End date (<c>Null</c> if still ongoing).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Standing.Author">
+            <summary>
+            Author.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Standing.Slayer">
+            <summary>
+            Slayer (<c>Null</c> if still ongoing).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Standing.Times">
+            <summary>
+            Consecutive times while standing (one in most case).
+            </summary>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Models.Standing.GetDays(System.DateTime)">
+            <summary>
+            Gets the number of days while standing.
+            </summary>
+            <param name="dateIfNull">End date if ongoing.</param>
+            <returns>Number of days.</returns>
+        </member>
         <member name="T:TheEliteExplorerDomain.Models.Wr">
             <summary>
             Represents a world record.
@@ -1267,6 +1344,9 @@
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetAmbiguousWorldRecordsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType)">
             <inheritdoc />
         </member>
     </members>

@@ -694,5 +694,68 @@ namespace TheEliteExplorerDomain.Providers
 
             return wrs;
         }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<Standing>> GetLongestStandingsAsync(
+            Game game,
+            DateTime? endDate,
+            StandingType standingType)
+        {
+            var standings = new List<Standing>();
+
+            var wrs = await GetWorldRecordsAsync(game, endDate).ConfigureAwait(false);
+
+            foreach (var stage in game.GetStages())
+            {
+                foreach (var level in SystemExtensions.Enumerate<Level>())
+                {
+                    var locWrs = wrs
+                        .Where(wr => wr.Stage == stage && wr.Level == level)
+                        .OrderBy(wr => wr.Date);
+
+                    Standing currentStanding = null;
+                    foreach (var locWr in locWrs)
+                    {
+                        switch (standingType)
+                        {
+                            case StandingType.Unslayed:
+                                break;
+                            case StandingType.UnslayedExceptSelf:
+                                break;
+                            case StandingType.Untied:
+                                break;
+                            case StandingType.UntiedExceptSelf:
+                                break;
+                            case StandingType.BetweenTwoTimes:
+                                for (var i = 0; i < locWr.Holders.Count; i++)
+                                {
+                                    var holder = locWr.Holders.ElementAt(i);
+                                    var isLast = i == locWr.Holders.Count - 1;
+                                    standings.Add(new Standing
+                                    {
+                                        Slayer = isLast
+                                            ? locWr.SlayPlayer
+                                            : locWr.Holders.ElementAt(i + 1).Item1,
+                                        EndDate = isLast
+                                            ? locWr.SlayDate
+                                            : locWr.Holders.ElementAt(i + 1).Item2,
+                                        StartDate = holder.Item2,
+                                        Author = holder.Item1,
+                                        Level = level,
+                                        Stage = stage
+                                    }.WithTime(locWr.Time));
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+
+            var now = ServiceProviderAccessor.ClockProvider.Now;
+
+            return standings
+                .OrderByDescending(x => x.GetDays(now))
+                .ToList();
+        }
     }
 }
