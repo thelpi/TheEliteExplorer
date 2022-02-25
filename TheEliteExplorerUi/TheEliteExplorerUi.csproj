@@ -19,6 +19,9 @@
     <Content Update="Views\Index.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
+    <Content Update="Views\LastStanding.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
     <Content Update="Views\RankingBoxes.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>

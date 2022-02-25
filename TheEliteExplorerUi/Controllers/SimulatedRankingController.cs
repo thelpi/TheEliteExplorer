@@ -26,6 +26,7 @@ namespace TheEliteExplorerUi.Controllers
         private const string SweepsViewName = "Sweeps";
         private const string IndexViewName = "Index";
         private const string RankingBoxesViewName = "RankingBoxes";
+        private const string LastStandingViewName = "LastStanding";
 
         private readonly IStatisticsProvider _statisticsProvider;
 
@@ -125,6 +126,31 @@ namespace TheEliteExplorerUi.Controllers
                         .ConfigureAwait(false);
 
                     return sweeps.OrderByDescending(s => s.Days).ToList();
+                }).ConfigureAwait(false);
+        }
+
+        [HttpGet("/games/{game}/longest-standing")]
+        public async Task<IActionResult> GetLongestStandingAsync(
+            [FromRoute] Game game,
+            [FromQuery] StandingType standingType,
+            [FromQuery] bool? stillOngoing)
+        {
+            return await DoAndCatchAsync(
+                LastStandingViewName,
+                $"Longest standing with rule {standingType.ToString()}",
+                async () =>
+                {
+                    var standings = await _statisticsProvider
+                        .GetLongestStandingsAsync(game, null, standingType, stillOngoing)
+                        .ConfigureAwait(false);
+
+                    return new StandingWrViewData
+                    {
+                        TopDetails = standings
+                            .Take(100)
+                            .Select(x => x.ToStandingWrLevelItemData())
+                            .ToList()
+                    };
                 }).ConfigureAwait(false);
         }
 

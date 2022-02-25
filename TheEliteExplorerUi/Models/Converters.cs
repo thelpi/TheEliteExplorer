@@ -10,6 +10,23 @@ namespace TheEliteExplorerUi.Models
 {
     internal static class Converters
     {
+        internal static StandingWrLevelItemData ToStandingWrLevelItemData(this Standing x)
+        {
+            return new StandingWrLevelItemData
+            {
+                EntryDate = x.StartDate,
+                PlayerColor = x.Author.Color,
+                EntryDays = x.Days.Value,
+                EntryTimes = x.Times.Select(_ => new TimeSpan(0, (int)_, 0)).ToList(),
+                Level = x.Level,
+                PlayerName = x.Author.RealName,
+                Stage = x.Stage,
+                EndDate = x.EndDate,
+                SlayerColor = x.Slayer?.Color,
+                SlayerName = x.Slayer?.RealName
+            };
+        }
+
         internal static PlayerDetailsViewData ToPlayerDetailsViewData(this RankingEntry entry, string imagePath)
         {
             var localDetails = new Dictionary<Stage, IReadOnlyDictionary<Level, (int, int, long?, DateTime?)>>();
