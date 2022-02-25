@@ -93,7 +93,7 @@ namespace TheEliteExplorerDomain.Providers
         public async Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntriesAsync(
             RankingRequest request)
         {
-            request.Players = await GetPlayersAsync().ConfigureAwait(false);
+            request.Players = await GetPlayersInternalAsync().ConfigureAwait(false);
 
             return await GetFullGameConsolidatedRankingAsync(request)
                 .ConfigureAwait(false);
@@ -129,7 +129,7 @@ namespace TheEliteExplorerDomain.Providers
                 .GroupBy(e => (e.Stage, e.Level))
                 .ToDictionary(e => e.Key, e => e.ToList());
 
-            var playerKeys = await GetPlayersAsync().ConfigureAwait(false);
+            var playerKeys = await GetPlayersInternalAsync().ConfigureAwait(false);
 
             var sweepsRaw = new ConcurrentBag<(long playerId, DateTime date, Stage stage)>();
 
@@ -240,6 +240,79 @@ namespace TheEliteExplorerDomain.Providers
             }
 
             return syncWr;
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<Standing>> GetLongestStandingsAsync(
+            Game game,
+            DateTime? endDate,
+            StandingType standingType)
+        {
+            var standings = new List<Standing>();
+
+            var wrs = await GetWorldRecordsAsync(game, endDate).ConfigureAwait(false);
+
+            foreach (var stage in game.GetStages())
+            {
+                foreach (var level in SystemExtensions.Enumerate<Level>())
+                {
+                    var locWrs = wrs
+                        .Where(wr => wr.Stage == stage && wr.Level == level)
+                        .OrderBy(wr => wr.Date);
+
+                    Standing currentStanding = null;
+                    foreach (var locWr in locWrs)
+                    {
+                        switch (standingType)
+                        {
+                            case StandingType.Unslayed:
+                                break;
+                            case StandingType.UnslayedExceptSelf:
+                                break;
+                            case StandingType.Untied:
+                                break;
+                            case StandingType.UntiedExceptSelf:
+                                break;
+                            case StandingType.BetweenTwoTimes:
+                                for (var i = 0; i < locWr.Holders.Count; i++)
+                                {
+                                    var holder = locWr.Holders.ElementAt(i);
+                                    var isLast = i == locWr.Holders.Count - 1;
+                                    standings.Add(new Standing(locWr.Time)
+                                    {
+                                        Slayer = isLast
+                                            ? locWr.SlayPlayer
+                                            : locWr.Holders.ElementAt(i + 1).Item1,
+                                        EndDate = isLast
+                                            ? locWr.SlayDate
+                                            : locWr.Holders.ElementAt(i + 1).Item2,
+                                        StartDate = holder.Item2,
+                                        Author = holder.Item1,
+                                        Level = level,
+                                        Stage = stage
+                                    });
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+
+            var now = ServiceProviderAccessor.ClockProvider.Now;
+
+            return standings
+                .OrderByDescending(x => x.GetDays(now))
+                .ToList();
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<Player>> GetPlayersAsync()
+        {
+            var players = await GetPlayersInternalAsync().ConfigureAwait(false);
+
+            return players
+                .Select(p => new Player(p.Value))
+                .ToList();
         }
 
         #endregion IStatisticsProvider implementation
@@ -463,7 +536,7 @@ namespace TheEliteExplorerDomain.Providers
         #endregion Ranking private methods
 
         // Gets a adictionary of every player by identifier (including dirty, but not banned)
-        private async Task<IReadOnlyDictionary<long, PlayerDto>> GetPlayersAsync()
+        private async Task<IReadOnlyDictionary<long, PlayerDto>> GetPlayersInternalAsync()
         {
             var playersSourceClean = await _readRepository
                 .GetPlayersAsync()
@@ -672,7 +745,7 @@ namespace TheEliteExplorerDomain.Providers
         {
             var wrs = new ConcurrentBag<Wr>();
 
-            var players = await GetPlayersAsync().ConfigureAwait(false);
+            var players = await GetPlayersInternalAsync().ConfigureAwait(false);
 
             var tasks = new List<Task>();
 
@@ -693,69 +766,6 @@ namespace TheEliteExplorerDomain.Providers
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             return wrs;
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<Standing>> GetLongestStandingsAsync(
-            Game game,
-            DateTime? endDate,
-            StandingType standingType)
-        {
-            var standings = new List<Standing>();
-
-            var wrs = await GetWorldRecordsAsync(game, endDate).ConfigureAwait(false);
-
-            foreach (var stage in game.GetStages())
-            {
-                foreach (var level in SystemExtensions.Enumerate<Level>())
-                {
-                    var locWrs = wrs
-                        .Where(wr => wr.Stage == stage && wr.Level == level)
-                        .OrderBy(wr => wr.Date);
-
-                    Standing currentStanding = null;
-                    foreach (var locWr in locWrs)
-                    {
-                        switch (standingType)
-                        {
-                            case StandingType.Unslayed:
-                                break;
-                            case StandingType.UnslayedExceptSelf:
-                                break;
-                            case StandingType.Untied:
-                                break;
-                            case StandingType.UntiedExceptSelf:
-                                break;
-                            case StandingType.BetweenTwoTimes:
-                                for (var i = 0; i < locWr.Holders.Count; i++)
-                                {
-                                    var holder = locWr.Holders.ElementAt(i);
-                                    var isLast = i == locWr.Holders.Count - 1;
-                                    standings.Add(new Standing(locWr.Time)
-                                    {
-                                        Slayer = isLast
-                                            ? locWr.SlayPlayer
-                                            : locWr.Holders.ElementAt(i + 1).Item1,
-                                        EndDate = isLast
-                                            ? locWr.SlayDate
-                                            : locWr.Holders.ElementAt(i + 1).Item2,
-                                        StartDate = holder.Item2,
-                                        Author = holder.Item1,
-                                        Level = level,
-                                        Stage = stage
-                                    });
-                                }
-                                break;
-                        }
-                    }
-                }
-            }
-
-            var now = ServiceProviderAccessor.ClockProvider.Now;
-
-            return standings
-                .OrderByDescending(x => x.GetDays(now))
-                .ToList();
         }
     }
 }

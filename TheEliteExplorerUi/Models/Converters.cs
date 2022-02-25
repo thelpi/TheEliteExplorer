@@ -135,7 +135,7 @@ namespace TheEliteExplorerUi.Models
         internal static LastTiedWrViewData ToLastTiedWrViewData(
             this Dictionary<Stage, Dictionary<Level, (TheEliteExplorerDomain.Dtos.EntryDto, bool)>> entries,
             DateTime? date,
-            IReadOnlyCollection<TheEliteExplorerDomain.Dtos.PlayerDto> players,
+            IReadOnlyCollection<Player> players,
             string stageImagePath)
         {
             var vd = new LastTiedWrViewData
@@ -164,7 +164,7 @@ namespace TheEliteExplorerUi.Models
             this Dictionary<Level, (TheEliteExplorerDomain.Dtos.EntryDto, bool)> levelData,
             Level level,
             DateTime? date,
-            IReadOnlyCollection<TheEliteExplorerDomain.Dtos.PlayerDto> players,
+            IReadOnlyCollection<Player> players,
             Stage stage)
         {
             if (!levelData.ContainsKey(level) || levelData[level].Item1 == null) return null;

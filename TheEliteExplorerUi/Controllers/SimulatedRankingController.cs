@@ -28,14 +28,11 @@ namespace TheEliteExplorerUi.Controllers
         private const string RankingBoxesViewName = "RankingBoxes";
 
         private readonly IStatisticsProvider _statisticsProvider;
-        private readonly IReadRepository _repository;
 
         public SimulatedRankingController(
-            IStatisticsProvider statisticsProvider,
-            IReadRepository repository)
+            IStatisticsProvider statisticsProvider)
         {
             _statisticsProvider = statisticsProvider;
-            _repository = repository;
         }
 
         [HttpGet("/")]
@@ -46,7 +43,7 @@ namespace TheEliteExplorerUi.Controllers
                 "List of features",
                 async() =>
                 {
-                    var players = await _repository.GetPlayersAsync().ConfigureAwait(false);
+                    var players = await _statisticsProvider.GetPlayersAsync().ConfigureAwait(false);
 
                     return new IndexViewData { Players = players };
                 }).ConfigureAwait(false);
@@ -147,7 +144,7 @@ namespace TheEliteExplorerUi.Controllers
                         .GetLastTiedWrsAsync(game, date.Value)
                         .ConfigureAwait(false);
 
-                    var players = await _repository
+                    var players = await _statisticsProvider
                         .GetPlayersAsync()
                         .ConfigureAwait(false);
 
@@ -163,7 +160,7 @@ namespace TheEliteExplorerUi.Controllers
                 "Players list",
                 async () =>
                 {
-                    var players = await _repository.GetPlayersAsync().ConfigureAwait(false);
+                    var players = await _statisticsProvider.GetPlayersAsync().ConfigureAwait(false);
 
                     return players.ToList();
                 }).ConfigureAwait(false);

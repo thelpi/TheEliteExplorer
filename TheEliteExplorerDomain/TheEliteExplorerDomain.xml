@@ -116,6 +116,12 @@
             Statistics provider interface.
             </summary>
         </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetPlayersAsync">
+            <summary>
+            Gets every player.
+            </summary>
+            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Models.Player"/>.</returns>
+        </member>
         <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetStagesEntriesCountAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.DateTime,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
             <summary>
             Gets entries count, and some related statistics, for every stage of the specified game.
@@ -1326,6 +1332,9 @@
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType)">
+            <inheritdoc />
+        </member>
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetPlayersAsync">
             <inheritdoc />
         </member>
     </members>

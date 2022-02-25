@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using TheEliteExplorerDomain.Dtos;
+using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorerUi.Models
 {
     public class IndexViewData
     {
-        public IReadOnlyCollection<PlayerDto> Players { get; set; }
+        public IReadOnlyCollection<Player> Players { get; set; }
     }
 }

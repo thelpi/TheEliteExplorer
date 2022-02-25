@@ -12,6 +12,12 @@ namespace TheEliteExplorerDomain.Abstractions
     public interface IStatisticsProvider
     {
         /// <summary>
+        /// Gets every player.
+        /// </summary>
+        /// <returns>Collection of <see cref="Player"/>.</returns>
+        Task<IReadOnlyCollection<Player>> GetPlayersAsync();
+
+        /// <summary>
         /// Gets entries count, and some related statistics, for every stage of the specified game.
         /// </summary>
         /// <param name="game">The game.</param>
