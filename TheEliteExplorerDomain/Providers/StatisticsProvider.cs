@@ -168,7 +168,7 @@ namespace TheEliteExplorerDomain.Providers
             foreach (var (playerId, date, locStage) in sweepsRaw.OrderBy(f => f.date))
             {
                 var sweepMatch = finalSweeps.SingleOrDefault(s =>
-                    s.PlayerId == playerId
+                    s.Player.Id == playerId
                     && s.Stage == locStage
                     && s.EndDate == date);
 
@@ -294,7 +294,7 @@ namespace TheEliteExplorerDomain.Providers
                     foreach (var timeEntry in timesGroup)
                     {
                         rankingEntries
-                            .Single(e => e.PlayerId == timeEntry.PlayerId)
+                            .Single(e => e.Player.Id == timeEntry.PlayerId)
                             .AddStageAndLevelDatas(timeEntry, isUntied);
                     }
                 }
@@ -731,7 +731,7 @@ namespace TheEliteExplorerDomain.Providers
                                 {
                                     var holder = locWr.Holders.ElementAt(i);
                                     var isLast = i == locWr.Holders.Count - 1;
-                                    standings.Add(new Standing
+                                    standings.Add(new Standing(locWr.Time)
                                     {
                                         Slayer = isLast
                                             ? locWr.SlayPlayer
@@ -743,7 +743,7 @@ namespace TheEliteExplorerDomain.Providers
                                         Author = holder.Item1,
                                         Level = level,
                                         Stage = stage
-                                    }.WithTime(locWr.Time));
+                                    });
                                 }
                                 break;
                         }

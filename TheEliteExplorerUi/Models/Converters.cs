@@ -29,7 +29,7 @@ namespace TheEliteExplorerUi.Models
                 OverallPoints = entry.Points,
                 OverallRanking = entry.Rank,
                 OverallTime = new TimeSpan(0, 0, (int)entry.CumuledTime),
-                PlayerName = entry.PlayerName
+                PlayerName = entry.Player.RealName
             };
         }
 
@@ -73,8 +73,8 @@ namespace TheEliteExplorerUi.Models
                 EasyPoints = entry.LevelPoints[Level.Easy],
                 HardPoints = entry.LevelPoints[Level.Hard],
                 MediumPoints = entry.LevelPoints[Level.Medium],
-                PlayerColor = entry.PlayerColor,
-                PlayerName = entry.PlayerName,
+                PlayerColor = entry.Player.Color,
+                PlayerName = entry.Player.RealName,
                 Rank = entry.Rank,
                 TotalPoints = entry.Points
             };
@@ -87,8 +87,8 @@ namespace TheEliteExplorerUi.Models
                 EasyTime = new TimeSpan(0, 0, (int)entry.LevelCumuledTime[Level.Easy]),
                 HardTime = new TimeSpan(0, 0, (int)entry.LevelCumuledTime[Level.Hard]),
                 MediumTime = new TimeSpan(0, 0, (int)entry.LevelCumuledTime[Level.Medium]),
-                PlayerColor = entry.PlayerColor,
-                PlayerName = entry.PlayerName,
+                PlayerColor = entry.Player.Color,
+                PlayerName = entry.Player.RealName,
                 Rank = rank,
                 TotalTime = new TimeSpan(0, 0, (int)entry.CumuledTime)
             };
@@ -191,7 +191,7 @@ namespace TheEliteExplorerUi.Models
                 .Where(x => IsValid(stage, level, x)
                     && x.Details[stage][level].Item3 == bestTime)
                 .OrderBy(x => x.Details[stage][level].Item4)
-                .Select(x => (x.PlayerName.ToInitials(), PlayerColor: x.PlayerColor, PlayerName: x.PlayerName))
+                .Select(x => (x.Player.RealName.ToInitials(), PlayerColor: x.Player.Color, PlayerName: x.Player.RealName))
                 .ToList();
         }
 

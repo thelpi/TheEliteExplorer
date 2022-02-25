@@ -269,7 +269,7 @@ namespace TheEliteExplorerUi.Controllers
                         rankingDate ?? DateTime.Now, playerId, monthsPrior, skipStages, false, engine)
                     .ConfigureAwait(false);
 
-                    var pRanking = rankingEntries.Single(r => r.PlayerId == playerId);
+                    var pRanking = rankingEntries.Single(r => r.Player.Id == playerId);
 
                     return pRanking.ToPlayerDetailsViewData(StageImagePath);
                 }).ConfigureAwait(false);

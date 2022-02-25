@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TheEliteExplorerDomain.Dtos
+﻿namespace TheEliteExplorerDomain.Dtos
 {
     /// <summary>
     /// Represents a row in the "player" table.

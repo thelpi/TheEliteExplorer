@@ -169,6 +169,15 @@
             </param>
             <returns>Collection of ambiguous world records.</returns>
         </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType)">
+            <summary>
+            Gets longest standing times.
+            </summary>
+            <param name="game">Game.</param>
+            <param name="endDate">End date ton consider; <c>Null</c> for now.</param>
+            <param name="standingType">Type of standing request.</param>
+            <returns>Ordered collection of <see cref="T:TheEliteExplorerDomain.Models.Standing"/>.</returns>
+        </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser">
             <summary>
             The-elite website parser interface.
@@ -882,14 +891,9 @@
             Represents a player.
             </summary>
         </member>
-        <member name="F:TheEliteExplorerDomain.Models.Player.LastEmptyDate">
+        <member name="P:TheEliteExplorerDomain.Models.Player.Id">
             <summary>
-            Virtual date where submitted times should have a date, except for newcomers.
-            </summary>
-        </member>
-        <member name="F:TheEliteExplorerDomain.Models.Player.DefaultPlayerHexColor">
-            <summary>
-            Default player's hexadecimal color.
+            Identifier.
             </summary>
         </member>
         <member name="P:TheEliteExplorerDomain.Models.Player.RealName">
@@ -907,15 +911,10 @@
             Control style.
             </summary>
         </member>
-        <member name="M:TheEliteExplorerDomain.Models.Player.#ctor(TheEliteExplorerDomain.Dtos.PlayerDto)">
+        <member name="P:TheEliteExplorerDomain.Models.Player.Color">
             <summary>
-            Constructor.
+            Hexadecimal color.
             </summary>
-            <param name="dto">Instance of <see cref="T:TheEliteExplorerDomain.Dtos.PlayerDto"/>.</param>
-            <exception cref="T:System.ArgumentNullException"><paramref name="dto"/> is <c>Null</c>.</exception>
-        </member>
-        <member name="M:TheEliteExplorerDomain.Models.Player.ToString">
-            <inheritdoc />
         </member>
         <member name="T:TheEliteExplorerDomain.Models.Ranking">
             <summary>
@@ -978,19 +977,9 @@
             Game.
             </summary>
         </member>
-        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.PlayerId">
+        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.Player">
             <summary>
-            Player identifier.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.PlayerName">
-            <summary>
-            Player name (real name).
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.PlayerColor">
-            <summary>
-            Player color.
+            Player information.
             </summary>
         </member>
         <member name="P:TheEliteExplorerDomain.Models.RankingEntryLight.Points">
@@ -1146,16 +1135,6 @@
         <member name="P:TheEliteExplorerDomain.Models.StageSweep.Days">
             <summary>
             Days count.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageSweep.PlayerName">
-            <summary>
-            Player name.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageSweep.PlayerColor">
-            <summary>
-            Player color.
             </summary>
         </member>
         <member name="T:TheEliteExplorerDomain.Models.Standing">

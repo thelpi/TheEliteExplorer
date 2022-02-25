@@ -37,22 +37,30 @@ namespace TheEliteExplorerDomain.Models
         /// <summary>
         /// Author.
         /// </summary>
-        public PlayerDto Author { get; internal set; }
+        public Player Author { get; internal set; }
 
         /// <summary>
         /// Slayer (<c>Null</c> if still ongoing).
         /// </summary>
-        public PlayerDto Slayer { get; internal set; }
+        public Player Slayer { get; internal set; }
 
         /// <summary>
         /// Consecutive times while standing (one in most case).
         /// </summary>
         public IReadOnlyCollection<long> Times => _times;
 
-        internal Standing WithTime(long time)
+        internal Standing(long time)
         {
-            _times.Add(time);
-            return this;
+            _times = new List<long>
+            {
+                time
+            };
+        }
+
+        internal void AddTime(long time)
+        {
+            if (!_times.Contains(time))
+                _times.Add(time);
         }
 
         /// <summary>

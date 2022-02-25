@@ -108,9 +108,9 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<PlayerDto>> GetCleanableDirtyPlayersAsync()
+        public async Task<IReadOnlyCollection<Player>> GetCleanableDirtyPlayersAsync()
         {
-            var okPlayers = new List<PlayerDto>();
+            var okPlayers = new List<Player>();
 
             var players = await _readRepository
                 .GetDirtyPlayersAsync()
@@ -125,7 +125,7 @@ namespace TheEliteExplorerDomain.Providers
                 if (pInfo != null)
                 {
                     pInfo.Id = p.Id;
-                    okPlayers.Add(pInfo);
+                    okPlayers.Add(new Player(pInfo));
                 }
             }
 

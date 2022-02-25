@@ -83,6 +83,6 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<Standing>> GetLongestStandingsAsync(
             Game game,
             DateTime? endDate,
-            StandingType standingType)
+            StandingType standingType);
     }
 }

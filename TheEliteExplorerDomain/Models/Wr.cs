@@ -11,12 +11,12 @@ namespace TheEliteExplorerDomain.Models
     /// </summary>
     public class Wr : WrBase
     {
-        private readonly List<(PlayerDto, DateTime, Engine?)> _holders = new List<(PlayerDto, DateTime, Engine?)>();
+        private readonly List<(Player, DateTime, Engine?)> _holders = new List<(Player, DateTime, Engine?)>();
 
         /// <summary>
         /// Player.
         /// </summary>
-        public PlayerDto Player => _holders[0].Item1;
+        public Player Player => _holders[0].Item1;
 
         /// <summary>
         /// Date.
@@ -31,7 +31,7 @@ namespace TheEliteExplorerDomain.Models
         /// <summary>
         /// Player who slays the untied wr (<c>Null</c> if still untied wr).
         /// </summary>
-        public PlayerDto UntiedSlayPlayer => _holders.Count > 1 ? _holders[1].Item1 : default(PlayerDto);
+        public Player UntiedSlayPlayer => _holders.Count > 1 ? _holders[1].Item1 : default(Player);
 
         /// <summary>
         /// Date of untied slay (<c>Null</c> if still untied wr).
@@ -41,7 +41,7 @@ namespace TheEliteExplorerDomain.Models
         /// <summary>
         /// Every players who holds the wr.
         /// </summary>
-        public IReadOnlyCollection<(PlayerDto, DateTime, Engine?)> Holders => _holders;
+        public IReadOnlyCollection<(Player, DateTime, Engine?)> Holders => _holders;
 
         /// <summary>
         /// Date of slay (<c>Null</c> if still wr).
@@ -51,25 +51,25 @@ namespace TheEliteExplorerDomain.Models
         /// <summary>
         /// Player who slays the wr (<c>Null</c> if still wr).
         /// </summary>
-        public PlayerDto SlayPlayer { get; private set; }
+        public Player SlayPlayer { get; private set; }
 
         internal Wr(Stage stage, Level level, long time, PlayerDto player, DateTime date, Engine? engine)
             : base(stage, level, time)
         {
-            _holders.Add((player, date.Date, engine));
+            _holders.Add((new Player(player), date.Date, engine));
         }
 
         internal void AddHolder(PlayerDto player, DateTime date, Engine? engine)
         {
             // Avoid duplicate of same player on multiple engines
-            if (_holders.Any(h => h.Item1 == player)) return;
+            if (_holders.Any(h => h.Item1.Id == player.Id)) return;
 
-            _holders.Add((player, date.Date, engine));
+            _holders.Add((new Player(player), date.Date, engine));
         }
 
         internal void AddSlayer(PlayerDto player, DateTime date)
         {
-            SlayPlayer = player;
+            SlayPlayer = new Player(player);
             SlayDate = date.Date;
         }
 

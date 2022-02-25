@@ -20,17 +20,9 @@ namespace TheEliteExplorerDomain.Models
         /// </summary>
         public Game Game { get; }
         /// <summary>
-        /// Player identifier.
+        /// Player information.
         /// </summary>
-        public long PlayerId { get; }
-        /// <summary>
-        /// Player name (real name).
-        /// </summary>
-        public string PlayerName { get; }
-        /// <summary>
-        /// Player color.
-        /// </summary>
-        public string PlayerColor { get; }
+        public Player Player { get; }
         /// <summary>
         /// Points.
         /// </summary>
@@ -51,9 +43,7 @@ namespace TheEliteExplorerDomain.Models
         internal RankingEntryLight(Game game, PlayerDto player)
         {
             Game = game;
-            PlayerId = player.Id;
-            PlayerName = player.RealName;
-            PlayerColor = player.Color;
+            Player = new Player(player);
 
             Points = 0;
             UntiedRecordsCount = 0;
