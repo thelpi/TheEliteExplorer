@@ -133,7 +133,7 @@ namespace TheEliteExplorerUi.Models
         }
 
         internal static LastTiedWrViewData ToLastTiedWrViewData(
-            this Dictionary<Stage, Dictionary<Level, (TheEliteExplorerDomain.Dtos.EntryDto, bool)>> entries,
+            this Dictionary<Stage, Dictionary<Level, (Entry, bool)>> entries,
             DateTime? date,
             IReadOnlyCollection<Player> players,
             string stageImagePath)
@@ -161,7 +161,7 @@ namespace TheEliteExplorerUi.Models
         }
 
         private static LastTiedWrLevelItemData ToLastTiedWrLevelItemData(
-            this Dictionary<Level, (TheEliteExplorerDomain.Dtos.EntryDto, bool)> levelData,
+            this Dictionary<Level, (Entry, bool)> levelData,
             Level level,
             DateTime? date,
             IReadOnlyCollection<Player> players,

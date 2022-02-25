@@ -892,6 +892,26 @@
             <param name="stage">Stage.</param>
             <returns>Game.</returns>
         </member>
+        <member name="T:TheEliteExplorerDomain.Models.Entry">
+            <summary>
+            Represents a time entry
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Entry.Date">
+            <summary>
+            Date.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Entry.Time">
+            <summary>
+            Time.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.Entry.PlayerId">
+            <summary>
+            Player identifier.
+            </summary>
+        </member>
         <member name="T:TheEliteExplorerDomain.Models.Player">
             <summary>
             Represents a player.

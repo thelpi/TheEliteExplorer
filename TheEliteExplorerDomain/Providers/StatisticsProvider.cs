@@ -185,18 +185,18 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<Stage, Dictionary<Level, (EntryDto, bool)>>> GetLastTiedWrsAsync(
+        public async Task<Dictionary<Stage, Dictionary<Level, (Entry, bool)>>> GetLastTiedWrsAsync(
             Game game,
             DateTime date)
         {
-            var daysByStage = new ConcurrentDictionary<Stage, Dictionary<Level, (EntryDto, bool)>>();
+            var daysByStage = new ConcurrentDictionary<Stage, Dictionary<Level, (Entry, bool)>>();
 
             var tasks = new List<Task>();
             foreach (var stage in game.GetStages())
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var stageDatas = new Dictionary<Level, (EntryDto, bool)>();
+                    var stageDatas = new Dictionary<Level, (Entry, bool)>();
                     foreach (var level in SystemExtensions.Enumerate<Level>())
                     {
                         var entries = await _readRepository.GetEntriesAsync(stage, level, null, date).ConfigureAwait(false);
@@ -205,7 +205,7 @@ namespace TheEliteExplorerDomain.Providers
                         {
                             var entriesAt = datedEntries.GroupBy(_ => _.Time).OrderBy(_ => _.Key).First();
                             var lastEntry = entriesAt.OrderByDescending(_ => _.Date).First();
-                            stageDatas.Add(level, (lastEntry, entriesAt.Count() == 1));
+                            stageDatas.Add(level, (new Entry(lastEntry), entriesAt.Count() == 1));
                         }
                         else
                         {
