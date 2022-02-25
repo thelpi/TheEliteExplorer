@@ -49,6 +49,11 @@ namespace TheEliteExplorerDomain.Models
         /// </summary>
         public IReadOnlyCollection<long> Times => _times;
 
+        /// <summary>
+        /// Number of days while standing; <c>Null if not computed yet</c>.
+        /// </summary>
+        public int? Days { get; private set; }
+
         internal Standing(long time)
         {
             _times = new List<long>
@@ -64,13 +69,14 @@ namespace TheEliteExplorerDomain.Models
         }
 
         /// <summary>
-        /// Gets the number of days while standing.
+        /// Sets <see cref="Days"/>.
         /// </summary>
         /// <param name="dateIfNull">End date if ongoing.</param>
-        /// <returns>Number of days.</returns>
-        public int GetDays(DateTime dateIfNull)
+        /// <returns>The instance.</returns>
+        public Standing WithDays(DateTime dateIfNull)
         {
-            return (int)(EndDate.GetValueOrDefault(dateIfNull) - StartDate).TotalDays;
+            Days = (int)(EndDate.GetValueOrDefault(dateIfNull) - StartDate).TotalDays;
+            return this;
         }
     }
 }

@@ -145,5 +145,30 @@ namespace TheEliteExplorer.Controllers
 
             return Ok(wrs);
         }
+
+        /// <summary>
+        /// Gets longest standing world records.
+        /// </summary>
+        /// <param name="game">Game.</param>
+        /// <param name="endDate">End date to consider.</param>
+        /// <param name="standingType">Type of standing.</param>
+        /// <param name="stillOngoing"></param>
+        /// <param name="count">Number of results expected.</param>
+        /// <returns>Collection of standing world records.</returns>
+        [HttpGet("games/{game}/longest-standings")]
+        [ProducesResponseType(typeof(IReadOnlyCollection<Standing>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<IReadOnlyCollection<Standing>>> GetLongestStandingsAsync(
+            [FromRoute] Game game,
+            [FromQuery][Required] StandingType standingType,
+            [FromQuery] bool? stillOngoing,
+            [FromQuery] DateTime? endDate,
+            [FromQuery] int? count)
+        {
+            var standings = await _statisticsProvider
+                .GetLongestStandingsAsync(game, endDate, standingType, stillOngoing)
+                .ConfigureAwait(false);
+
+            return Ok(standings.Take(count ?? 100).ToList());
+        }
     }
 }

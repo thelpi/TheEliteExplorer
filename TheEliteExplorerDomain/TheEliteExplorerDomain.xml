@@ -175,13 +175,14 @@
             </param>
             <returns>Collection of ambiguous world records.</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType)">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType,System.Nullable{System.Boolean})">
             <summary>
             Gets longest standing times.
             </summary>
             <param name="game">Game.</param>
             <param name="endDate">End date ton consider; <c>Null</c> for now.</param>
             <param name="standingType">Type of standing request.</param>
+            <param name="stillOngoing">Still ongoing; or not; or both (<c>Null</c>).</param>
             <returns>Ordered collection of <see cref="T:TheEliteExplorerDomain.Models.Standing"/>.</returns>
         </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser">
@@ -1203,12 +1204,17 @@
             Consecutive times while standing (one in most case).
             </summary>
         </member>
-        <member name="M:TheEliteExplorerDomain.Models.Standing.GetDays(System.DateTime)">
+        <member name="P:TheEliteExplorerDomain.Models.Standing.Days">
             <summary>
-            Gets the number of days while standing.
+            Number of days while standing; <c>Null if not computed yet</c>.
+            </summary>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Models.Standing.WithDays(System.DateTime)">
+            <summary>
+            Sets <see cref="P:TheEliteExplorerDomain.Models.Standing.Days"/>.
             </summary>
             <param name="dateIfNull">End date if ongoing.</param>
-            <returns>Number of days.</returns>
+            <returns>The instance.</returns>
         </member>
         <member name="T:TheEliteExplorerDomain.Models.Wr">
             <summary>
@@ -1351,7 +1357,7 @@
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetAmbiguousWorldRecordsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType)">
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType,System.Nullable{System.Boolean})">
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetPlayersAsync">

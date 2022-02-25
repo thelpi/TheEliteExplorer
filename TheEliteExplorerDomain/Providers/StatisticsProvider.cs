@@ -246,7 +246,8 @@ namespace TheEliteExplorerDomain.Providers
         public async Task<IReadOnlyCollection<Standing>> GetLongestStandingsAsync(
             Game game,
             DateTime? endDate,
-            StandingType standingType)
+            StandingType standingType,
+            bool? stillOngoing)
         {
             var standings = new List<Standing>();
 
@@ -260,16 +261,34 @@ namespace TheEliteExplorerDomain.Providers
                         .Where(wr => wr.Stage == stage && wr.Level == level)
                         .OrderBy(wr => wr.Date);
 
-                    Standing currentStanding = null;
+                    //Standing currentStanding = null;
                     foreach (var locWr in locWrs)
                     {
                         switch (standingType)
                         {
                             case StandingType.Unslayed:
+                                standings.Add(new Standing(locWr.Time)
+                                {
+                                    Slayer = locWr.SlayPlayer,
+                                    EndDate = locWr.SlayDate,
+                                    StartDate = locWr.Date,
+                                    Author = locWr.Player,
+                                    Level = level,
+                                    Stage = stage
+                                });
                                 break;
                             case StandingType.UnslayedExceptSelf:
                                 break;
                             case StandingType.Untied:
+                                standings.Add(new Standing(locWr.Time)
+                                {
+                                    Slayer = locWr.UntiedSlayPlayer ?? locWr.SlayPlayer,
+                                    EndDate = locWr.UntiedSlayDate ?? locWr.SlayDate,
+                                    StartDate = locWr.Date,
+                                    Author = locWr.Player,
+                                    Level = level,
+                                    Stage = stage
+                                });
                                 break;
                             case StandingType.UntiedExceptSelf:
                                 break;
@@ -301,7 +320,12 @@ namespace TheEliteExplorerDomain.Providers
             var now = ServiceProviderAccessor.ClockProvider.Now;
 
             return standings
-                .OrderByDescending(x => x.GetDays(now))
+                .Where(x => stillOngoing == true
+                    ? !x.EndDate.HasValue
+                    : (stillOngoing == false
+                        ? x.EndDate.HasValue
+                        : true))
+                .OrderByDescending(x => x.WithDays(now).Days)
                 .ToList();
         }
 
