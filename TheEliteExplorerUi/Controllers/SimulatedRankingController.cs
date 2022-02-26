@@ -121,8 +121,15 @@ namespace TheEliteExplorerUi.Controllers
                     stage = stage.HasValue ? (game == Game.PerfectDark ? stage + 20 : stage) : null;
 
                     var sweeps = await _statisticsProvider
-                        .GetSweepsAsync(game, untied, null, null, stage == null ? (Stage?)null : (Stage)stage.Value)
+                        .GetSweepsAsync(game, untied, null)
                         .ConfigureAwait(false);
+
+                    if (stage.HasValue)
+                    {
+                        sweeps = sweeps
+                            .Where(s => s.Stage == (Stage)stage.Value)
+                            .ToList();
+                    }
 
                     return sweeps.OrderByDescending(s => s.Days).ToList();
                 }).ConfigureAwait(false);

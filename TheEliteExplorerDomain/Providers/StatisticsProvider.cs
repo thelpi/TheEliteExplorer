@@ -50,88 +50,94 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<StageSweep>> GetSweepsAsync(
+        public async Task<IReadOnlyCollection<Sweep>> GetSweepsAsync(
             Game game,
             bool untied,
-            DateTime? startDate,
-            DateTime? endDate,
-            Stage? stage)
+            DateTime? endDate)
         {
-            if (startDate > endDate)
+            var sweeps = new ConcurrentBag<Sweep>();
+
+            var wrs = await GetWorldRecordsAsync(game, endDate).ConfigureAwait(false);
+
+            //var tasks = new List<Task>();
+
+            foreach (var stage in game.GetStages())
             {
-                throw new ArgumentOutOfRangeException(nameof(startDate), startDate,
-                    $"{nameof(startDate)} is greater than {nameof(endDate)}.");
-            }
+                var locWrs = wrs.Where(wr => wr.Stage == stage);
 
-            var fullEntries = new List<EntryDto>();
+                // Makes a list of every date with entries, ordered ascending
+                var dates = locWrs
+                    .SelectMany(wr => wr.Holders.Select(_ => _.Item2))
+                    .Distinct()
+                    .OrderBy(d => d);
 
-            foreach (var locStage in game.GetStages())
-            {
-                var entries = await _readRepository
-                    .GetEntriesAsync(locStage)
-                    .ConfigureAwait(false);
-
-                fullEntries.AddRange(entries);
-            }
-
-            var entriesGroups = fullEntries
-                .Where(e => e.Date.HasValue)
-                .GroupBy(e => (e.Stage, e.Level))
-                .ToDictionary(e => e.Key, e => e.ToList());
-
-            var playerKeys = await GetPlayersInternalAsync().ConfigureAwait(false);
-
-            var sweepsRaw = new ConcurrentBag<(long playerId, DateTime date, Stage stage)>();
-
-            var dates = SystemExtensions
-                .LoopBetweenDates(
-                    startDate ?? Extensions.GetEliteFirstDate(game),
-                    endDate ?? ServiceProviderAccessor.ClockProvider.Now,
-                    DateStep.Day)
-                .GroupBy(d => d.DayOfWeek)
-                .ToDictionary(d => d.Key, d => d);
-
-            var tasks = new List<Task>();
-
-            foreach (var dow in SystemExtensions.Enumerate<DayOfWeek>())
-            {
-                tasks.Add(Task.Run(() =>
+                Sweep currentSweep = null;
+                var currentWrs = new List<Wr> { null, null, null };
+                foreach (var date in dates)
                 {
-                    foreach (var currentDate in dates[dow])
+                    for (var i = 0; i < 3; i++)
                     {
-                        foreach (var stg in game.GetStages())
+                        // all untied of the day
+                        var untieds = locWrs
+                            .Where(wr => wr.Level == (Level)(i + 1) && wr.Date == date)
+                            .OrderByDescending(wr => wr.Time);
+
+                        if (untieds.Any())
                         {
-                            if (stage == null || stg == stage)
-                            {
-                                sweepsRaw.AddRange(
-                                    GetPotentialSweeps(untied, entriesGroups, currentDate, stg));
-                            }
+                            currentWrs[i] = untieds.Last();
+                        }
+
+                        // all not untied of the day
+                        var notUntieds = locWrs
+                            .Where(wr => wr.Level == (Level)(i + 1) && wr.Holders.Skip(1).Any(_ => _.Item2 == date))
+                            .OrderByDescending(wr => wr.Time);
+
+                        if (currentWrs[i] != null && notUntieds.Any(_ => _.Time <= currentWrs[i].Time))
+                        {
+                            currentWrs[i] = null;
                         }
                     }
-                }));
-            }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+                    var isFullUntiedOnePlayer = currentWrs.All(_ => _ != null)
+                        && currentWrs.GroupBy(_ => _.Player.Id).Count() == 1;
 
-            var finalSweeps = new List<StageSweep>();
+                    if (currentSweep != null)
+                    {
+                        if (!isFullUntiedOnePlayer
+                            || currentWrs.First().Player.Id != currentSweep.Author.Id)
+                        {
+                            currentSweep.EndDate = date;
+                            currentSweep = null;
+                        }
+                    }
 
-            foreach (var (playerId, date, locStage) in sweepsRaw.OrderBy(f => f.date))
-            {
-                var sweepMatch = finalSweeps.SingleOrDefault(s =>
-                    s.Player.Id == playerId
-                    && s.Stage == locStage
-                    && s.EndDate == date);
-
-                if (sweepMatch == null)
-                {
-                    sweepMatch = new StageSweep(date, locStage, playerKeys[playerId]);
-                    finalSweeps.Add(sweepMatch);
+                    if (currentSweep == null)
+                    {
+                        if (isFullUntiedOnePlayer)
+                        {
+                            currentSweep = new Sweep
+                            {
+                                StartDate = date,
+                                Author = currentWrs.First().Player,
+                                Stage = stage
+                            };
+                            sweeps.Add(currentSweep);
+                        }
+                    }
                 }
-
-                sweepMatch.AddDay();
+                /*tasks.Add(Task.Run(() =>
+                {
+                    
+                }));*/
             }
 
-            return finalSweeps;
+            //await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            var now = ServiceProviderAccessor.ClockProvider.Now;
+
+            return sweeps
+                .OrderByDescending(x => x.WithDays(now).Days)
+                .ToList();
         }
 
         /// <inheritdoc />
@@ -629,64 +635,6 @@ namespace TheEliteExplorerDomain.Providers
                     }
                 }
             }
-        }
-
-        private static IEnumerable<(long, DateTime, Stage)> GetPotentialSweeps(
-            bool untied,
-            Dictionary<(Stage, Level), List<EntryDto>> entriesGroups,
-            DateTime currentDate,
-            Stage stage)
-        {
-            var tiedSweepPlayerIds = new List<long>();
-            long? untiedSweepPlayerId = null;
-            foreach (var level in SystemExtensions.Enumerate<Level>())
-            {
-                var stageLevelDateWrs = entriesGroups[(stage, level)]
-                    .Where(e => e.Date.Value.Date <= currentDate.Date)
-                    .GroupBy(e => e.Time)
-                    .OrderBy(e => e.Key)
-                    .FirstOrDefault();
-
-                bool isPotentialSweep = untied
-                    ? stageLevelDateWrs?.Count() == 1
-                    : stageLevelDateWrs?.Count() > 0;
-
-                if (isPotentialSweep)
-                {
-                    if (untied)
-                    {
-                        var currentPId = stageLevelDateWrs.First().PlayerId;
-                        if (!untiedSweepPlayerId.HasValue)
-                        {
-                            untiedSweepPlayerId = currentPId;
-                        }
-
-                        isPotentialSweep = untiedSweepPlayerId.Value == currentPId;
-                    }
-                    else
-                    {
-                        tiedSweepPlayerIds = tiedSweepPlayerIds.IntersectOrConcat(stageLevelDateWrs.Select(_ => _.PlayerId));
-
-                        isPotentialSweep = tiedSweepPlayerIds.Count > 0;
-                    }
-                }
-
-                if (!isPotentialSweep)
-                {
-                    tiedSweepPlayerIds.Clear();
-                    untiedSweepPlayerId = null;
-                    break;
-                }
-            }
-
-            if (!untied)
-            {
-                return tiedSweepPlayerIds.Select(_ => (_, currentDate, stage));
-            }
-
-            return untiedSweepPlayerId.HasValue
-                ? (untiedSweepPlayerId.Value, currentDate.Date, stage).Yield()
-                : Enumerable.Empty<(long, DateTime, Stage)>();
         }
         
         private IReadOnlyCollection<Wr> GetStageLevelWorldRecords(

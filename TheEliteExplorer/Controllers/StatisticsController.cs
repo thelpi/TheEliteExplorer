@@ -79,19 +79,17 @@ namespace TheEliteExplorer.Controllers
         /// </summary>
         /// <param name="game">Game.</param>
         /// <param name="untied">Is untied y/n.</param>
-        /// <param name="startDate">Start date.</param>
         /// <param name="endDate">End date.</param>
         /// <returns>Collection of untied sweeps.</returns>
         [HttpGet("games/{game}/sweeps")]
-        [ProducesResponseType(typeof(IReadOnlyCollection<StageSweep>), (int)HttpStatusCode.OK)]
-        public async Task<ActionResult<IReadOnlyCollection<StageSweep>>> GetSweepsAsync(
+        [ProducesResponseType(typeof(IReadOnlyCollection<Sweep>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<IReadOnlyCollection<Sweep>>> GetSweepsAsync(
             [FromRoute] Game game,
             [FromQuery][Required] bool untied,
-            [FromQuery] DateTime? startDate,
             [FromQuery] DateTime? endDate)
         {
             var sweeps = await _statisticsProvider
-                .GetSweepsAsync(game, untied, startDate, endDate, null)
+                .GetSweepsAsync(game, untied, endDate)
                 .ConfigureAwait(false);
 
             return Ok(sweeps);
