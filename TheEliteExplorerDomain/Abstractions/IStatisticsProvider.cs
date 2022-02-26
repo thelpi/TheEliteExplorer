@@ -47,16 +47,6 @@ namespace TheEliteExplorerDomain.Abstractions
             Stage? stage);
 
         /// <summary>
-        /// Gets, at a specified date, the latest WR entry for every stage and level.
-        /// </summary>
-        /// <param name="game">Game</param>
-        /// <param name="date">Date</param>
-        /// <returns>Last WR entry by stage an level</returns>
-        Task<Dictionary<Stage, Dictionary<Level, (Entry, bool)>>> GetLastTiedWrsAsync(
-            Game game,
-            DateTime date);
-
-        /// <summary>
         /// Computes and gets the full ranking at the specified date.
         /// </summary>
         /// <param name="request">Ranking request.</param>

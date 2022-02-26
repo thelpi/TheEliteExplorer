@@ -170,59 +170,6 @@ namespace TheEliteExplorerUi.Models
             };
         }
 
-        internal static LastTiedWrViewData ToLastTiedWrViewData(
-            this Dictionary<Stage, Dictionary<Level, (Entry, bool)>> entries,
-            DateTime? date,
-            IReadOnlyCollection<Player> players,
-            string stageImagePath)
-        {
-            var vd = new LastTiedWrViewData
-            {
-                StageDetails = entries.Keys
-                    .Select(stage => new LastTiedWrStageItemData
-                    {
-                        EasyData = entries[stage].ToLastTiedWrLevelItemData(Level.Easy, date, players, stage),
-                        HardData = entries[stage].ToLastTiedWrLevelItemData(Level.Hard, date, players, stage),
-                        MediumData = entries[stage].ToLastTiedWrLevelItemData(Level.Medium, date, players, stage),
-                        Image = string.Format(stageImagePath, (int)stage),
-                        Name = stage.ToString()
-                    })
-                    .ToList()
-            };
-
-            vd.TopDetails = vd.StageDetails
-                .SelectMany(_ => new[] { _.EasyData, _.HardData, _.MediumData })
-                .OrderByDescending(_ => _.EntryDays)
-                .ToList();
-
-            return vd;
-        }
-
-        private static LastTiedWrLevelItemData ToLastTiedWrLevelItemData(
-            this Dictionary<Level, (Entry, bool)> levelData,
-            Level level,
-            DateTime? date,
-            IReadOnlyCollection<Player> players,
-            Stage stage)
-        {
-            if (!levelData.ContainsKey(level) || levelData[level].Item1 == null) return null;
-
-            var p = players.FirstOrDefault(_ => _.Id == levelData[level].Item1.PlayerId);
-
-            return new LastTiedWrLevelItemData
-            {
-                EntryDate = levelData[level].Item1.Date.Value,
-                EntryDays = (int)Math.Floor((date.Value - levelData[level].Item1.Date.Value).TotalDays),
-                EntryTime = new TimeSpan(0, 0, (int)levelData[level].Item1.Time),
-                PlayerColor = p?.Color,
-                PlayerInitials = p?.RealName.ToInitials(),
-                PlayerName = p?.RealName,
-                Stage = stage,
-                Level = level,
-                Untied = levelData[level].Item2 ? 'Y' : 'N'
-            };
-        }
-
         private static List<(string, string, string)> GetPlayersRankedAtStageAndLevelTime(List<RankingEntry> rankingEntries, Stage stage, Level level, int bestTime)
         {
             return rankingEntries

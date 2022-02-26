@@ -185,44 +185,6 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<Stage, Dictionary<Level, (Entry, bool)>>> GetLastTiedWrsAsync(
-            Game game,
-            DateTime date)
-        {
-            var daysByStage = new ConcurrentDictionary<Stage, Dictionary<Level, (Entry, bool)>>();
-
-            var tasks = new List<Task>();
-            foreach (var stage in game.GetStages())
-            {
-                tasks.Add(Task.Run(async () =>
-                {
-                    var stageDatas = new Dictionary<Level, (Entry, bool)>();
-                    foreach (var level in SystemExtensions.Enumerate<Level>())
-                    {
-                        var entries = await _readRepository.GetEntriesAsync(stage, level, null, date).ConfigureAwait(false);
-                        var datedEntries = entries.Where(_ => _.Date.HasValue);
-                        if (datedEntries.Any())
-                        {
-                            var entriesAt = datedEntries.GroupBy(_ => _.Time).OrderBy(_ => _.Key).First();
-                            var lastEntry = entriesAt.OrderByDescending(_ => _.Date).First();
-                            stageDatas.Add(level, (new Entry(lastEntry), entriesAt.Count() == 1));
-                        }
-                        else
-                        {
-                            stageDatas.Add(level, (null, false));
-                        }
-                    }
-
-                    daysByStage.TryAdd(stage, stageDatas);
-                }));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
-            return daysByStage.ToDictionary(_ => _.Key, _ => _.Value);
-        }
-
-        /// <inheritdoc />
         public async Task<IReadOnlyCollection<WrBase>> GetAmbiguousWorldRecordsAsync(
             Game game,
             bool untiedSlayAmbiguous)

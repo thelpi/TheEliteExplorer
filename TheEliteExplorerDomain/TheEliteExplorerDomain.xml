@@ -146,14 +146,6 @@
             <returns>Collection of sweeps</returns>
             <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="startDate"/> is greater than <paramref name="endDate"/>.</exception>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetLastTiedWrsAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime)">
-            <summary>
-            Gets, at a specified date, the latest WR entry for every stage and level.
-            </summary>
-            <param name="game">Game</param>
-            <param name="date">Date</param>
-            <returns>Last WR entry by stage an level</returns>
-        </member>
         <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetRankingEntriesAsync(TheEliteExplorerDomain.Models.RankingRequest)">
             <summary>
             Computes and gets the full ranking at the specified date.
@@ -893,26 +885,6 @@
             <param name="stage">Stage.</param>
             <returns>Game.</returns>
         </member>
-        <member name="T:TheEliteExplorerDomain.Models.Entry">
-            <summary>
-            Represents a time entry
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.Entry.Date">
-            <summary>
-            Date.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.Entry.Time">
-            <summary>
-            Time.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.Entry.PlayerId">
-            <summary>
-            Player identifier.
-            </summary>
-        </member>
         <member name="T:TheEliteExplorerDomain.Models.Player">
             <summary>
             Represents a player.
@@ -1349,9 +1321,6 @@
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetSweepsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{TheEliteExplorerDomain.Enums.Stage})">
-            <inheritdoc />
-        </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLastTiedWrsAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime)">
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetAmbiguousWorldRecordsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean)">

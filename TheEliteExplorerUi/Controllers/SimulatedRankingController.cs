@@ -21,7 +21,6 @@ namespace TheEliteExplorerUi.Controllers
         private const string StageImagePath = @"/images/{0}.jpg";
         private const string RankingViewName = "SimulatedRanking";
         private const string PlayersViewName = "Players";
-        private const string LastTiedWrViewName = "LastTiedWr";
         private const string PlayerDetailsViewName = "PlayerDetails";
         private const string SweepsViewName = "Sweeps";
         private const string IndexViewName = "Index";
@@ -151,30 +150,6 @@ namespace TheEliteExplorerUi.Controllers
                             .Select(x => x.ToStandingWrLevelItemData())
                             .ToList()
                     };
-                }).ConfigureAwait(false);
-        }
-
-        [HttpGet("/games/{game}/last-tied-wr")]
-        public async Task<IActionResult> GetLastTiedWrAsync(
-            [FromRoute] Game game,
-            [FromQuery] DateTime? date)
-        {
-            return await DoAndCatchAsync(
-                LastTiedWrViewName,
-                "Latest WR tied for each stage",
-                async () =>
-                {
-                    date = date ?? DateTime.Now;
-
-                    var entries = await _statisticsProvider
-                        .GetLastTiedWrsAsync(game, date.Value)
-                        .ConfigureAwait(false);
-
-                    var players = await _statisticsProvider
-                        .GetPlayersAsync()
-                        .ConfigureAwait(false);
-
-                    return entries.ToLastTiedWrViewData(date, players, StageImagePath);
                 }).ConfigureAwait(false);
         }
 
