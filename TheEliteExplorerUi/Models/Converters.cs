@@ -10,6 +10,27 @@ namespace TheEliteExplorerUi.Models
 {
     internal static class Converters
     {
+        internal static string AsPageTitle(this StandingType standingType, bool stillOngoing)
+        {
+            var onGoing = stillOngoing ? "; ongoing" : string.Empty;
+
+            switch (standingType)
+            {
+                case StandingType.BetweenTwoTimes:
+                    return $"Longest run between 2 WRs{onGoing}";
+                case StandingType.Unslayed:
+                    return $"Longest run before a WR slay{onGoing}";
+                case StandingType.UnslayedExceptSelf:
+                    return $"Longest run before a WR slay; self-slay excluded{onGoing}";
+                case StandingType.Untied:
+                    return $"Longest run before a WR untied{onGoing}";
+                case StandingType.UntiedExceptSelf:
+                    return $"Longest run before a WR untied; self-untied excluded{onGoing}";
+            }
+
+            throw new NotImplementedException();
+        }
+
         internal static StandingWrLevelItemData ToStandingWrLevelItemData(this Standing x)
         {
             return new StandingWrLevelItemData
@@ -17,7 +38,7 @@ namespace TheEliteExplorerUi.Models
                 EntryDate = x.StartDate,
                 PlayerColor = x.Author.Color,
                 EntryDays = x.Days.Value,
-                EntryTimes = x.Times.Select(_ => new TimeSpan(0, (int)_, 0)).ToList(),
+                EntryTimes = x.Times.Select(_ => new TimeSpan(0, 0, (int)_)).ToList(),
                 Level = x.Level,
                 PlayerName = x.Author.RealName,
                 Stage = x.Stage,

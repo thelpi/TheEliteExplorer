@@ -268,37 +268,50 @@ namespace TheEliteExplorerDomain.Providers
                         switch (standingType)
                         {
                             case StandingType.Unslayed:
-                                standings.Add(new Standing(locWr.Time)
+                                standings.AddRange(locWr.Holders.Select(_ => new Standing(locWr.Time)
                                 {
                                     Slayer = locWr.SlayPlayer,
                                     EndDate = locWr.SlayDate,
-                                    StartDate = locWr.Date,
-                                    Author = locWr.Player,
+                                    StartDate = _.Item2,
+                                    Author = _.Item1,
                                     Level = level,
                                     Stage = stage
-                                });
+                                }));
                                 break;
                             case StandingType.UnslayedExceptSelf:
-                                if (currentStanding == null)
+                                var slayer = locWr.SlayPlayer;
+                                var holders = locWr.Holders.ToList();
+                                if (currentStanding != null)
                                 {
-                                    currentStanding = new Standing(locWr.Time)
+                                    currentStanding.AddTime(locWr.Time);
+                                    holders.RemoveAll(_ => _.Item1.Id == currentStanding.Author.Id);
+                                    if (slayer == null || slayer.Id != currentStanding.Author.Id)
                                     {
-                                        StartDate = locWr.Date,
-                                        Author = locWr.Player,
+                                        currentStanding.Slayer = slayer;
+                                        currentStanding.EndDate = locWr.SlayDate;
+                                        currentStanding = null;
+                                    }
+                                }
+                                foreach (var holder in holders)
+                                {
+                                    var locCurrentStanding = new Standing(locWr.Time)
+                                    {
+                                        StartDate = holder.Item2,
+                                        Author = holder.Item1,
                                         Level = level,
                                         Stage = stage
                                     };
-                                    standings.Add(currentStanding);
-                                }
+                                    standings.Add(locCurrentStanding);
 
-                                currentStanding.AddTime(locWr.Time);
-
-                                var slayer = locWr.SlayPlayer;
-                                if (slayer == null || slayer.Id != currentStanding.Author.Id)
-                                {
-                                    currentStanding.Slayer = slayer;
-                                    currentStanding.EndDate = locWr.SlayDate;
-                                    currentStanding = null;
+                                    if (slayer == null || slayer.Id != locCurrentStanding.Author.Id)
+                                    {
+                                        locCurrentStanding.Slayer = slayer;
+                                        locCurrentStanding.EndDate = locWr.SlayDate;
+                                    }
+                                    else
+                                    {
+                                        currentStanding = locCurrentStanding;
+                                    }
                                 }
                                 break;
                             case StandingType.Untied:

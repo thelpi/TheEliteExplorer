@@ -1,7 +1,7 @@
 ﻿namespace TheEliteExplorerDomain.Enums
 {
     /// <summary>
-    /// Possible rules for longest standind world records.
+    /// Possible rules for longest standing world records.
     /// </summary>
     public enum StandingType
     {

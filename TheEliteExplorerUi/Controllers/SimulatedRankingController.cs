@@ -137,7 +137,7 @@ namespace TheEliteExplorerUi.Controllers
         {
             return await DoAndCatchAsync(
                 LastStandingViewName,
-                $"Longest standing with rule {standingType.ToString()}",
+                standingType.AsPageTitle(stillOngoing == true),
                 async () =>
                 {
                     var standings = await _statisticsProvider
@@ -147,7 +147,7 @@ namespace TheEliteExplorerUi.Controllers
                     return new StandingWrViewData
                     {
                         TopDetails = standings
-                            .Take(100)
+                            .Take(25)
                             .Select(x => x.ToStandingWrLevelItemData())
                             .ToList()
                     };

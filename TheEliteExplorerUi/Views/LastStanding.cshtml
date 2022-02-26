@@ -27,7 +27,7 @@
                     </td>
                     <td>@item.Stage.ToString()</td>
                     <td>@item.Level.ToString()</td>
-                    <td>@string.Join(", ", item.EntryTimes.Select(x => x.ToString(@"mm")))</td>
+                    <td>@string.Join(", ", item.EntryTimes.Select(x => x.TotalMinutes >= 1 ? x.ToString(@"mm\:ss") : x.ToString("ss")))</td>
                     <td>@item.EntryDate.ToString("yyyy-MM-dd")</td>
                     <td>@(item.EndDate?.ToString("yyyy-MM-dd") ?? "-")</td>
                     <td><strong>@item.EntryDays</strong></td>
