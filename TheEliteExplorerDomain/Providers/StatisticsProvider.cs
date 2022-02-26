@@ -40,56 +40,6 @@ namespace TheEliteExplorerDomain.Providers
         #region IStatisticsProvider implementation
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<StageEntryCount>> GetStagesEntriesCountAsync(
-            Game game,
-            DateTime startDate,
-            DateTime endDate,
-            bool levelDetails,
-            DateTime? globalStartDate,
-            DateTime? globalEndDate)
-        {
-            var entries = new List<EntryDto>();
-
-            foreach (var stage in game.GetStages())
-            {
-                foreach (var level in SystemExtensions.Enumerate<Level>())
-                {
-                    var datas = await _readRepository
-                        .GetEntriesAsync(stage, level, startDate, endDate)
-                        .ConfigureAwait(false);
-
-                    entries.AddRange(datas);
-                }
-            }
-
-            var results = new List<StageEntryCount>();
-
-            foreach (var stage in game.GetStages())
-            {
-                var levels = !levelDetails
-                    ? new List<Level?> { null }
-                    : SystemExtensions.Enumerate<Level>().Select(l => (Level?)l).ToList();
-                foreach (var level in levels)
-                {
-                    results.Add(new StageEntryCount
-                    {
-                        EndDate = endDate,
-                        StartDate = startDate,
-                        AllStagesEntriesCount = entries.Count,
-                        Level = level,
-                        PeriodEntriesCount = entries.Count(e => e.Stage == stage && (!level.HasValue || e.Level == level)),
-                        Stage = stage,
-                        TotalEntriesCount = await _readRepository
-                            .GetEntriesCountAsync(stage, level, globalStartDate, globalEndDate)
-                            .ConfigureAwait(false)
-                    });
-                }
-            }
-
-            return results;
-        }
-
-        /// <inheritdoc />
         public async Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntriesAsync(
             RankingRequest request)
         {

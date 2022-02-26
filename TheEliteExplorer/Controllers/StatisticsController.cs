@@ -31,33 +31,6 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
-        /// Gets statistics about entries count for a specified game across all stages and levels.
-        /// </summary>
-        /// <param name="game">Game.</param>
-        /// <param name="startDate">Start date (inclusive).</param>
-        /// <param name="endDate">End date (exclusive).</param>
-        /// <param name="levelDetails">With or without details by level.</param>
-        /// <param name="globalStartDate">Start date for <see cref="StageEntryCount.TotalEntriesCount"/> (inclusive).</param>
-        /// <param name="globalEndDate">End date for <see cref="StageEntryCount.TotalEntriesCount"/> (exclusive).</param>
-        /// <returns>Collection of <see cref="StageEntryCount"/>.</returns>
-        [HttpGet("games/{game}/entries-count")]
-        [ProducesResponseType(typeof(IReadOnlyCollection<StageEntryCount>), (int)HttpStatusCode.OK)]
-        public async Task<ActionResult<IReadOnlyCollection<StageEntryCount>>> GetLongestStandingWrsAsync(
-            [FromRoute] Game game,
-            [FromQuery] DateTime startDate,
-            [FromQuery] DateTime endDate,
-            [FromQuery] DateTime? globalStartDate,
-            [FromQuery] DateTime? globalEndDate,
-            [FromQuery] bool levelDetails)
-        {
-            var results = await _statisticsProvider
-                .GetStagesEntriesCountAsync(game, startDate, endDate, levelDetails, globalStartDate, globalEndDate)
-                .ConfigureAwait(false);
-
-            return Ok(results);
-        }
-
-        /// <summary>
         /// Gets rankings for the current date or a specified date.
         /// </summary>
         /// <param name="game">The requested game.</param>

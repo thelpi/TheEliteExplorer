@@ -122,18 +122,6 @@
             </summary>
             <returns>Collection of <see cref="T:TheEliteExplorerDomain.Models.Player"/>.</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetStagesEntriesCountAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.DateTime,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
-            <summary>
-            Gets entries count, and some related statistics, for every stage of the specified game.
-            </summary>
-            <param name="game">The game.</param>
-            <param name="startDate">Start date inclusive.</param>
-            <param name="endDate">End date exclusive.</param>
-            <param name="levelDetails"><c>True</c> to get detailed datas for each <see cref="T:TheEliteExplorerDomain.Enums.Level"/>.</param>
-            <param name="globalStartDate">Global start date for <see cref="P:TheEliteExplorerDomain.Models.StageEntryCount.TotalEntriesCount"/> (inclusive).</param>
-            <param name="globalEndDate">Global end date for <see cref="P:TheEliteExplorerDomain.Models.StageEntryCount.TotalEntriesCount"/> (exclusive).</param>
-            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Models.StageEntryCount"/>; one per stage (and level if <paramref name="levelDetails"/>) in the game.</returns>
-        </member>
         <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetSweepsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{TheEliteExplorerDomain.Enums.Stage})">
             <summary>
             Gets sweeps.
@@ -1066,46 +1054,6 @@
             Remove players with WR.
             </summary>
         </member>
-        <member name="T:TheEliteExplorerDomain.Models.StageEntryCount">
-            <summary>
-            Entries count for a stage on a specific period
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.Level">
-            <summary>
-            The level (<c>Null</c> for every level).
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.Stage">
-            <summary>
-            The stage
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.PeriodEntriesCount">
-            <summary>
-            Entries count in the period.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.TotalEntriesCount">
-            <summary>
-            Entries count overall.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.AllStagesEntriesCount">
-            <summary>
-            Entries count across all stages in the period.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.StartDate">
-            <summary>
-            Considered period start (inclusive).
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.StageEntryCount.EndDate">
-            <summary>
-            Considered period end (exclusive).
-            </summary>
-        </member>
         <member name="T:TheEliteExplorerDomain.Models.StageSweep">
             <summary>
             Represents a sweep on stage (untied or not).
@@ -1313,9 +1261,6 @@
             <param name="readRepository">Instance of <see cref="T:TheEliteExplorerDomain.Abstractions.IReadRepository"/>.</param>
             <exception cref="T:System.ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
             <exception cref="T:System.ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
-        </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetStagesEntriesCountAsync(TheEliteExplorerDomain.Enums.Game,System.DateTime,System.DateTime,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
-            <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetRankingEntriesAsync(TheEliteExplorerDomain.Models.RankingRequest)">
             <inheritdoc />
