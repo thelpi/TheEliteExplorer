@@ -56,7 +56,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<PlayerDto>> GetPlayersAsync()
         {
-            return await GetPlayersInternalAsync(false).ConfigureAwait(false);
+            return await GetPlayersInternalAsync(false, false).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -74,9 +74,14 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync()
+        public async Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync(bool withBanned)
         {
-            return await GetPlayersInternalAsync(true).ConfigureAwait(false);
+            var players = await GetPlayersInternalAsync(true, false).ConfigureAwait(false);
+            if (withBanned)
+            {
+                players.AddRange(await GetPlayersInternalAsync(true, true).ConfigureAwait(false));
+            }
+            return players;
         }
 
         /// <inheritdoc />
@@ -99,7 +104,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
-        private async Task<List<PlayerDto>> GetPlayersInternalAsync(bool isDirty)
+        private async Task<List<PlayerDto>> GetPlayersInternalAsync(bool isDirty, bool isBanned)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
@@ -107,7 +112,8 @@ namespace TheEliteExplorerInfrastructure.Repositories
                    ToPsName(_getEveryPlayersPsName),
                    new
                    {
-                       is_dirty = isDirty
+                       is_dirty = isDirty,
+                       is_banned = isBanned
                    },
                     commandType: CommandType.StoredProcedure).ConfigureAwait(false);
 

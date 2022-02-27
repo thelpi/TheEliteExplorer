@@ -30,5 +30,13 @@
         /// "color" column value.
         /// </summary>
         public string Color { get; set; }
+        /// <summary>
+        /// "is_dirty" column value.
+        /// </summary>
+        public bool IsDirty { get; set; }
+        /// <summary>
+        /// "is_banned" column value.
+        /// </summary>
+        public bool IsBanned { get; set; }
     }
 }

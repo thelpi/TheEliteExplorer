@@ -43,11 +43,9 @@ namespace TheEliteExplorerDomain.Providers
         public async Task ScanAllPlayersEntriesHistoryAsync(
             Game game)
         {
-            var players = await _readRepository
-                .GetPlayersAsync()
-                .ConfigureAwait(false);
+            var players = await GetPlayersAsync().ConfigureAwait(false);
 
-            foreach (var player in  players)
+            foreach (var player in players.validPlayers)
             {
                 var entries = await _siteParser
                     .GetPlayerEntriesHistoryAsync(game, player.UrlName)
@@ -64,7 +62,7 @@ namespace TheEliteExplorerDomain.Providers
 
                     foreach (var entry in entries)
                     {
-                        await CreateEntryAsync(entry, game)
+                        await CreateEntryAsync(entry, game, players.validPlayers, players.bannedPlayers)
                             .ConfigureAwait(false);
                     }
                 }
@@ -76,11 +74,9 @@ namespace TheEliteExplorerDomain.Providers
             Game game,
             long playerId)
         {
-            var players = await _readRepository
-                .GetPlayersAsync()
-                .ConfigureAwait(false);
+            var players = await GetPlayersAsync().ConfigureAwait(false);
 
-            var player = players.FirstOrDefault(p => p.Id == playerId);
+            var player = players.validPlayers.FirstOrDefault(p => p.Id == playerId);
             if (player == null)
             {
                 throw new ArgumentException($"invalid {nameof(playerId)}.", nameof(playerId));
@@ -101,7 +97,7 @@ namespace TheEliteExplorerDomain.Providers
 
                 foreach (var entry in entries)
                 {
-                    await CreateEntryAsync(entry, game)
+                    await CreateEntryAsync(entry, game, players.validPlayers, players.bannedPlayers)
                         .ConfigureAwait(false);
                 }
             }
@@ -113,7 +109,7 @@ namespace TheEliteExplorerDomain.Providers
             var okPlayers = new List<Player>();
 
             var players = await _readRepository
-                .GetDirtyPlayersAsync()
+                .GetDirtyPlayersAsync(false)
                 .ConfigureAwait(false);
 
             foreach (var p in players)
@@ -140,6 +136,8 @@ namespace TheEliteExplorerDomain.Providers
             var realStart = await GetStartDateAsync(game, startDate)
                 .ConfigureAwait(false);
 
+            var players = await GetPlayersAsync().ConfigureAwait(false);
+
             foreach (var loopDate in realStart.LoopBetweenDates(DateStep.Month).Reverse())
             {
                 var results = await _siteParser
@@ -148,7 +146,8 @@ namespace TheEliteExplorerDomain.Providers
 
                 foreach (var entry in results)
                 {
-                    await CreateEntryAsync(entry, game).ConfigureAwait(false);
+                    await CreateEntryAsync(entry, game, players.validPlayers, players.bannedPlayers)
+                        .ConfigureAwait(false);
                 }
             }
         }
@@ -156,11 +155,13 @@ namespace TheEliteExplorerDomain.Providers
         /// <inheritdoc />
         public async Task ScanStageTimesAsync(Stage stage)
         {
+            var players = await GetPlayersAsync().ConfigureAwait(false);
+
             var entries = await _siteParser.ExtractStageAllTimeEntriesAsync(stage).ConfigureAwait(false);
 
             foreach (var entry in entries)
             {
-                await CreateEntryAsync(entry, stage.GetGame()).ConfigureAwait(false);
+                await CreateEntryAsync(entry, stage.GetGame(), players.validPlayers, players.bannedPlayers).ConfigureAwait(false);
             }
         }
 
@@ -168,7 +169,7 @@ namespace TheEliteExplorerDomain.Providers
         public async Task<bool> CleanDirtyPlayerAsync(long playerId)
         {
             var players = await _readRepository
-                .GetDirtyPlayersAsync()
+                .GetDirtyPlayersAsync(false)
                 .ConfigureAwait(false);
 
             var p = players.SingleOrDefault(_ => _.Id == playerId);
@@ -216,6 +217,20 @@ namespace TheEliteExplorerDomain.Providers
             }
         }
 
+        private async Task<(List<PlayerDto> validPlayers, List<PlayerDto> bannedPlayers)> GetPlayersAsync()
+        {
+            var players = await _readRepository
+                .GetPlayersAsync()
+                .ConfigureAwait(false);
+
+            var dirtyPlayers = await _readRepository
+                .GetDirtyPlayersAsync(true)
+                .ConfigureAwait(false);
+
+            return (players.Concat(dirtyPlayers.Where(p => !p.IsBanned)).ToList(),
+                dirtyPlayers.Where(p => p.IsBanned).ToList());
+        }
+
         private async Task<DateTime> GetStartDateAsync(
             Game game,
             DateTime? startDate)
@@ -237,17 +252,17 @@ namespace TheEliteExplorerDomain.Providers
 
         private async Task CreateEntryAsync(
             EntryWebDto entry,
-            Game game)
+            Game game,
+            List<PlayerDto> validPlayers,
+            List<PlayerDto> bannedPlayers)
         {
-            var players = await _readRepository
-                .GetPlayersAsync()
-                .ConfigureAwait(false);
-            var dirtyPlayers = await _readRepository
-                .GetDirtyPlayersAsync()
-                .ConfigureAwait(false);
+            if (bannedPlayers.Any(p =>
+                p.UrlName.Equals(entry.PlayerUrlName, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return;
+            }
 
-            var match = players
-                .Concat(dirtyPlayers)
+            var match = validPlayers
                 .FirstOrDefault(p =>
                     p.UrlName.Equals(entry.PlayerUrlName, StringComparison.InvariantCultureIgnoreCase));
 

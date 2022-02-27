@@ -53,7 +53,8 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <summary>
         /// Gets every dirty player.
         /// </summary>
+        /// <param name="withBanned">Include banned players y/n.</param>
         /// <returns>Collection of <see cref="PlayerDto"/>.</returns>
-        Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync();
+        Task<IReadOnlyCollection<PlayerDto>> GetDirtyPlayersAsync(bool withBanned);
     }
 }

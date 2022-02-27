@@ -105,10 +105,11 @@
             </summary>
             <returns>Most recent entry date</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetDirtyPlayersAsync">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetDirtyPlayersAsync(System.Boolean)">
             <summary>
             Gets every dirty player.
             </summary>
+            <param name="withBanned">Include banned players y/n.</param>
             <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.PlayerDto"/>.</returns>
         </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.IStatisticsProvider">
@@ -369,6 +370,16 @@
         <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.Color">
             <summary>
             "color" column value.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.IsDirty">
+            <summary>
+            "is_dirty" column value.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Dtos.PlayerDto.IsBanned">
+            <summary>
+            "is_banned" column value.
             </summary>
         </member>
         <member name="T:TheEliteExplorerDomain.Dtos.RankingDto">

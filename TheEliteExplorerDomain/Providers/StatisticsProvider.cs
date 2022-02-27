@@ -527,7 +527,7 @@ namespace TheEliteExplorerDomain.Providers
 
         #endregion Ranking private methods
 
-        // Gets a adictionary of every player by identifier (including dirty, but not banned)
+        // Gets a dictionary of every player by identifier (including dirty, but not banned)
         private async Task<IReadOnlyDictionary<long, PlayerDto>> GetPlayersInternalAsync()
         {
             var playersSourceClean = await _readRepository
@@ -535,7 +535,7 @@ namespace TheEliteExplorerDomain.Providers
                 .ConfigureAwait(false);
 
             var playersSourceDirty = await _readRepository
-                .GetDirtyPlayersAsync()
+                .GetDirtyPlayersAsync(false)
                 .ConfigureAwait(false);
 
             return playersSourceClean.Concat(playersSourceDirty).ToDictionary(p => p.Id, p => p);
