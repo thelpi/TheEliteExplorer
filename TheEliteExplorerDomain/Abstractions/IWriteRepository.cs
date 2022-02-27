@@ -11,12 +11,20 @@ namespace TheEliteExplorerDomain.Abstractions
     public interface IWriteRepository
     {
         /// <summary>
-        /// Updates the date of an entry.
+        /// Removes an entry.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
+        /// <returns>Nothing.</returns>
+        Task RemoveEntryAsync(long id);
+
+        /// <summary>
+        /// Updates an entry.
         /// </summary>
         /// <param name="entryId">Entry identifier.</param>
         /// <param name="date">Date of the entry.</param>
+        /// <param name="engine">Engine.</param>
         /// <returns>Nothing</returns>
-        Task UpdateEntryDateAsync(long entryId, DateTime date);
+        Task UpdateEntryAsync(long entryId, DateTime date, Engine engine);
 
         /// <summary>
         /// Insert a time entry.

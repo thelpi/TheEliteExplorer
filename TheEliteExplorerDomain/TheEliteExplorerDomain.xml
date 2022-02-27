@@ -72,14 +72,24 @@
             </summary>
             <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.PlayerDto"/>; can't be <c>Null</c>.</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetEntriesAsync(TheEliteExplorerDomain.Enums.Stage,TheEliteExplorerDomain.Enums.Level,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetEntriesAsync(System.Nullable{TheEliteExplorerDomain.Enums.Stage},System.Nullable{TheEliteExplorerDomain.Enums.Level},System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
             <summary>
-            Gets every entries for a specified stage and level, between two dates.
+            Gets every entrie for a specified stage and level, between two dates.
             </summary>
             <param name="stage">Stage.</param>
             <param name="level">Level.</param>
             <param name="startDate">Start date (inclusive).</param>
             <param name="endDate">End date (exclusive).</param>
+            <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.EntryDto"/>; can't be <c>Null</c>.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetEntriesAsync(TheEliteExplorerDomain.Enums.Stage,TheEliteExplorerDomain.Enums.Level,System.Int64,System.Int64)">
+            <summary>
+            Gets entries for a single stage/level/player/time; multiple results are possible with engines.
+            </summary>
+            <param name="stage">Stage.</param>
+            <param name="level">Level.</param>
+            <param name="playerId">Player identifier.</param>
+            <param name="time">Time.</param>
             <returns>Collection of <see cref="T:TheEliteExplorerDomain.Dtos.EntryDto"/>; can't be <c>Null</c>.</returns>
         </member>
         <member name="M:TheEliteExplorerDomain.Abstractions.IReadRepository.GetEntriesAsync(TheEliteExplorerDomain.Enums.Stage)">
@@ -212,12 +222,20 @@
             Write operations in repository (interface).
             </summary>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.UpdateEntryDateAsync(System.Int64,System.DateTime)">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.RemoveEntryAsync(System.Int64)">
             <summary>
-            Updates the date of an entry.
+            Removes an entry.
+            </summary>
+            <param name="id">Identifier.</param>
+            <returns>Nothing.</returns>
+        </member>
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.UpdateEntryAsync(System.Int64,System.DateTime,TheEliteExplorerDomain.Enums.Engine)">
+            <summary>
+            Updates an entry.
             </summary>
             <param name="entryId">Entry identifier.</param>
             <param name="date">Date of the entry.</param>
+            <param name="engine">Engine.</param>
             <returns>Nothing</returns>
         </member>
         <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.InsertTimeEntryAsync(TheEliteExplorerDomain.Dtos.EntryDto,TheEliteExplorerDomain.Enums.Game)">

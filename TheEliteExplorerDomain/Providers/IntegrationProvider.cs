@@ -62,11 +62,24 @@ namespace TheEliteExplorerDomain.Providers
 
                     foreach (var entry in entries)
                     {
-                        await CreateEntryAsync(entry, game, players.validPlayers, players.bannedPlayers)
+                        await CreateEntryAsync(entry, game, GetSameDayEngines(entries, entry), players.validPlayers, players.bannedPlayers)
                             .ConfigureAwait(false);
                     }
                 }
             }
+        }
+
+        private static Engine[] GetSameDayEngines(IEnumerable<EntryWebDto> entries, EntryWebDto entry)
+        {
+            return entries
+                .Where(e => e != entry
+                    && e.Date == entry.Date
+                    && e.Level == entry.Level
+                    && e.PlayerUrlName == entry.PlayerUrlName
+                    && e.Stage == entry.Stage
+                    && e.Time == entry.Time)
+                .Select(e => e.Engine)
+                .ToArray();
         }
 
         /// <inheritdoc />
@@ -97,7 +110,7 @@ namespace TheEliteExplorerDomain.Providers
 
                 foreach (var entry in entries)
                 {
-                    await CreateEntryAsync(entry, game, players.validPlayers, players.bannedPlayers)
+                    await CreateEntryAsync(entry, game, GetSameDayEngines(entries, entry), players.validPlayers, players.bannedPlayers)
                         .ConfigureAwait(false);
                 }
             }
@@ -144,9 +157,31 @@ namespace TheEliteExplorerDomain.Providers
                     .ExtractTimeEntriesAsync(game, loopDate.Year, loopDate.Month, realStart)
                     .ConfigureAwait(false);
 
+                var collectedIds = new List<long>();
                 foreach (var entry in results)
                 {
-                    await CreateEntryAsync(entry, game, players.validPlayers, players.bannedPlayers)
+                    var entryId = await CreateEntryAsync(
+                            entry,
+                            game,
+                            GetSameDayEngines(results, entry),
+                            players.validPlayers,
+                            players.bannedPlayers)
+                        .ConfigureAwait(false);
+                    collectedIds.Add(entryId);
+                }
+
+                var entries = await _readRepository
+                    .GetEntriesAsync(null, null, loopDate, loopDate.AddMonths(1))
+                    .ConfigureAwait(false);
+
+                var entriesToRemove = entries
+                    .Where(e => e.Stage.GetGame() == game && !collectedIds.Contains(e.Id))
+                    .ToList();
+
+                foreach (var entry in entriesToRemove)
+                {
+                    await _writeRepository
+                        .RemoveEntryAsync(entry.Id)
                         .ConfigureAwait(false);
                 }
             }
@@ -161,7 +196,7 @@ namespace TheEliteExplorerDomain.Providers
 
             foreach (var entry in entries)
             {
-                await CreateEntryAsync(entry, stage.GetGame(), players.validPlayers, players.bannedPlayers).ConfigureAwait(false);
+                await CreateEntryAsync(entry, stage.GetGame(), GetSameDayEngines(entries, entry), players.validPlayers, players.bannedPlayers).ConfigureAwait(false);
             }
         }
 
@@ -250,16 +285,17 @@ namespace TheEliteExplorerDomain.Providers
             return startDate.Value;
         }
 
-        private async Task CreateEntryAsync(
+        private async Task<long> CreateEntryAsync(
             EntryWebDto entry,
             Game game,
+            Engine[] enginesTheSameDay,
             List<PlayerDto> validPlayers,
             List<PlayerDto> bannedPlayers)
         {
             if (bannedPlayers.Any(p =>
                 p.UrlName.Equals(entry.PlayerUrlName, StringComparison.InvariantCultureIgnoreCase)))
             {
-                return;
+                return 0;
             }
 
             var match = validPlayers
@@ -280,28 +316,89 @@ namespace TheEliteExplorerDomain.Providers
 
             var requestEntry = entry.ToEntry(playerId);
 
-            var entries = await _readRepository.GetEntriesAsync(
-               requestEntry.Stage,
-               requestEntry.Level,
-               requestEntry.Date?.Date,
-               requestEntry.Date?.Date.AddDays(1));
+            // same stage, same level, same player, same time
+            // potentially multiple engines
+            var playerTimeEntries = await _readRepository
+                .GetEntriesAsync(
+                    requestEntry.Stage,
+                    requestEntry.Level,
+                    requestEntry.PlayerId,
+                    requestEntry.Time)
+                .ConfigureAwait(false);
 
-            var matchEntry = entries.FirstOrDefault(e =>
-                e.PlayerId == requestEntry.PlayerId
-                && e.Time == requestEntry.Time
-                && e.Engine == requestEntry.Engine);
-
-            if (matchEntry == null)
+            if (playerTimeEntries.Count == 0)
             {
-                await _writeRepository
+                // no match: insert
+                return await _writeRepository
                     .InsertTimeEntryAsync(requestEntry, game)
                     .ConfigureAwait(false);
             }
-            else if (!matchEntry.Date.HasValue && requestEntry.Date.HasValue)
+            else if (requestEntry.Engine != Engine.UNK)
             {
-                await _writeRepository
-                    .UpdateEntryDateAsync(matchEntry.Id, requestEntry.Date.Value)
-                    .ConfigureAwait(false);
+                // engine is known
+                // does an entry exist with this engine?
+                var matchByEngine = playerTimeEntries.FirstOrDefault(e => e.Engine == requestEntry.Engine);
+                if (matchByEngine == null)
+                {
+                    // no: insert
+                    return await _writeRepository
+                        .InsertTimeEntryAsync(requestEntry, game)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    // yes: check the date
+                    if (matchByEngine.Date != requestEntry.Date)
+                    {
+                        // needs an update
+                        await _writeRepository
+                            .UpdateEntryAsync(matchByEngine.Id, requestEntry.Date.Value, requestEntry.Engine)
+                            .ConfigureAwait(false);
+                    }
+                    return matchByEngine.Id;
+                }
+            }
+            else
+            {
+                // engine is unknown
+                // does an entry exist at the same date?
+                var matchByDate = playerTimeEntries.FirstOrDefault(e => e.Date == requestEntry.Date);
+                if (matchByDate == null)
+                {
+                    // no: insert
+                    return await _writeRepository
+                        .InsertTimeEntryAsync(requestEntry, game)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    // engine updated?
+                    if (matchByDate.Engine != requestEntry.Engine)
+                    {
+                        if (!enginesTheSameDay.Contains(matchByDate.Engine))
+                        {
+                            // the engine list of the same day doesn't contain the matching entry
+                            // it means the engine on the match must be reset
+                            await _writeRepository
+                               .UpdateEntryAsync(matchByDate.Id, requestEntry.Date.Value, requestEntry.Engine)
+                               .ConfigureAwait(false);
+                            return matchByDate.Id;
+                        }
+                        else
+                        {
+                            // the engine list of the same day contains the matching entry
+                            // it means the match is worthless and we have to create a new entry
+                            return await _writeRepository
+                                .InsertTimeEntryAsync(requestEntry, game)
+                                .ConfigureAwait(false);
+                        }
+                    }
+                    else
+                    {
+                        // same date, same unknown engine
+                        return matchByDate.Id;
+                    }
+                }
             }
         }
     }

@@ -18,14 +18,24 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<PlayerDto>> GetPlayersAsync();
 
         /// <summary>
-        /// Gets every entries for a specified stage and level, between two dates.
+        /// Gets every entrie for a specified stage and level, between two dates.
         /// </summary>
         /// <param name="stage">Stage.</param>
         /// <param name="level">Level.</param>
         /// <param name="startDate">Start date (inclusive).</param>
         /// <param name="endDate">End date (exclusive).</param>
         /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
-        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(Stage stage, Level level, DateTime? startDate, DateTime? endDate);
+        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(Stage? stage, Level? level, DateTime? startDate, DateTime? endDate);
+
+        /// <summary>
+        /// Gets entries for a single stage/level/player/time; multiple results are possible with engines.
+        /// </summary>
+        /// <param name="stage">Stage.</param>
+        /// <param name="level">Level.</param>
+        /// <param name="playerId">Player identifier.</param>
+        /// <param name="time">Time.</param>
+        /// <returns>Collection of <see cref="EntryDto"/>; can't be <c>Null</c>.</returns>
+        Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(Stage stage, Level level, long playerId, long time);
 
         /// <summary>
         /// Gets every entry for a specified stage.

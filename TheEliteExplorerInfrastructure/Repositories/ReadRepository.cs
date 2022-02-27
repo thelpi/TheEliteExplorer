@@ -23,6 +23,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _getLatestEntryDatePsName = "select_latest_entry_date";
         private const string _getEveryPlayersPsName = "select_player";
         private const string _getStageLevelRankingPsName = "select_stage_level_ranking";
+        private const string _getEntriesByPlayerAndTimePsName = "select_entry_player_time";
 
         private readonly IConnectionProvider _connectionProvider;
 
@@ -37,7 +38,34 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(Stage stage, Level level, DateTime? startDate, DateTime? endDate)
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(Stage stage, Level level, long playerId, long time)
+        {
+            var entries = new List<EntryDto>();
+
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                var results = await connection.QueryAsync<EntryDto>(
+                   ToPsName(_getEntriesByPlayerAndTimePsName),
+                   new
+                   {
+                       stage_id = (long)stage,
+                       level_id = (int)level,
+                       player_id = playerId,
+                       time
+                   },
+                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+
+                if (results != null)
+                {
+                    entries.AddRange(results);
+                }
+            }
+
+            return entries;
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<EntryDto>> GetEntriesAsync(Stage? stage, Level? level, DateTime? startDate, DateTime? endDate)
         {
             if (startDate.HasValue || endDate.HasValue)
             {
@@ -121,7 +149,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
-        private async Task<List<EntryDto>> GetEntriesByCriteriaInternalAsync(Stage stage, Level level, DateTime? startDate, DateTime? endDate)
+        private async Task<List<EntryDto>> GetEntriesByCriteriaInternalAsync(Stage? stage, Level? level, DateTime? startDate, DateTime? endDate)
         {
             var entries = new List<EntryDto>();
 
@@ -131,8 +159,8 @@ namespace TheEliteExplorerInfrastructure.Repositories
                    ToPsName(_getEntriesByCriteriaPsName),
                    new
                    {
-                       stage_id = (long)stage,
-                       level_id = (int)level,
+                       stage_id = (long?)stage,
+                       level_id = (int?)level,
                        start_date = startDate,
                        end_date = endDate
                    },

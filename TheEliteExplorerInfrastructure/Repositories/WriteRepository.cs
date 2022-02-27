@@ -20,8 +20,9 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _updateDirtyPlayerPsName = "update_dirty_player";
         private const string _updateCleanPlayerPsName = "update_player";
         private const string _deletePlayerEntriesPsName = "delete_player_entry";
-        private const string _updateEntryDatePsName = "update_entry_date";
+        private const string _updateEntryPsName = "update_entry";
         private const string _insertRankingEntryPsName = "insert_ranking_entry";
+        private const string _deleteEntryPsName = "delete_entry";
 
         private readonly IConnectionProvider _connectionProvider;
 
@@ -33,6 +34,20 @@ namespace TheEliteExplorerInfrastructure.Repositories
         public WriteRepository(IConnectionProvider connectionProvider)
         {
             _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
+        }
+
+        /// <inheritdoc />
+        public async Task RemoveEntryAsync(long id)
+        {
+            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            {
+                await connection
+                    .QueryAsync(
+                        ToPsName(_deleteEntryPsName),
+                        new { id },
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
+            }
         }
 
         /// <inheritdoc />
@@ -76,14 +91,14 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task UpdateEntryDateAsync(long entryId, DateTime date)
+        public async Task UpdateEntryAsync(long entryId, DateTime date, Engine engine)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {
                 await connection
                     .QueryAsync(
-                        ToPsName(_updateEntryDatePsName),
-                        new { date, entryId },
+                        ToPsName(_updateEntryPsName),
+                        new { entry_id = entryId, date, system_id = (long)engine },
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
             }
