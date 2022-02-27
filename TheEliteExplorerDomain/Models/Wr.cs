@@ -11,7 +11,7 @@ namespace TheEliteExplorerDomain.Models
     /// </summary>
     public class Wr : WrBase
     {
-        private readonly List<(Player, DateTime, Engine?)> _holders = new List<(Player, DateTime, Engine?)>();
+        private readonly List<(Player, DateTime, Engine)> _holders = new List<(Player, DateTime, Engine)>();
 
         /// <summary>
         /// Player.
@@ -26,7 +26,7 @@ namespace TheEliteExplorerDomain.Models
         /// <summary>
         /// Engine.
         /// </summary>
-        public Engine? Engine => _holders[0].Item3;
+        public Engine Engine => _holders[0].Item3;
 
         /// <summary>
         /// Player who slays the untied wr (<c>Null</c> if still untied wr).
@@ -41,7 +41,7 @@ namespace TheEliteExplorerDomain.Models
         /// <summary>
         /// Every players who holds the wr.
         /// </summary>
-        public IReadOnlyCollection<(Player, DateTime, Engine?)> Holders => _holders;
+        public IReadOnlyCollection<(Player, DateTime, Engine)> Holders => _holders;
 
         /// <summary>
         /// Date of slay (<c>Null</c> if still wr).
@@ -53,13 +53,13 @@ namespace TheEliteExplorerDomain.Models
         /// </summary>
         public Player SlayPlayer { get; private set; }
 
-        internal Wr(Stage stage, Level level, long time, PlayerDto player, DateTime date, Engine? engine)
+        internal Wr(Stage stage, Level level, long time, PlayerDto player, DateTime date, Engine engine)
             : base(stage, level, time)
         {
             _holders.Add((new Player(player), date.Date, engine));
         }
 
-        internal void AddHolder(PlayerDto player, DateTime date, Engine? engine)
+        internal void AddHolder(PlayerDto player, DateTime date, Engine engine)
         {
             // Avoid duplicate of same player on multiple engines
             if (_holders.Any(h => h.Item1.Id == player.Id)) return;

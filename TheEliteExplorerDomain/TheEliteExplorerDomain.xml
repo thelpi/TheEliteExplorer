@@ -482,6 +482,11 @@
             Engines enumeration.
             </summary>
         </member>
+        <member name="F:TheEliteExplorerDomain.Enums.Engine.UNK">
+            <summary>
+            Unknown
+            </summary>
+        </member>
         <member name="F:TheEliteExplorerDomain.Enums.Engine.NTSC_J">
             <summary>
             Japanese NTSC.

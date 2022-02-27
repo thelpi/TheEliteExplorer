@@ -478,8 +478,8 @@ namespace TheEliteExplorerDomain.Providers
 
             if (request.Engine.HasValue)
             {
-                entries.RemoveAll(_ => (_.Engine.HasValue && _.Engine.Value != request.Engine.Value)
-                    || (!request.IncludeUnknownEngine && !_.Engine.HasValue));
+                entries.RemoveAll(_ => (_.Engine != Engine.UNK && _.Engine != request.Engine.Value)
+                    || (!request.IncludeUnknownEngine && _.Engine == Engine.UNK));
             }
 
             if (request.RankingStartDate.HasValue)

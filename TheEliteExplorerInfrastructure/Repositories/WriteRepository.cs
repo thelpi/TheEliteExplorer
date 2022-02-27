@@ -52,7 +52,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
                     stage_id = (long)requestEntry.Stage,
                     requestEntry.Date,
                     requestEntry.Time,
-                    system_id = requestEntry.Engine.HasValue ? (long)requestEntry.Engine.Value : default(long?)
+                    system_id = (long)requestEntry.Engine
                 }).ConfigureAwait(false);
 
             return entryid;

@@ -6,6 +6,10 @@
     public enum Engine
     {
         /// <summary>
+        /// Unknown
+        /// </summary>
+        UNK = 0,
+        /// <summary>
         /// Japanese NTSC.
         /// </summary>
         NTSC_J = 1,

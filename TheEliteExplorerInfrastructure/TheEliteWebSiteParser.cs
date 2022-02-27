@@ -222,7 +222,7 @@ namespace TheEliteExplorerInfrastructure
                 }
 
                 var engine = ToEngine(rowDatas[4]);
-                if (!engine.HasValue)
+                if (engine == Engine.UNK)
                 {
 
                 }
@@ -524,7 +524,7 @@ namespace TheEliteExplorerInfrastructure
             return date;
         }
 
-        private async Task<Engine?> ExtractTimeEntryEngineAsync(HtmlNode link)
+        private async Task<Engine> ExtractTimeEntryEngineAsync(HtmlNode link)
         {
             const string engineStringBeginString = "System:</strong>";
             const string engineStringEndString = "</li>";
@@ -547,15 +547,14 @@ namespace TheEliteExplorerInfrastructure
                 }
             }
 
-            return null;
+            return Engine.UNK;
         }
 
-        private static Engine? ToEngine(string engineString)
+        private static Engine ToEngine(string engineString)
         {
-            return SystemExtensions
-                .Enumerate<Engine>()
-                .Select(e => (Engine?)e)
-                .FirstOrDefault(e => e.ToString().Equals(engineString.Trim().Replace("-", "_"), StringComparison.InvariantCultureIgnoreCase));
+            return Enum.TryParse<Engine>(engineString.Trim().Replace("-", "_"), true, out var engine)
+                ? engine
+                : Engine.UNK;
         }
 
         private async Task<string> GetPageStringContentAsync(string partUri, bool ignoreNotFound = false)

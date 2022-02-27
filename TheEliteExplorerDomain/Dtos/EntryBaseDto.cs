@@ -27,6 +27,6 @@ namespace TheEliteExplorerDomain.Dtos
         /// <summary>
         /// Engine.
         /// </summary>
-        public Engine? Engine { get; set; }
+        public Engine Engine { get; set; }
     }
 }
