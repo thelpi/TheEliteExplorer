@@ -122,14 +122,17 @@
             </summary>
             <returns>Collection of <see cref="T:TheEliteExplorerDomain.Models.Player"/>.</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetSweepsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean,System.Nullable{System.DateTime})">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetSweepsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{TheEliteExplorerDomain.Enums.Stage})">
             <summary>
             Gets sweeps.
             </summary>
             <param name="game">Game.</param>
             <param name="untied">Untied y/n.</param>
-            <param name="endDate">End date; <c>Null</c> for current.</param>
+            <param name="startDate">Start date.</param>
+            <param name="endDate">End date.</param>
+            <param name="stage">Stage</param>
             <returns>Collection of sweeps</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="startDate"/> is greater than <paramref name="endDate"/>.</exception>
         </member>
         <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetRankingEntriesAsync(TheEliteExplorerDomain.Models.RankingRequest)">
             <summary>
@@ -1051,6 +1054,36 @@
             Remove players with WR.
             </summary>
         </member>
+        <member name="T:TheEliteExplorerDomain.Models.StageSweep">
+            <summary>
+            Represents a sweep on stage (untied or not).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.Stage">
+            <summary>
+            Stage.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.StartDate">
+            <summary>
+            Start date.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.EndDate">
+            <summary>
+            End date (exclusive).
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.Player">
+            <summary>
+            Player.
+            </summary>
+        </member>
+        <member name="P:TheEliteExplorerDomain.Models.StageSweep.Days">
+            <summary>
+            Days count.
+            </summary>
+        </member>
         <member name="T:TheEliteExplorerDomain.Models.Standing">
             <summary>
             Represents a standing while being untied or unslayed.
@@ -1099,43 +1132,6 @@
         <member name="M:TheEliteExplorerDomain.Models.Standing.WithDays(System.DateTime)">
             <summary>
             Sets <see cref="P:TheEliteExplorerDomain.Models.Standing.Days"/>.
-            </summary>
-            <param name="dateIfNull">End date if ongoing.</param>
-            <returns>The instance.</returns>
-        </member>
-        <member name="T:TheEliteExplorerDomain.Models.Sweep">
-            <summary>
-            Represents a sweeep (untied or unslay).
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.Sweep.Stage">
-            <summary>
-            Stage.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.Sweep.StartDate">
-            <summary>
-            Start date.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.Sweep.EndDate">
-            <summary>
-            End date (<c>Null</c> if still ongoing).
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.Sweep.Author">
-            <summary>
-            Author.
-            </summary>
-        </member>
-        <member name="P:TheEliteExplorerDomain.Models.Sweep.Days">
-            <summary>
-            Number of days while sweep; <c>Null if not computed yet</c>.
-            </summary>
-        </member>
-        <member name="M:TheEliteExplorerDomain.Models.Sweep.WithDays(System.DateTime)">
-            <summary>
-            Sets <see cref="P:TheEliteExplorerDomain.Models.Sweep.Days"/>.
             </summary>
             <param name="dateIfNull">End date if ongoing.</param>
             <returns>The instance.</returns>
@@ -1269,7 +1265,7 @@
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetRankingEntriesAsync(TheEliteExplorerDomain.Models.RankingRequest)">
             <inheritdoc />
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetSweepsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean,System.Nullable{System.DateTime})">
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetSweepsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{TheEliteExplorerDomain.Enums.Stage})">
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetAmbiguousWorldRecordsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean)">

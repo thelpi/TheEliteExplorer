@@ -22,12 +22,17 @@ namespace TheEliteExplorerDomain.Abstractions
         /// </summary>
         /// <param name="game">Game.</param>
         /// <param name="untied">Untied y/n.</param>
-        /// <param name="endDate">End date; <c>Null</c> for current.</param>
+        /// <param name="startDate">Start date.</param>
+        /// <param name="endDate">End date.</param>
+        /// <param name="stage">Stage</param>
         /// <returns>Collection of sweeps</returns>
-        Task<IReadOnlyCollection<Sweep>> GetSweepsAsync(
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="startDate"/> is greater than <paramref name="endDate"/>.</exception>
+        Task<IReadOnlyCollection<StageSweep>> GetSweepsAsync(
             Game game,
             bool untied,
-            DateTime? endDate);
+            DateTime? startDate,
+            DateTime? endDate,
+            Stage? stage);
 
         /// <summary>
         /// Computes and gets the full ranking at the specified date.

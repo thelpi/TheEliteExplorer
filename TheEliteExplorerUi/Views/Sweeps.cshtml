@@ -1,4 +1,4 @@
-﻿@model System.Collections.Generic.IReadOnlyCollection<TheEliteExplorerDomain.Models.Sweep>
+﻿@model System.Collections.Generic.IReadOnlyCollection<TheEliteExplorerDomain.Models.StageSweep>
 
 <div class="dual-box" style="width:auto">
     <h2>300 points / untied sweeps periods</h2>
@@ -21,11 +21,11 @@
                     <tr>
                         <td class="rank">@rank</td>
                         <td>
-                            <a style="color:#@item.Author.Color">@item.Author.RealName</a>
+                            <a style="color:#@item.Player.Color">@item.Player.RealName</a>
                         </td>
                         <td>@item.Stage.ToString()</td>
                         <td>@item.StartDate.ToString("yyyy-MM-dd")</td>
-                        <td>@(item.EndDate.HasValue ? item.EndDate.Value.ToString("yyyy-MM-dd") : "-")</td>
+                        <td>@item.EndDate.ToString("yyyy-MM-dd")</td>
                         <td><strong>@item.Days</strong></td>
                     </tr>
                     rank++;
