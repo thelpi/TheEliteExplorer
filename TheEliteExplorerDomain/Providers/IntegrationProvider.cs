@@ -197,18 +197,22 @@ namespace TheEliteExplorerDomain.Providers
                 .GetPlayersAsync()
                 .ConfigureAwait(false);
 
-            foreach (var p in nonDirtyPlayers)
+            const int parallel = 4;
+            for (var i = 0; i < nonDirtyPlayers.Count; i += parallel)
             {
-                var res = await _siteParser
-                    .GetPlayerInformationAsync(p.UrlName, Player.DefaultPlayerHexColor)
-                    .ConfigureAwait(false);
-
-                if (res == null)
+                await Task.WhenAll(nonDirtyPlayers.Skip(i).Take(parallel).Select(async p =>
                 {
-                    await _writeRepository
-                        .UpdateDirtyPlayerAsync(p.Id)
+                    var res = await _siteParser
+                        .GetPlayerInformationAsync(p.UrlName, Player.DefaultPlayerHexColor)
                         .ConfigureAwait(false);
-                }
+
+                    if (res == null)
+                    {
+                        await _writeRepository
+                            .UpdateDirtyPlayerAsync(p.Id)
+                            .ConfigureAwait(false);
+                    }
+                })).ConfigureAwait(false);
             }
         }
 
