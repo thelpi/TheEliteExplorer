@@ -11,7 +11,7 @@
         </member>
         <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.ScanAllPlayersEntriesHistoryAsync(TheEliteExplorerDomain.Enums.Game)">
             <summary>
-            Scans and inserts time entries for every known player (non dirty); previous entries are removed.
+            Scans and inserts time entries for every known player; previous entries are removed.
             </summary>
             <param name="game">Game.</param>
             <returns>Nothing.</returns>
@@ -30,28 +30,17 @@
             </summary>
             <returns>Collection of players.</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.CheckDirtyPlayersAsync">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.CheckPotentialBannedPlayersAsync">
             <summary>
-            Checks players for dirt
+            Checks for non-dirty player that might be banned. Proceeds to mark them as dirty (but not banned, a manuel intervention is required for that).
             </summary>
             <returns>Nothing.</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.ScanTimePageAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime})">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.ScanTimePageForNewPlayersAsync(System.Nullable{System.DateTime})">
             <summary>
-            Scans and inserts time entries
+            Loops on every month (from now) of time page to find new players; does not integrate times.
             </summary>
-            <param name="game">Game.</param>
-            <param name="startDate">
-            Start date; if <c>Null</c>, most recent date is used.
-            Date is rounded to the full month.
-            </param>
-            <returns>Nothing.</returns>
-        </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.ScanStageTimesAsync(TheEliteExplorerDomain.Enums.Stage)">
-            <summary>
-            Scans every time entry of a stage.
-            </summary>
-            <param name="stage">The stage.</param>
+            <param name="stopAt">Date to stop loop.</param>
             <returns>Nothing.</returns>
         </member>
         <member name="M:TheEliteExplorerDomain.Abstractions.IIntegrationProvider.CleanDirtyPlayerAsync(System.Int64)">
@@ -181,17 +170,13 @@
             The-elite website parser interface.
             </summary>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser.ExtractTimeEntriesAsync(TheEliteExplorerDomain.Enums.Game,System.Int32,System.Int32,System.Nullable{System.DateTime})">
+        <member name="M:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser.ExtractTimeEntriesAsync(System.Int32,System.Int32,System.Boolean)">
             <summary>
             Extracts every time for a given period from the website "the-elite".
             </summary>
-            <param name="game">The game.</param>
             <param name="year">The year to scan.</param>
             <param name="month">The month to scan.</param>
-            <param name="minimalDateToScan">
-            Optionnal date where to stop scan;
-            if <c>Null</c>, the full page will be scanned.
-            </param>
+            <param name="withEngine">Gets the engine (from another page) or not.</param>
             <returns>List of <see cref="T:TheEliteExplorerDomain.Dtos.EntryWebDto"/>.</returns>
         </member>
         <member name="M:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser.ExtractStageAllTimeEntriesAsync(TheEliteExplorerDomain.Enums.Stage)">
@@ -229,7 +214,7 @@
             <param name="id">Identifier.</param>
             <returns>Nothing.</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.UpdateEntryAsync(System.Int64,System.DateTime,TheEliteExplorerDomain.Enums.Engine)">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IWriteRepository.UpdateEntryAsync(System.Int64,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.Engine)">
             <summary>
             Updates an entry.
             </summary>
@@ -1269,16 +1254,13 @@
         <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.GetCleanableDirtyPlayersAsync">
             <inheritdoc />
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.ScanTimePageAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime})">
-            <inheritdoc />
-        </member>
-        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.ScanStageTimesAsync(TheEliteExplorerDomain.Enums.Stage)">
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.ScanTimePageForNewPlayersAsync(System.Nullable{System.DateTime})">
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.CleanDirtyPlayerAsync(System.Int64)">
             <inheritdoc />
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.CheckDirtyPlayersAsync">
+        <member name="M:TheEliteExplorerDomain.Providers.IntegrationProvider.CheckPotentialBannedPlayersAsync">
             <inheritdoc />
         </member>
         <member name="T:TheEliteExplorerDomain.Providers.StatisticsProvider">

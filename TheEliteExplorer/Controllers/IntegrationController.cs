@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using TheEliteExplorerDomain;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Enums;
 using TheEliteExplorerDomain.Models;
@@ -16,8 +15,6 @@ namespace TheEliteExplorer.Controllers
     /// <seealso cref="Controller"/>
     public class IntegrationController : Controller
     {
-        private const long StandardRankingTypeId = 1;
-
         private readonly IIntegrationProvider _integrationProvider;
 
         /// <summary>
@@ -31,40 +28,17 @@ namespace TheEliteExplorer.Controllers
         }
 
         /// <summary>
-        /// Scans the site to get new times and new players to integrate in the database.
+        /// Scans the site to get new players to integrate in the database.
         /// </summary>
-        /// <param name="game">Game.</param>
-        /// <param name="startDate">Start date.</param>
+        /// <param name="stopAt">Date to stop loop.</param>
         /// <returns>Nothing.</returns>
-        [HttpPost("games/{game}/new-entries")]
+        [HttpPost("new-players")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ScanTimePageAsync(
-            [FromRoute] Game game,
-            [FromQuery] DateTime? startDate)
+        public async Task<IActionResult> ScanTimePageAsync([FromQuery] DateTime? stopAt)
         {
             await _integrationProvider
-                .ScanTimePageAsync(game, startDate)
+                .ScanTimePageForNewPlayersAsync(stopAt)
                 .ConfigureAwait(false);
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Scans the site to get times from a bunch of stages to integrate in the database.
-        /// </summary>
-        /// <param name="stages">Stages collection.</param>
-        /// <returns>Nothing.</returns>
-        [HttpPost("stages/entries")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ScanTimePageAsync(
-            [FromQuery] Stage[] stages)
-        {
-            foreach (var stage in stages)
-            {
-                await _integrationProvider
-                    .ScanStageTimesAsync(stage)
-                    .ConfigureAwait(false);
-            }
 
             return NoContent();
         }
@@ -129,8 +103,8 @@ namespace TheEliteExplorer.Controllers
         public async Task<IActionResult> CheckDirtyPlayersAsync()
         {
             await _integrationProvider
-                   .CheckDirtyPlayersAsync()
-                   .ConfigureAwait(false);
+                .CheckPotentialBannedPlayersAsync()
+                .ConfigureAwait(false);
 
             return NoContent();
         }

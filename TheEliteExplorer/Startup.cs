@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TheEliteExplorer.Workers;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Configuration;
@@ -60,8 +59,7 @@ namespace TheEliteExplorer
                 .AddSingleton<IWriteRepository, WriteRepository>()
                 .AddSingleton<ITheEliteWebSiteParser, TheEliteWebSiteParser>()
                 .AddSingleton<IIntegrationProvider, IntegrationProvider>()
-                .AddSingleton<IStatisticsProvider, StatisticsProvider>()
-                .AddHostedService<CrawlerService>();
+                .AddSingleton<IStatisticsProvider, StatisticsProvider>();
         }
 
         /// <summary>

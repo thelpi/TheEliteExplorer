@@ -91,7 +91,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public async Task UpdateEntryAsync(long entryId, DateTime date, Engine engine)
+        public async Task UpdateEntryAsync(long entryId, DateTime? date, Engine engine)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
             {

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Options;
@@ -34,7 +35,7 @@ namespace TheEliteExplorerInfrastructure
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractTimeEntriesAsync(Game game, int year, int month, DateTime? minimalDateToScan)
+        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractTimeEntriesAsync(int year, int month, bool withEngine)
         {
             var linksValues = new ConcurrentBag<EntryWebDto>();
 
@@ -61,29 +62,16 @@ namespace TheEliteExplorerInfrastructure
                 if (link.Attributes.Contains("class")
                     && link.Attributes["class"].Value == timeClass)
                 {
-                    linksOk.Add(link);
+                    var linkValues = await ExtractTimeLinkDetailsAsync(link, withEngine)
+                        .ConfigureAwait(false);
+                    if (linkValues != null)
+                    {
+                        linksValues.Add(linkValues);
+                    }
                 }
             }
 
-            const int parallel = 4;
-            for (var i = 0; i < linksOk.Count; i += parallel)
-            {
-                await Task
-                    .WhenAll(linksOk.Skip(i).Take(parallel).Select(link =>
-                        ProcessLinkAndAddToListAsync(game, minimalDateToScan, linksValues, link)))
-                    .ConfigureAwait(false);
-            }
-
             return linksValues;
-        }
-
-        private async Task ProcessLinkAndAddToListAsync(Game game, DateTime? minimalDateToScan, ConcurrentBag<EntryWebDto> linksValues, HtmlNode link)
-        {
-            var linkValues = await ExtractTimeLinkDetailsAsync(game, link, minimalDateToScan).ConfigureAwait(false);
-            if (linkValues != null)
-            {
-                linksValues.Add(linkValues);
-            }
         }
 
         /// <inheritdoc />
@@ -193,10 +181,11 @@ namespace TheEliteExplorerInfrastructure
         {
             var entries = new List<EntryWebDto>();
 
-            var pageContent = await GetPageStringContentAsync($"~{playerUrlName}/{game.GetGameUrlName()}/history", true)
+            var pageContent = await GetPlayerHistoryPageContentAsync(playerUrlName, game)
                 .ConfigureAwait(false);
 
-            if (string.IsNullOrWhiteSpace(pageContent))
+            if (string.IsNullOrWhiteSpace(pageContent)
+                || pageContent.Contains("<title>Page Not Found - The Elite Rankings</title>"))
             {
                 // Do not return an empty list here.
                 return null;
@@ -418,7 +407,7 @@ namespace TheEliteExplorerInfrastructure
             return entryIdListByLevel;
         }
 
-        private async Task<EntryWebDto> ExtractTimeLinkDetailsAsync(Game game, HtmlNode link, DateTime? minimalDateToScan)
+        private async Task<EntryWebDto> ExtractTimeLinkDetailsAsync(HtmlNode link, bool withEngine)
         {
             const char linkSeparator = '-';
             const string playerUrlPrefix = "/~";
@@ -433,7 +422,7 @@ namespace TheEliteExplorerInfrastructure
                 return null;
             }
 
-            DateTime? date = ExtractAndCheckDate(link, minimalDateToScan, out bool exit);
+            DateTime? date = ExtractAndCheckDate(link, out bool exit);
             if (exit)
             {
                 return null;
@@ -446,10 +435,6 @@ namespace TheEliteExplorerInfrastructure
                 {
                     throw new FormatException($"Unable to extract the stage ID.");
                 }
-                return null;
-            }
-            else if (game != Extensions.StageFormatedNames[stageName].GetGame())
-            {
                 return null;
             }
 
@@ -472,7 +457,9 @@ namespace TheEliteExplorerInfrastructure
             Level? level = SystemExtensions
                 .Enumerate<Level>()
                 .Select(l => (Level?)l)
-                .FirstOrDefault(l => l.Value.GetLabel(game).Equals(linkParts[1], StringComparison.InvariantCultureIgnoreCase));
+                .FirstOrDefault(l =>
+                    l.Value.GetLabel(Game.GoldenEye).Equals(linkParts[1], StringComparison.InvariantCultureIgnoreCase)
+                    || l.Value.GetLabel(Game.PerfectDark).Equals(linkParts[1], StringComparison.InvariantCultureIgnoreCase));
 
             if (!level.HasValue)
             {
@@ -491,12 +478,14 @@ namespace TheEliteExplorerInfrastructure
                 Level = level.Value,
                 PlayerUrlName = playerUrl,
                 Stage = Extensions.StageFormatedNames[stageName],
-                Engine = await ExtractTimeEntryEngineAsync(link).ConfigureAwait(false),
+                Engine = withEngine
+                    ? await ExtractTimeEntryEngineAsync(link).ConfigureAwait(false)
+                    : Engine.UNK,
                 Time = time.Value
             };
         }
 
-        private static DateTime? ExtractAndCheckDate(HtmlNode link, DateTime? minimalDateToScan, out bool exit)
+        private static DateTime? ExtractAndCheckDate(HtmlNode link, out bool exit)
         {
             exit = false;
 
@@ -510,12 +499,6 @@ namespace TheEliteExplorerInfrastructure
 
             DateTime? date = ParseDateFromString(dateString, out bool failToExtractDate);
             if (failToExtractDate)
-            {
-                exit = true;
-                return null;
-            }
-
-            if (date < minimalDateToScan)
             {
                 exit = true;
                 return null;
@@ -557,10 +540,70 @@ namespace TheEliteExplorerInfrastructure
                 : Engine.UNK;
         }
 
+        private async Task<string> GetPlayerHistoryPageContentAsync(string playerUrlName, Game game)
+        {
+            string stringContent = null;
+            var attemps = 0;
+            const int MaxAttemps = 5;
+            do
+            {
+                try
+                {
+                    var client = new HttpClient
+                    {
+                        BaseAddress = new Uri(_configuration.BaseUri)
+                    };
+
+                    var response = await client
+                        .GetAsync(new Uri($"~{playerUrlName}/{game.GetGameUrlName()}/history", UriKind.Relative))
+                        .ConfigureAwait(false);
+
+                    var cookie = response.Headers.GetValues("Set-Cookie").First().Split(';').First().Split('=').ElementAt(1);
+
+                    var queryParams = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("date_start", ""),
+                        new KeyValuePair<string, string>("stage_id", ""),
+                        new KeyValuePair<string, string>("date_end", ""),
+                        new KeyValuePair<string, string>("difficulty-0", "0"),
+                        new KeyValuePair<string, string>("difficulty-1", "1"),
+                        new KeyValuePair<string, string>("difficulty-2", "2"),
+                        new KeyValuePair<string, string>("system-0", "NTSC"),
+                        new KeyValuePair<string, string>("system-1", "NTSC-J"),
+                        new KeyValuePair<string, string>("system-2", "PAL"),
+                        new KeyValuePair<string, string>("system-3", "Unknown"),
+                        new KeyValuePair<string, string>("current_pr", "0"),
+                        new KeyValuePair<string, string>("sid", cookie),
+                    };
+
+                    response = await client
+                        .PostAsync(
+                            new Uri($"~{playerUrlName}/{game.GetGameUrlName()}/history", UriKind.Relative),
+                            new FormUrlEncodedContent(queryParams))
+                        .ConfigureAwait(false);
+
+                    stringContent = await response.Content
+                        .ReadAsStringAsync()
+                        .ConfigureAwait(false);
+                    attemps = MaxAttemps;
+                }
+                catch
+                {
+                    if (attemps < MaxAttemps)
+                        attemps++;
+                    else
+                        throw;
+                }
+            }
+            while (attemps < MaxAttemps);
+
+            return stringContent;
+        }
+
         private async Task<string> GetPageStringContentAsync(string partUri, bool ignoreNotFound = false)
         {
             var uri = new Uri(string.Concat(_configuration.BaseUri, partUri));
-            
+
             string data = null;
             int attemps = 0;
             while (attemps < _configuration.PageAttemps)
@@ -651,10 +694,7 @@ namespace TheEliteExplorerInfrastructure
             return null;
         }
 
-        private static DateTime? ParseDateFromString(
-            string dateString,
-            out bool failToExtractDate,
-            bool partialMonthName = false)
+        private static DateTime? ParseDateFromString(string dateString, out bool failToExtractDate, bool partialMonthName = false)
         {
             const char separator = ' ';
 

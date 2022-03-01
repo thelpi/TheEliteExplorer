@@ -24,7 +24,7 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="date">Date of the entry.</param>
         /// <param name="engine">Engine.</param>
         /// <returns>Nothing</returns>
-        Task UpdateEntryAsync(long entryId, DateTime date, Engine engine);
+        Task UpdateEntryAsync(long entryId, DateTime? date, Engine engine);
 
         /// <summary>
         /// Insert a time entry.

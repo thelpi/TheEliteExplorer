@@ -12,7 +12,7 @@ namespace TheEliteExplorerDomain.Abstractions
     public interface IIntegrationProvider
     {
         /// <summary>
-        /// Scans and inserts time entries for every known player (non dirty); previous entries are removed.
+        /// Scans and inserts time entries for every known player; previous entries are removed.
         /// </summary>
         /// <param name="game">Game.</param>
         /// <returns>Nothing.</returns>
@@ -33,28 +33,17 @@ namespace TheEliteExplorerDomain.Abstractions
         Task<IReadOnlyCollection<Player>> GetCleanableDirtyPlayersAsync();
 
         /// <summary>
-        /// Checks players for dirt
+        /// Checks for non-dirty player that might be banned. Proceeds to mark them as dirty (but not banned, a manuel intervention is required for that).
         /// </summary>
         /// <returns>Nothing.</returns>
-        Task CheckDirtyPlayersAsync();
+        Task CheckPotentialBannedPlayersAsync();
 
         /// <summary>
-        /// Scans and inserts time entries
+        /// Loops on every month (from now) of time page to find new players; does not integrate times.
         /// </summary>
-        /// <param name="game">Game.</param>
-        /// <param name="startDate">
-        /// Start date; if <c>Null</c>, most recent date is used.
-        /// Date is rounded to the full month.
-        /// </param>
+        /// <param name="stopAt">Date to stop loop.</param>
         /// <returns>Nothing.</returns>
-        Task ScanTimePageAsync(Game game, DateTime? startDate);
-
-        /// <summary>
-        /// Scans every time entry of a stage.
-        /// </summary>
-        /// <param name="stage">The stage.</param>
-        /// <returns>Nothing.</returns>
-        Task ScanStageTimesAsync(Stage stage);
+        Task ScanTimePageForNewPlayersAsync(DateTime? stopAt);
 
         /// <summary>
         /// Cleans a specified dirty player.

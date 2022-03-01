@@ -40,163 +40,99 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task ScanAllPlayersEntriesHistoryAsync(
-            Game game)
+        public async Task ScanAllPlayersEntriesHistoryAsync(Game game)
         {
-            var players = await GetPlayersAsync().ConfigureAwait(false);
+            var (validPlayers, bannedPlayers) = await GetPlayersAsync().ConfigureAwait(false);
 
-            foreach (var player in players.validPlayers)
+            const int parallel = 8;
+            for (var i = 0; i < validPlayers.Count; i += parallel)
             {
-                var entries = await _siteParser
-                    .GetPlayerEntriesHistoryAsync(game, player.UrlName)
-                    .ConfigureAwait(false);
-
-                if (entries != null)
+                await Task.WhenAll(validPlayers.Skip(i).Take(parallel).Select(async player =>
                 {
-                    foreach (var stage in game.GetStages())
-                    {
-                        await _writeRepository
-                            .DeletePlayerStageEntriesAsync(stage, player.Id)
-                            .ConfigureAwait(false);
-                    }
-
-                    foreach (var entry in entries)
-                    {
-                        await CreateEntryAsync(entry, game, GetSameDayEngines(entries, entry), players.validPlayers, players.bannedPlayers)
-                            .ConfigureAwait(false);
-                    }
-                }
+                    await ExtractPlayerTimesAsync(game, player)
+                        .ConfigureAwait(false);
+                })).ConfigureAwait(false);
             }
         }
 
-        private static Engine[] GetSameDayEngines(IEnumerable<EntryWebDto> entries, EntryWebDto entry)
-        {
-            return entries
-                .Where(e => e != entry
-                    && e.Date == entry.Date
-                    && e.Level == entry.Level
-                    && e.PlayerUrlName == entry.PlayerUrlName
-                    && e.Stage == entry.Stage
-                    && e.Time == entry.Time)
-                .Select(e => e.Engine)
-                .ToArray();
-        }
-
         /// <inheritdoc />
-        public async Task ScanPlayerEntriesHistoryAsync(
-            Game game,
-            long playerId)
+        public async Task ScanPlayerEntriesHistoryAsync(Game game, long playerId)
         {
-            var players = await GetPlayersAsync().ConfigureAwait(false);
+            var (validPlayers, bannedPlayers) = await GetPlayersAsync().ConfigureAwait(false);
 
-            var player = players.validPlayers.FirstOrDefault(p => p.Id == playerId);
+            var player = validPlayers.FirstOrDefault(p => p.Id == playerId);
             if (player == null)
             {
                 throw new ArgumentException($"invalid {nameof(playerId)}.", nameof(playerId));
             }
 
-            var entries = await _siteParser
-                .GetPlayerEntriesHistoryAsync(game, player.UrlName)
-                .ConfigureAwait(false);
-
-            if (entries != null)
-            {
-                foreach (var stage in game.GetStages())
-                {
-                    await _writeRepository
-                        .DeletePlayerStageEntriesAsync(stage, playerId)
-                        .ConfigureAwait(false);
-                }
-
-                foreach (var entry in entries)
-                {
-                    await CreateEntryAsync(entry, game, GetSameDayEngines(entries, entry), players.validPlayers, players.bannedPlayers)
-                        .ConfigureAwait(false);
-                }
-            }
+            await ExtractPlayerTimesAsync(game, player).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<Player>> GetCleanableDirtyPlayersAsync()
         {
-            var okPlayers = new List<Player>();
+            var okPlayers = new System.Collections.Concurrent.ConcurrentBag<Player>();
 
             var players = await _readRepository
                 .GetDirtyPlayersAsync(false)
                 .ConfigureAwait(false);
 
-            foreach (var p in players)
+            const int parallel = 8;
+            for (var i = 0; i < players.Count; i += parallel)
             {
-                var pInfo = await _siteParser
+                await Task.WhenAll(players.Skip(i).Take(parallel).Select(async p =>
+                {
+                    var pInfo = await _siteParser
                         .GetPlayerInformationAsync(p.UrlName, Player.DefaultPlayerHexColor)
                         .ConfigureAwait(false);
 
-                if (pInfo != null)
-                {
-                    pInfo.Id = p.Id;
-                    okPlayers.Add(new Player(pInfo));
-                }
+                    if (pInfo != null)
+                    {
+                        pInfo.Id = p.Id;
+                        okPlayers.Add(new Player(pInfo));
+                    }
+                })).ConfigureAwait(false);
             }
 
             return okPlayers;
         }
 
         /// <inheritdoc />
-        public async Task ScanTimePageAsync(
-            Game game,
-            DateTime? startDate)
+        public async Task ScanTimePageForNewPlayersAsync(DateTime? stopAt)
         {
-            var realStart = await GetStartDateAsync(game, startDate)
-                .ConfigureAwait(false);
+            var (validPlayers, bannedPlayers) = await GetPlayersAsync().ConfigureAwait(false);
 
-            var players = await GetPlayersAsync().ConfigureAwait(false);
+            // Takes GoldenEye as default date (older than Perfect Dark)
+            var allDatesToLoop = (stopAt ?? Game.GoldenEye.GetEliteFirstDate()).LoopBetweenDates(DateStep.Month).Reverse().ToList();
 
-            foreach (var loopDate in realStart.LoopBetweenDates(DateStep.Month).Reverse())
+            var playersToCreate = new System.Collections.Concurrent.ConcurrentBag<string>();
+
+            const int parallel = 8;
+            for (var i = 0; i < allDatesToLoop.Count; i += parallel)
             {
-                var results = await _siteParser
-                    .ExtractTimeEntriesAsync(game, loopDate.Year, loopDate.Month, realStart)
-                    .ConfigureAwait(false);
-
-                var collectedIds = new List<long>();
-                foreach (var entry in results)
+                await Task.WhenAll(allDatesToLoop.Skip(i).Take(parallel).Select(async loopDate =>
                 {
-                    var entryId = await CreateEntryAsync(
-                            entry,
-                            game,
-                            GetSameDayEngines(results, entry),
-                            players.validPlayers,
-                            players.bannedPlayers)
+                    var results = await _siteParser
+                        .ExtractTimeEntriesAsync(loopDate.Year, loopDate.Month, false)
                         .ConfigureAwait(false);
-                    collectedIds.Add(entryId);
-                }
 
-                var entries = await _readRepository
-                    .GetEntriesAsync(null, null, loopDate, loopDate.AddMonths(1))
-                    .ConfigureAwait(false);
-
-                var entriesToRemove = entries
-                    .Where(e => e.Stage.GetGame() == game && !collectedIds.Contains(e.Id))
-                    .ToList();
-
-                foreach (var entry in entriesToRemove)
-                {
-                    await _writeRepository
-                        .RemoveEntryAsync(entry.Id)
-                        .ConfigureAwait(false);
-                }
+                    foreach (var entry in results)
+                    {
+                        if (!bannedPlayers.Any(p => p.UrlName.Equals(entry.PlayerUrlName, StringComparison.InvariantCultureIgnoreCase))
+                            && !validPlayers.Any(p => p.UrlName.Equals(entry.PlayerUrlName, StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            playersToCreate.Add(entry.PlayerUrlName);
+                        }
+                    }
+                })).ConfigureAwait(false);
             }
-        }
 
-        /// <inheritdoc />
-        public async Task ScanStageTimesAsync(Stage stage)
-        {
-            var players = await GetPlayersAsync().ConfigureAwait(false);
-
-            var entries = await _siteParser.ExtractStageAllTimeEntriesAsync(stage).ConfigureAwait(false);
-
-            foreach (var entry in entries)
+            foreach (var pName in playersToCreate.Distinct())
             {
-                await CreateEntryAsync(entry, stage.GetGame(), GetSameDayEngines(entries, entry), players.validPlayers, players.bannedPlayers).ConfigureAwait(false);
+                await _writeRepository
+                    .InsertPlayerAsync(pName, Player.DefaultPlayerHexColor)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -227,13 +163,13 @@ namespace TheEliteExplorerDomain.Providers
         }
 
         /// <inheritdoc />
-        public async Task CheckDirtyPlayersAsync()
+        public async Task CheckPotentialBannedPlayersAsync()
         {
             var nonDirtyPlayers = await _readRepository
                 .GetPlayersAsync()
                 .ConfigureAwait(false);
 
-            const int parallel = 4;
+            const int parallel = 8;
             for (var i = 0; i < nonDirtyPlayers.Count; i += parallel)
             {
                 await Task.WhenAll(nonDirtyPlayers.Skip(i).Take(parallel).Select(async p =>
@@ -266,138 +202,28 @@ namespace TheEliteExplorerDomain.Providers
                 dirtyPlayers.Where(p => p.IsBanned).ToList());
         }
 
-        private async Task<DateTime> GetStartDateAsync(
-            Game game,
-            DateTime? startDate)
+        private async Task ExtractPlayerTimesAsync(Game game, PlayerDto player)
         {
-            if (!startDate.HasValue)
-            {
-                startDate = await _readRepository
-                    .GetLatestEntryDateAsync()
-                    .ConfigureAwait(false);
-
-                if (!startDate.HasValue)
-                {
-                    startDate = game.GetEliteFirstDate();
-                }
-            }
-
-            return startDate.Value;
-        }
-
-        private async Task<long> CreateEntryAsync(
-            EntryWebDto entry,
-            Game game,
-            Engine[] enginesTheSameDay,
-            List<PlayerDto> validPlayers,
-            List<PlayerDto> bannedPlayers)
-        {
-            if (bannedPlayers.Any(p =>
-                p.UrlName.Equals(entry.PlayerUrlName, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return 0;
-            }
-
-            var match = validPlayers
-                .FirstOrDefault(p =>
-                    p.UrlName.Equals(entry.PlayerUrlName, StringComparison.InvariantCultureIgnoreCase));
-
-            long playerId;
-            if (match == null)
-            {
-                playerId = await _writeRepository
-                    .InsertPlayerAsync(entry.PlayerUrlName, Player.DefaultPlayerHexColor)
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                playerId = match.Id;
-            }
-
-            var requestEntry = entry.ToEntry(playerId);
-
-            // same stage, same level, same player, same time
-            // potentially multiple engines
-            var playerTimeEntries = await _readRepository
-                .GetEntriesAsync(
-                    requestEntry.Stage,
-                    requestEntry.Level,
-                    requestEntry.PlayerId,
-                    requestEntry.Time)
+            var entries = await _siteParser
+                .GetPlayerEntriesHistoryAsync(game, player.UrlName)
                 .ConfigureAwait(false);
 
-            if (playerTimeEntries.Count == 0)
+            if (entries != null)
             {
-                // no match: insert
-                return await _writeRepository
-                    .InsertTimeEntryAsync(requestEntry, game)
-                    .ConfigureAwait(false);
-            }
-            else if (requestEntry.Engine != Engine.UNK)
-            {
-                // engine is known
-                // does an entry exist with this engine?
-                var matchByEngine = playerTimeEntries.FirstOrDefault(e => e.Engine == requestEntry.Engine);
-                if (matchByEngine == null)
+                foreach (var stage in game.GetStages())
                 {
-                    // no: insert
-                    return await _writeRepository
-                        .InsertTimeEntryAsync(requestEntry, game)
+                    await _writeRepository
+                        .DeletePlayerStageEntriesAsync(stage, player.Id)
                         .ConfigureAwait(false);
                 }
-                else
+
+                var groupEntries = entries.GroupBy(e => (e.Stage, e.Level, e.Time, e.Engine));
+                foreach (var group in groupEntries)
                 {
-                    // yes: check the date
-                    if (matchByEngine.Date != requestEntry.Date)
-                    {
-                        // needs an update
-                        await _writeRepository
-                            .UpdateEntryAsync(matchByEngine.Id, requestEntry.Date.Value, requestEntry.Engine)
-                            .ConfigureAwait(false);
-                    }
-                    return matchByEngine.Id;
-                }
-            }
-            else
-            {
-                // engine is unknown
-                // does an entry exist at the same date?
-                var matchByDate = playerTimeEntries.FirstOrDefault(e => e.Date == requestEntry.Date);
-                if (matchByDate == null)
-                {
-                    // no: insert
-                    return await _writeRepository
-                        .InsertTimeEntryAsync(requestEntry, game)
+                    var groupEntry = group.OrderBy(d => d.Date ?? DateTime.MaxValue).First();
+                    await _writeRepository
+                        .InsertTimeEntryAsync(groupEntry.ToEntry(player.Id), game)
                         .ConfigureAwait(false);
-                }
-                else
-                {
-                    // engine updated?
-                    if (matchByDate.Engine != requestEntry.Engine)
-                    {
-                        if (!enginesTheSameDay.Contains(matchByDate.Engine))
-                        {
-                            // the engine list of the same day doesn't contain the matching entry
-                            // it means the engine on the match must be reset
-                            await _writeRepository
-                               .UpdateEntryAsync(matchByDate.Id, requestEntry.Date.Value, requestEntry.Engine)
-                               .ConfigureAwait(false);
-                            return matchByDate.Id;
-                        }
-                        else
-                        {
-                            // the engine list of the same day contains the matching entry
-                            // it means the match is worthless and we have to create a new entry
-                            return await _writeRepository
-                                .InsertTimeEntryAsync(requestEntry, game)
-                                .ConfigureAwait(false);
-                        }
-                    }
-                    else
-                    {
-                        // same date, same unknown engine
-                        return matchByDate.Id;
-                    }
                 }
             }
         }
