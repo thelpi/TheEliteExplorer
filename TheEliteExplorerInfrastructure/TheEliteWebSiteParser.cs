@@ -194,7 +194,7 @@ namespace TheEliteExplorerInfrastructure
             var doc = new HtmlDocument();
             doc.LoadHtml(pageContent);
 
-            foreach (var row in doc.DocumentNode.SelectNodes("//tr[td]"))
+            foreach (var row in doc.DocumentNode.SelectNodes("//tr[td]") ?? Enumerable.Empty<HtmlNode>())
             {
                 var rowDatas = row.SelectNodes("td").Select(td => td.InnerText).ToArray();
 
