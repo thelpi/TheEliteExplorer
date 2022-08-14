@@ -10,20 +10,24 @@
         /// </summary>
         Untied,
         /// <summary>
-        /// Longest standing untied, excluding slay by the same player while being untied.
+        /// Same as <see cref="Untied"/> with merge when "super/ultra-untied".
         /// </summary>
         UntiedExceptSelf,
         /// <summary>
-        /// Longest standing unslayed.
+        /// Longest standing unslayed; includes tieds.
         /// </summary>
         Unslayed,
         /// <summary>
-        /// Longest standing unslayed, excluding slay by the same player.
+        /// Same as <see cref="Unslayed"/> with merge for self-slay.
         /// </summary>
         UnslayedExceptSelf,
         /// <summary>
         /// Longest standing without being tied or slayed.
         /// </summary>
-        BetweenTwoTimes
+        BetweenTwoTimes,
+        /// <summary>
+        /// Same as <see cref="Unslayed"/> without tieds.
+        /// </summary>
+        FirstUnslayed
     }
 }

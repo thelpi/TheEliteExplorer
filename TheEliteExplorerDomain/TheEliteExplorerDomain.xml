@@ -787,22 +787,27 @@
         </member>
         <member name="F:TheEliteExplorerDomain.Enums.StandingType.UntiedExceptSelf">
             <summary>
-            Longest standing untied, excluding slay by the same player while being untied.
+            Same as <see cref="F:TheEliteExplorerDomain.Enums.StandingType.Untied"/> with merge when "super/ultra-untied".
             </summary>
         </member>
         <member name="F:TheEliteExplorerDomain.Enums.StandingType.Unslayed">
             <summary>
-            Longest standing unslayed.
+            Longest standing unslayed; includes tieds.
             </summary>
         </member>
         <member name="F:TheEliteExplorerDomain.Enums.StandingType.UnslayedExceptSelf">
             <summary>
-            Longest standing unslayed, excluding slay by the same player.
+            Same as <see cref="F:TheEliteExplorerDomain.Enums.StandingType.Unslayed"/> with merge for self-slay.
             </summary>
         </member>
         <member name="F:TheEliteExplorerDomain.Enums.StandingType.BetweenTwoTimes">
             <summary>
             Longest standing without being tied or slayed.
+            </summary>
+        </member>
+        <member name="F:TheEliteExplorerDomain.Enums.StandingType.FirstUnslayed">
+            <summary>
+            Same as <see cref="F:TheEliteExplorerDomain.Enums.StandingType.Unslayed"/> without tieds.
             </summary>
         </member>
         <member name="T:TheEliteExplorerDomain.Extensions">

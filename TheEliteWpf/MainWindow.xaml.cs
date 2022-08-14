@@ -30,30 +30,15 @@ namespace TheEliteWpf
             InitializeComponent();
             Task.Run(() =>
             {
-                var game = Game.PerfectDark;
-                var standingType = StandingType.UnslayedExceptSelf;
+                var game = Game.GoldenEye;
+                var standingType = StandingType.FirstUnslayed;
 
                 var wrs = GetStandingWorldRecordsAsync(game, standingType)
                     .GetAwaiter()
                     .GetResult();
 
-                var duplicates = new List<(Stage, Level, long)>();
-
                 foreach (var wr in wrs)
                 {
-                    if (standingType == StandingType.Unslayed)
-                    {
-                        var current = (wr.Stage, wr.Level, wr.Times.Single());
-                        if (duplicates.Contains(current))
-                        {
-                            continue;
-                        }
-                        else
-                        {
-                            duplicates.Add(current);
-                        }
-                    }
-
                     Dispatcher.Invoke(() =>
                     {
                         DrawStandingRectangle(game, wr);

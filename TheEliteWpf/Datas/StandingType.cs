@@ -6,6 +6,7 @@
         UntiedExceptSelf,
         Unslayed,
         UnslayedExceptSelf,
-        BetweenTwoTimes
+        BetweenTwoTimes,
+        FirstUnslayed
     }
 }

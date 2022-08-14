@@ -180,6 +180,7 @@ namespace TheEliteExplorerDomain.Providers
                         switch (standingType)
                         {
                             case StandingType.Unslayed:
+                            case StandingType.FirstUnslayed:
                                 standings.AddRange(locWr.Holders.Select(_ => new Standing(locWr.Time)
                                 {
                                     Slayer = locWr.SlayPlayer,
@@ -287,14 +288,29 @@ namespace TheEliteExplorerDomain.Providers
 
             var now = ServiceProviderAccessor.ClockProvider.Now;
 
-            return standings
+            standings = standings
                 .Where(x => stillOngoing == true
                     ? !x.EndDate.HasValue
-                    : (stillOngoing == false
-                        ? x.EndDate.HasValue
-                        : true))
+                    : (stillOngoing != false || x.EndDate.HasValue))
                 .OrderByDescending(x => x.WithDays(now).Days)
                 .ToList();
+
+            if (standingType == StandingType.FirstUnslayed)
+            {
+                var tmpStandings = new List<Standing>(standings.Count);
+                foreach (var std in standings)
+                {
+                    if (!tmpStandings.Any(_ => _.Stage == std.Stage
+                        && _.Level == std.Level
+                        && _.Times.Single() == std.Times.Single()))
+                    {
+                        tmpStandings.Add(std);
+                    }
+                }
+                standings = tmpStandings;
+            }
+
+            return standings;
         }
 
         /// <inheritdoc />
