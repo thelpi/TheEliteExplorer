@@ -12,6 +12,18 @@ namespace TheEliteWpf.Datas
         public Player Author { get; set; }
         public Player Slayer { get; set; }
         public IReadOnlyCollection<long> Times { get; set; }
-        public int? Days { get; set; }
+        public int Days { get; set; }
+
+        public override string ToString()
+        {
+            var datas = new[]
+            {
+                $"{Stage} - {Level}",
+                Author.ToString((int)Stage > 20 ? Game.PerfectDark : Game.GoldenEye),
+                $"{Days} {(Days <= 1 ? "day" : "days")}",
+                $"From {StartDate:yyyy-MM-dd} {(EndDate.HasValue ? $"to {EndDate.Value:yyyy-MM-dd}" : "(ongoing)")}"
+            };
+            return string.Join('\n', datas);
+        }
     }
 }

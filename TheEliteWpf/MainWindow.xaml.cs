@@ -60,9 +60,10 @@ namespace TheEliteWpf
         {
             var rect = new Rectangle
             {
-                Width = PxPerDay * wr.Days.Value,
+                Width = PxPerDay * wr.Days,
                 Height = PanelHeight - 2,
-                Fill = (SolidColorBrush)new BrushConverter().ConvertFrom($"#{wr.Author.Color}")
+                Fill = (SolidColorBrush)new BrushConverter().ConvertFrom($"#{wr.Author.Color}"),
+                ToolTip = wr
             };
             var canvas = FindName($"Stage{(game == Game.PerfectDark ? (int)wr.Stage - 20 : (int)wr.Stage)}Level{(int)wr.Level}") as Canvas;
             rect.SetValue(Canvas.TopProperty, 1D);

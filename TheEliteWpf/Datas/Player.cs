@@ -7,5 +7,12 @@
         public string SurName { get; set; }
         public ControlStyle? ControlStyle { get; set; }
         public string Color { get; set; }
+
+        public string ToString(Game game)
+        {
+            return game == Game.PerfectDark
+                ? SurName
+                : RealName;
+        }
     }
 }
