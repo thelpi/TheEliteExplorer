@@ -39,7 +39,10 @@ namespace TheEliteWpf
                     && tagId != (int)selectionWindow.Game)
                 .All(uie => { uie.Visibility = Visibility.Collapsed; return true; });
 
-            LoadStandingsAsync(selectionWindow.Game, selectionWindow.StandingType);
+            Task.Run(async() =>
+                await LoadStandingsAsync(
+                        selectionWindow.Game, selectionWindow.StandingType)
+                    .ConfigureAwait(false));
         }
 
         private async Task LoadStandingsAsync(Game game, StandingType standingType)
