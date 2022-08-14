@@ -1,0 +1,218 @@
+﻿<Window x:Class="TheEliteWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TheEliteWpf"
+        mc:Ignorable="d" WindowStartupLocation="CenterScreen"
+        Title="MainWindow" SizeToContent="WidthAndHeight">
+    <Grid Height="900" Width="1880" Margin="20" Background="Gainsboro">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="15" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="70" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <!--
+        <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Source="images/1.jpg" />
+        <Image Grid.Row="3" Grid.Column="0" Grid.RowSpan="3" Source="images/2.jpg" />
+        <Image Grid.Row="6" Grid.Column="0" Grid.RowSpan="3" Source="images/3.jpg" />
+        <Image Grid.Row="9" Grid.Column="0" Grid.RowSpan="3" Source="images/4.jpg" />
+        <Image Grid.Row="12" Grid.Column="0" Grid.RowSpan="3" Source="images/5.jpg" />
+        <Image Grid.Row="15" Grid.Column="0" Grid.RowSpan="3" Source="images/6.jpg" />
+        <Image Grid.Row="18" Grid.Column="0" Grid.RowSpan="3" Source="images/7.jpg" />
+        <Image Grid.Row="21" Grid.Column="0" Grid.RowSpan="3" Source="images/8.jpg" />
+        <Image Grid.Row="24" Grid.Column="0" Grid.RowSpan="3" Source="images/9.jpg" />
+        <Image Grid.Row="27" Grid.Column="0" Grid.RowSpan="3" Source="images/10.jpg" />
+        <Image Grid.Row="30" Grid.Column="0" Grid.RowSpan="3" Source="images/11.jpg" />
+        <Image Grid.Row="33" Grid.Column="0" Grid.RowSpan="3" Source="images/12.jpg" />
+        <Image Grid.Row="36" Grid.Column="0" Grid.RowSpan="3" Source="images/13.jpg" />
+        <Image Grid.Row="39" Grid.Column="0" Grid.RowSpan="3" Source="images/14.jpg" />
+        <Image Grid.Row="42" Grid.Column="0" Grid.RowSpan="3" Source="images/15.jpg" />
+        <Image Grid.Row="45" Grid.Column="0" Grid.RowSpan="3" Source="images/16.jpg" />
+        <Image Grid.Row="48" Grid.Column="0" Grid.RowSpan="3" Source="images/17.jpg" />
+        <Image Grid.Row="51" Grid.Column="0" Grid.RowSpan="3" Source="images/18.jpg" />
+        <Image Grid.Row="54" Grid.Column="0" Grid.RowSpan="3" Source="images/19.jpg" />
+        <Image Grid.Row="57" Grid.Column="0" Grid.RowSpan="3" Source="images/20.jpg" />
+        -->
+        <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Source="images/21.jpg" />
+        <Image Grid.Row="3" Grid.Column="0" Grid.RowSpan="3" Source="images/22.jpg" />
+        <Image Grid.Row="6" Grid.Column="0" Grid.RowSpan="3" Source="images/23.jpg" />
+        <Image Grid.Row="9" Grid.Column="0" Grid.RowSpan="3" Source="images/24.jpg" />
+        <Image Grid.Row="12" Grid.Column="0" Grid.RowSpan="3" Source="images/25.jpg" />
+        <Image Grid.Row="15" Grid.Column="0" Grid.RowSpan="3" Source="images/26.jpg" />
+        <Image Grid.Row="18" Grid.Column="0" Grid.RowSpan="3" Source="images/27.jpg" />
+        <Image Grid.Row="21" Grid.Column="0" Grid.RowSpan="3" Source="images/28.jpg" />
+        <Image Grid.Row="24" Grid.Column="0" Grid.RowSpan="3" Source="images/29.jpg" />
+        <Image Grid.Row="27" Grid.Column="0" Grid.RowSpan="3" Source="images/30.jpg" />
+        <Image Grid.Row="30" Grid.Column="0" Grid.RowSpan="3" Source="images/31.jpg" />
+        <Image Grid.Row="33" Grid.Column="0" Grid.RowSpan="3" Source="images/32.jpg" />
+        <Image Grid.Row="36" Grid.Column="0" Grid.RowSpan="3" Source="images/33.jpg" />
+        <Image Grid.Row="39" Grid.Column="0" Grid.RowSpan="3" Source="images/34.jpg" />
+        <Image Grid.Row="42" Grid.Column="0" Grid.RowSpan="3" Source="images/35.jpg" />
+        <Image Grid.Row="45" Grid.Column="0" Grid.RowSpan="3" Source="images/36.jpg" />
+        <Image Grid.Row="48" Grid.Column="0" Grid.RowSpan="3" Source="images/37.jpg" />
+        <Image Grid.Row="51" Grid.Column="0" Grid.RowSpan="3" Source="images/38.jpg" />
+        <Image Grid.Row="54" Grid.Column="0" Grid.RowSpan="3" Source="images/39.jpg" />
+        <Image Grid.Row="57" Grid.Column="0" Grid.RowSpan="3" Source="images/40.jpg" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="0" Name="Stage1Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="1" Name="Stage1Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="2" Name="Stage1Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="3" Name="Stage2Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="4" Name="Stage2Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="5" Name="Stage2Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="6" Name="Stage3Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="7" Name="Stage3Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="8" Name="Stage3Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="9" Name="Stage4Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="10" Name="Stage4Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="11" Name="Stage4Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="12" Name="Stage5Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="13" Name="Stage5Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="14" Name="Stage5Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="15" Name="Stage6Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="16" Name="Stage6Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="17" Name="Stage6Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="18" Name="Stage7Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="19" Name="Stage7Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="20" Name="Stage7Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="21" Name="Stage8Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="22" Name="Stage8Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="23" Name="Stage8Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="24" Name="Stage9Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="25" Name="Stage9Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="26" Name="Stage9Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="27" Name="Stage10Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="28" Name="Stage10Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="29" Name="Stage10Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="30" Name="Stage11Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="31" Name="Stage11Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="32" Name="Stage11Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="33" Name="Stage12Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="34" Name="Stage12Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="35" Name="Stage12Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="36" Name="Stage13Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="37" Name="Stage13Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="38" Name="Stage13Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="39" Name="Stage14Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="40" Name="Stage14Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="41" Name="Stage14Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="42" Name="Stage15Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="43" Name="Stage15Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="44" Name="Stage15Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="45" Name="Stage16Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="46" Name="Stage16Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="47" Name="Stage16Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="48" Name="Stage17Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="49" Name="Stage17Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="50" Name="Stage17Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="51" Name="Stage18Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="52" Name="Stage18Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="53" Name="Stage18Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="54" Name="Stage19Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="55" Name="Stage19Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="56" Name="Stage19Level3" />
+
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="57" Name="Stage20Level1" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="58" Name="Stage20Level2" />
+        <Canvas Background="Black" Grid.Column="1" Grid.Row="59" Name="Stage20Level3" />
+    </Grid>
+</Window>

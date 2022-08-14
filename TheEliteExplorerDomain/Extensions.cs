@@ -30,8 +30,8 @@ namespace TheEliteExplorerDomain
         };
         private static readonly Dictionary<Game, DateTime> _eliteBeginDate = new Dictionary<Game, DateTime>
         {
-            { Game.GoldenEye, new DateTime(1998, 07, 26) },
-            { Game.PerfectDark, new DateTime(2000, 01, 01) }
+            { Game.GoldenEye, new DateTime(1998, 05, 14) },
+            { Game.PerfectDark, new DateTime(2000, 06, 06) }
         };
         private static readonly Dictionary<(Level, Game), string> _levelLabels = new Dictionary<(Level, Game), string>
         {
