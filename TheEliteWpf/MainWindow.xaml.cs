@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,23 +27,23 @@ namespace TheEliteWpf
         public MainWindow()
         {
             InitializeComponent();
-            Task.Run(() =>
+            var selectionWindow = new SelectionWindow();
+            selectionWindow.ShowDialog();
+            LoadStandingsAsync(selectionWindow.Game, selectionWindow.StandingType);
+        }
+
+        private async Task LoadStandingsAsync(Game game, StandingType standingType)
+        {
+            var wrs = await GetStandingWorldRecordsAsync(game, standingType)
+                .ConfigureAwait(false);
+
+            foreach (var wr in wrs)
             {
-                var game = Game.GoldenEye;
-                var standingType = StandingType.FirstUnslayed;
-
-                var wrs = GetStandingWorldRecordsAsync(game, standingType)
-                    .GetAwaiter()
-                    .GetResult();
-
-                foreach (var wr in wrs)
+                Dispatcher.Invoke(() =>
                 {
-                    Dispatcher.Invoke(() =>
-                    {
-                        DrawStandingRectangle(game, wr);
-                    });
-                }
-            });
+                    DrawStandingRectangle(game, wr);
+                });
+            }
         }
 
         private void DrawStandingRectangle(Game game, Standing wr)
@@ -61,8 +60,7 @@ namespace TheEliteWpf
             canvas.Children.Add(rect);
         }
 
-        private static async Task<IReadOnlyCollection<Standing>> GetStandingWorldRecordsAsync(
-            Game game, StandingType standingType)
+        private static async Task<IReadOnlyCollection<Standing>> GetStandingWorldRecordsAsync(Game game, StandingType standingType)
         {
             var client = new HttpClient
             {
