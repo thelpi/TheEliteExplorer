@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +28,17 @@ namespace TheEliteWpf
         public MainWindow()
         {
             InitializeComponent();
+
             var selectionWindow = new SelectionWindow();
             selectionWindow.ShowDialog();
+
+            MainGrid.Children.Cast<FrameworkElement>()
+                .Where(uie => uie.GetType() == typeof(Image)
+                    && uie.Tag != null
+                    && int.TryParse(uie.Tag.ToString(), out int tagId)
+                    && tagId != (int)selectionWindow.Game)
+                .All(uie => { uie.Visibility = Visibility.Collapsed; return true; });
+
             LoadStandingsAsync(selectionWindow.Game, selectionWindow.StandingType);
         }
 

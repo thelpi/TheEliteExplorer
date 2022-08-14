@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:TheEliteWpf"
         mc:Ignorable="d" WindowStartupLocation="CenterScreen"
         Title="MainWindow" SizeToContent="WidthAndHeight">
-    <Grid Height="900" Width="1880" Margin="20" Background="Gainsboro">
+    <Grid Name="MainGrid" Height="900" Width="1880" Margin="20" Background="Gainsboro">
         <Grid.RowDefinitions>
             <RowDefinition Height="15" />
             <RowDefinition Height="15" />
@@ -92,48 +92,48 @@
             <ColumnDefinition Width="70" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <!--
-        <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Source="images/1.jpg" />
-        <Image Grid.Row="3" Grid.Column="0" Grid.RowSpan="3" Source="images/2.jpg" />
-        <Image Grid.Row="6" Grid.Column="0" Grid.RowSpan="3" Source="images/3.jpg" />
-        <Image Grid.Row="9" Grid.Column="0" Grid.RowSpan="3" Source="images/4.jpg" />
-        <Image Grid.Row="12" Grid.Column="0" Grid.RowSpan="3" Source="images/5.jpg" />
-        <Image Grid.Row="15" Grid.Column="0" Grid.RowSpan="3" Source="images/6.jpg" />
-        <Image Grid.Row="18" Grid.Column="0" Grid.RowSpan="3" Source="images/7.jpg" />
-        <Image Grid.Row="21" Grid.Column="0" Grid.RowSpan="3" Source="images/8.jpg" />
-        <Image Grid.Row="24" Grid.Column="0" Grid.RowSpan="3" Source="images/9.jpg" />
-        <Image Grid.Row="27" Grid.Column="0" Grid.RowSpan="3" Source="images/10.jpg" />
-        <Image Grid.Row="30" Grid.Column="0" Grid.RowSpan="3" Source="images/11.jpg" />
-        <Image Grid.Row="33" Grid.Column="0" Grid.RowSpan="3" Source="images/12.jpg" />
-        <Image Grid.Row="36" Grid.Column="0" Grid.RowSpan="3" Source="images/13.jpg" />
-        <Image Grid.Row="39" Grid.Column="0" Grid.RowSpan="3" Source="images/14.jpg" />
-        <Image Grid.Row="42" Grid.Column="0" Grid.RowSpan="3" Source="images/15.jpg" />
-        <Image Grid.Row="45" Grid.Column="0" Grid.RowSpan="3" Source="images/16.jpg" />
-        <Image Grid.Row="48" Grid.Column="0" Grid.RowSpan="3" Source="images/17.jpg" />
-        <Image Grid.Row="51" Grid.Column="0" Grid.RowSpan="3" Source="images/18.jpg" />
-        <Image Grid.Row="54" Grid.Column="0" Grid.RowSpan="3" Source="images/19.jpg" />
-        <Image Grid.Row="57" Grid.Column="0" Grid.RowSpan="3" Source="images/20.jpg" />
-        -->
-        <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Source="images/21.jpg" />
-        <Image Grid.Row="3" Grid.Column="0" Grid.RowSpan="3" Source="images/22.jpg" />
-        <Image Grid.Row="6" Grid.Column="0" Grid.RowSpan="3" Source="images/23.jpg" />
-        <Image Grid.Row="9" Grid.Column="0" Grid.RowSpan="3" Source="images/24.jpg" />
-        <Image Grid.Row="12" Grid.Column="0" Grid.RowSpan="3" Source="images/25.jpg" />
-        <Image Grid.Row="15" Grid.Column="0" Grid.RowSpan="3" Source="images/26.jpg" />
-        <Image Grid.Row="18" Grid.Column="0" Grid.RowSpan="3" Source="images/27.jpg" />
-        <Image Grid.Row="21" Grid.Column="0" Grid.RowSpan="3" Source="images/28.jpg" />
-        <Image Grid.Row="24" Grid.Column="0" Grid.RowSpan="3" Source="images/29.jpg" />
-        <Image Grid.Row="27" Grid.Column="0" Grid.RowSpan="3" Source="images/30.jpg" />
-        <Image Grid.Row="30" Grid.Column="0" Grid.RowSpan="3" Source="images/31.jpg" />
-        <Image Grid.Row="33" Grid.Column="0" Grid.RowSpan="3" Source="images/32.jpg" />
-        <Image Grid.Row="36" Grid.Column="0" Grid.RowSpan="3" Source="images/33.jpg" />
-        <Image Grid.Row="39" Grid.Column="0" Grid.RowSpan="3" Source="images/34.jpg" />
-        <Image Grid.Row="42" Grid.Column="0" Grid.RowSpan="3" Source="images/35.jpg" />
-        <Image Grid.Row="45" Grid.Column="0" Grid.RowSpan="3" Source="images/36.jpg" />
-        <Image Grid.Row="48" Grid.Column="0" Grid.RowSpan="3" Source="images/37.jpg" />
-        <Image Grid.Row="51" Grid.Column="0" Grid.RowSpan="3" Source="images/38.jpg" />
-        <Image Grid.Row="54" Grid.Column="0" Grid.RowSpan="3" Source="images/39.jpg" />
-        <Image Grid.Row="57" Grid.Column="0" Grid.RowSpan="3" Source="images/40.jpg" />
+        
+        <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Source="images/1.jpg" Tag="1" />
+        <Image Grid.Row="3" Grid.Column="0" Grid.RowSpan="3" Source="images/2.jpg" Tag="1" />
+        <Image Grid.Row="6" Grid.Column="0" Grid.RowSpan="3" Source="images/3.jpg" Tag="1" />
+        <Image Grid.Row="9" Grid.Column="0" Grid.RowSpan="3" Source="images/4.jpg" Tag="1" />
+        <Image Grid.Row="12" Grid.Column="0" Grid.RowSpan="3" Source="images/5.jpg" Tag="1" />
+        <Image Grid.Row="15" Grid.Column="0" Grid.RowSpan="3" Source="images/6.jpg" Tag="1" />
+        <Image Grid.Row="18" Grid.Column="0" Grid.RowSpan="3" Source="images/7.jpg" Tag="1" />
+        <Image Grid.Row="21" Grid.Column="0" Grid.RowSpan="3" Source="images/8.jpg" Tag="1" />
+        <Image Grid.Row="24" Grid.Column="0" Grid.RowSpan="3" Source="images/9.jpg" Tag="1" />
+        <Image Grid.Row="27" Grid.Column="0" Grid.RowSpan="3" Source="images/10.jpg" Tag="1" />
+        <Image Grid.Row="30" Grid.Column="0" Grid.RowSpan="3" Source="images/11.jpg" Tag="1" />
+        <Image Grid.Row="33" Grid.Column="0" Grid.RowSpan="3" Source="images/12.jpg" Tag="1" />
+        <Image Grid.Row="36" Grid.Column="0" Grid.RowSpan="3" Source="images/13.jpg" Tag="1" />
+        <Image Grid.Row="39" Grid.Column="0" Grid.RowSpan="3" Source="images/14.jpg" Tag="1" />
+        <Image Grid.Row="42" Grid.Column="0" Grid.RowSpan="3" Source="images/15.jpg" Tag="1" />
+        <Image Grid.Row="45" Grid.Column="0" Grid.RowSpan="3" Source="images/16.jpg" Tag="1" />
+        <Image Grid.Row="48" Grid.Column="0" Grid.RowSpan="3" Source="images/17.jpg" Tag="1" />
+        <Image Grid.Row="51" Grid.Column="0" Grid.RowSpan="3" Source="images/18.jpg" Tag="1" />
+        <Image Grid.Row="54" Grid.Column="0" Grid.RowSpan="3" Source="images/19.jpg" Tag="1" />
+        <Image Grid.Row="57" Grid.Column="0" Grid.RowSpan="3" Source="images/20.jpg" Tag="1" />
+
+        <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Source="images/21.jpg" Tag="2" />
+        <Image Grid.Row="3" Grid.Column="0" Grid.RowSpan="3" Source="images/22.jpg" Tag="2" />
+        <Image Grid.Row="6" Grid.Column="0" Grid.RowSpan="3" Source="images/23.jpg" Tag="2" />
+        <Image Grid.Row="9" Grid.Column="0" Grid.RowSpan="3" Source="images/24.jpg" Tag="2" />
+        <Image Grid.Row="12" Grid.Column="0" Grid.RowSpan="3" Source="images/25.jpg" Tag="2" />
+        <Image Grid.Row="15" Grid.Column="0" Grid.RowSpan="3" Source="images/26.jpg" Tag="2" />
+        <Image Grid.Row="18" Grid.Column="0" Grid.RowSpan="3" Source="images/27.jpg" Tag="2" />
+        <Image Grid.Row="21" Grid.Column="0" Grid.RowSpan="3" Source="images/28.jpg" Tag="2" />
+        <Image Grid.Row="24" Grid.Column="0" Grid.RowSpan="3" Source="images/29.jpg" Tag="2" />
+        <Image Grid.Row="27" Grid.Column="0" Grid.RowSpan="3" Source="images/30.jpg" Tag="2" />
+        <Image Grid.Row="30" Grid.Column="0" Grid.RowSpan="3" Source="images/31.jpg" Tag="2" />
+        <Image Grid.Row="33" Grid.Column="0" Grid.RowSpan="3" Source="images/32.jpg" Tag="2" />
+        <Image Grid.Row="36" Grid.Column="0" Grid.RowSpan="3" Source="images/33.jpg" Tag="2" />
+        <Image Grid.Row="39" Grid.Column="0" Grid.RowSpan="3" Source="images/34.jpg" Tag="2" />
+        <Image Grid.Row="42" Grid.Column="0" Grid.RowSpan="3" Source="images/35.jpg" Tag="2" />
+        <Image Grid.Row="45" Grid.Column="0" Grid.RowSpan="3" Source="images/36.jpg" Tag="2" />
+        <Image Grid.Row="48" Grid.Column="0" Grid.RowSpan="3" Source="images/37.jpg" Tag="2" />
+        <Image Grid.Row="51" Grid.Column="0" Grid.RowSpan="3" Source="images/38.jpg" Tag="2" />
+        <Image Grid.Row="54" Grid.Column="0" Grid.RowSpan="3" Source="images/39.jpg" Tag="2" />
+        <Image Grid.Row="57" Grid.Column="0" Grid.RowSpan="3" Source="images/40.jpg" Tag="2" />
 
         <Canvas Background="Black" Grid.Column="1" Grid.Row="0" Name="Stage1Level1" />
         <Canvas Background="Black" Grid.Column="1" Grid.Row="1" Name="Stage1Level2" />
