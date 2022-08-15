@@ -46,7 +46,7 @@ namespace TheEliteWpf
             ChangeButton.IsEnabled = false;
             Task.Run(async () =>
                 await LoadStandingsAsync(
-                        selectionWindow.Game, selectionWindow.StandingType, selectionWindow.PlayerId)
+                        selectionWindow.Game, selectionWindow.StandingType, selectionWindow.PlayerId, selectionWindow.OpacityCap)
                     .ConfigureAwait(false));
         }
 
@@ -67,7 +67,7 @@ namespace TheEliteWpf
                 .All(uie => { uie.Visibility = Visibility.Visible; return true; });
         }
 
-        private async Task LoadStandingsAsync(Game game, StandingType standingType, long? playerId)
+        private async Task LoadStandingsAsync(Game game, StandingType standingType, long? playerId, int? opacityCap)
         {
             var wrs = await GetStandingWorldRecordsAsync(game, standingType)
                 .ConfigureAwait(false);
@@ -79,22 +79,24 @@ namespace TheEliteWpf
             {
                 Dispatcher.Invoke(() =>
                 {
-                    DrawStandingRectangle(game, wr, playerId.HasValue);
+                    DrawStandingRectangle(game, wr, playerId.HasValue, opacityCap);
                 });
             }
+
             Dispatcher.Invoke(() => ChangeButton.IsEnabled = true);
         }
 
-        private void DrawStandingRectangle(Game game, Standing wr, bool anonymize)
+        private void DrawStandingRectangle(Game game, Standing wr, bool anonymize, int? opacityCap = null)
         {
             var rect = new Rectangle
             {
                 Width = PxPerDay * wr.Days,
                 Height = PanelHeight - 2,
-                Fill = anonymize
-                    ? Brushes.White
+                Fill = anonymize || opacityCap.HasValue
+                    ? Brushes.Red
                     : (SolidColorBrush)new BrushConverter().ConvertFrom($"#{wr.Author.Color}"),
-                ToolTip = wr
+                ToolTip = opacityCap.HasValue ? null : wr,
+                Opacity = opacityCap.HasValue ? 1 / (double)opacityCap.Value : 1.0
             };
             var canvas = FindName($"Stage{(game == Game.PerfectDark ? (int)wr.Stage - 20 : (int)wr.Stage)}Level{(int)wr.Level}") as Canvas;
             rect.SetValue(Canvas.TopProperty, 1D);
