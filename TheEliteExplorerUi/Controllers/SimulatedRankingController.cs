@@ -140,7 +140,7 @@ namespace TheEliteExplorerUi.Controllers
                 async () =>
                 {
                     var standings = await _statisticsProvider
-                        .GetLongestStandingsAsync(game, null, standingType, stillOngoing)
+                        .GetLongestStandingsAsync(game, null, standingType, stillOngoing, null)
                         .ConfigureAwait(false);
 
                     return new StandingWrViewData

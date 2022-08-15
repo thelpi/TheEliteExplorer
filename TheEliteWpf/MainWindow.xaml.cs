@@ -46,7 +46,11 @@ namespace TheEliteWpf
             ChangeButton.IsEnabled = false;
             Task.Run(async () =>
                 await LoadStandingsAsync(
-                        selectionWindow.Game, selectionWindow.StandingType, selectionWindow.PlayerId, selectionWindow.OpacityCap)
+                        selectionWindow.Game,
+                        selectionWindow.StandingType,
+                        selectionWindow.Engine,
+                        selectionWindow.PlayerId,
+                        selectionWindow.OpacityCap)
                     .ConfigureAwait(false));
         }
 
@@ -67,9 +71,9 @@ namespace TheEliteWpf
                 .All(uie => { uie.Visibility = Visibility.Visible; return true; });
         }
 
-        private async Task LoadStandingsAsync(Game game, StandingType standingType, long? playerId, int? opacityCap)
+        private async Task LoadStandingsAsync(Game game, StandingType standingType, Engine? engine, long? playerId, int? opacityCap)
         {
-            var wrs = await GetStandingWorldRecordsAsync(game, standingType)
+            var wrs = await GetStandingWorldRecordsAsync(game, standingType, engine)
                 .ConfigureAwait(false);
 
             if (playerId.HasValue)
@@ -105,7 +109,7 @@ namespace TheEliteWpf
             _clearers.Add(() => canvas.Children.Remove(rect));
         }
 
-        private static async Task<IReadOnlyCollection<Standing>> GetStandingWorldRecordsAsync(Game game, StandingType standingType)
+        private static async Task<IReadOnlyCollection<Standing>> GetStandingWorldRecordsAsync(Game game, StandingType standingType, Engine? engine)
         {
             var client = new HttpClient
             {
@@ -113,10 +117,14 @@ namespace TheEliteWpf
                 Timeout = Timeout.InfiniteTimeSpan
             };
 
+            var url = $"games/{(int)game}/longest-standings?standingType={(int)standingType}&count={int.MaxValue}";
+            if (engine.HasValue)
+                url += $"&engine={(int)engine}";
+
             var response = await client
                 .SendAsync(new HttpRequestMessage
                 {
-                    RequestUri = new Uri($"games/{(int)game}/longest-standings?standingType={(int)standingType}&count={int.MaxValue}", UriKind.Relative),
+                    RequestUri = new Uri(url, UriKind.Relative),
                     Method = HttpMethod.Get
                 })
                 .ConfigureAwait(false);

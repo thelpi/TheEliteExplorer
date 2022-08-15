@@ -155,7 +155,7 @@
             </param>
             <returns>Collection of ambiguous world records.</returns>
         </member>
-        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType,System.Nullable{System.Boolean})">
+        <member name="M:TheEliteExplorerDomain.Abstractions.IStatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType,System.Nullable{System.Boolean},System.Nullable{TheEliteExplorerDomain.Enums.Engine})">
             <summary>
             Gets longest standing times.
             </summary>
@@ -163,6 +163,7 @@
             <param name="endDate">End date ton consider; <c>Null</c> for now.</param>
             <param name="standingType">Type of standing request.</param>
             <param name="stillOngoing">Still ongoing; or not; or both (<c>Null</c>).</param>
+            <param name="engine">Engine filter.</param>
             <returns>Ordered collection of <see cref="T:TheEliteExplorerDomain.Models.Standing"/>.</returns>
         </member>
         <member name="T:TheEliteExplorerDomain.Abstractions.ITheEliteWebSiteParser">
@@ -1292,7 +1293,7 @@
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetAmbiguousWorldRecordsAsync(TheEliteExplorerDomain.Enums.Game,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType,System.Nullable{System.Boolean})">
+        <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetLongestStandingsAsync(TheEliteExplorerDomain.Enums.Game,System.Nullable{System.DateTime},TheEliteExplorerDomain.Enums.StandingType,System.Nullable{System.Boolean},System.Nullable{TheEliteExplorerDomain.Enums.Engine})">
             <inheritdoc />
         </member>
         <member name="M:TheEliteExplorerDomain.Providers.StatisticsProvider.GetPlayersAsync">

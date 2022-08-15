@@ -64,11 +64,13 @@ namespace TheEliteExplorerDomain.Abstractions
         /// <param name="endDate">End date ton consider; <c>Null</c> for now.</param>
         /// <param name="standingType">Type of standing request.</param>
         /// <param name="stillOngoing">Still ongoing; or not; or both (<c>Null</c>).</param>
+        /// <param name="engine">Engine filter.</param>
         /// <returns>Ordered collection of <see cref="Standing"/>.</returns>
         Task<IReadOnlyCollection<Standing>> GetLongestStandingsAsync(
             Game game,
             DateTime? endDate,
             StandingType standingType,
-            bool? stillOngoing);
+            bool? stillOngoing,
+            Engine? engine);
     }
 }

@@ -18,6 +18,10 @@
             <ComboBox Width="150" VerticalContentAlignment="Center" Name="TypeCombo" />
         </StackPanel>
         <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
+            <Label Width="100" Content="Engine:" HorizontalContentAlignment="Right" />
+            <ComboBox Width="150" VerticalContentAlignment="Center" Name="EngineCombo" />
+        </StackPanel>
+        <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
             <Label Width="100" Content="Player:" HorizontalContentAlignment="Right" />
             <TextBox Width="50" HorizontalContentAlignment="Right" Name="PlayerIdText" />
         </StackPanel>

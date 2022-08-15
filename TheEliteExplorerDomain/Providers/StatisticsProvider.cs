@@ -141,7 +141,7 @@ namespace TheEliteExplorerDomain.Providers
         {
             var syncWr = new List<WrBase>();
 
-            var wrs = await GetWorldRecordsAsync(game, null).ConfigureAwait(false);
+            var wrs = await GetWorldRecordsAsync(game, null, null).ConfigureAwait(false);
             foreach (var wr in wrs)
             {
                 if ((untiedSlayAmbiguous && wr.CheckAmbiguousHolders(1))
@@ -159,11 +159,12 @@ namespace TheEliteExplorerDomain.Providers
             Game game,
             DateTime? endDate,
             StandingType standingType,
-            bool? stillOngoing)
+            bool? stillOngoing,
+            Engine? engine)
         {
             var standings = new List<Standing>();
 
-            var wrs = await GetWorldRecordsAsync(game, endDate).ConfigureAwait(false);
+            var wrs = await GetWorldRecordsAsync(game, endDate, engine).ConfigureAwait(false);
 
             foreach (var stage in game.GetStages())
             {
@@ -710,14 +711,15 @@ namespace TheEliteExplorerDomain.Providers
             IReadOnlyDictionary<long, PlayerDto> players,
             Stage stage,
             Level level,
-            DateTime? endDate)
+            DateTime? endDate,
+            Engine? engine)
         {
             endDate = (endDate ?? ServiceProviderAccessor.ClockProvider.Now).Date;
 
             var wrs = new List<Wr>();
 
             var entries = allEntries
-                .Where(e => e.Date <= endDate)
+                .Where(e => e.Date <= endDate && (!engine.HasValue || engine == e.Engine))
                 .GroupBy(e => e.Date.Value)
                 .OrderBy(e => e.Key)
                 .ToDictionary(eg => eg.Key, eg => eg.OrderByDescending(e => e.Time).ToList());
@@ -749,7 +751,8 @@ namespace TheEliteExplorerDomain.Providers
         
         private async Task<IReadOnlyCollection<Wr>> GetWorldRecordsAsync(
             Game game,
-            DateTime? endDate)
+            DateTime? endDate,
+            Engine? engine)
         {
             var wrs = new ConcurrentBag<Wr>();
 
@@ -766,7 +769,7 @@ namespace TheEliteExplorerDomain.Providers
                         var entries = await GetStageLevelEntriesCoreAsync(players, stage, level).ConfigureAwait(false);
 
                         wrs.AddRange(
-                            GetStageLevelWorldRecords(entries, players, stage, level, endDate));
+                            GetStageLevelWorldRecords(entries, players, stage, level, endDate, engine));
                     }));
                 }
             }
