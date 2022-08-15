@@ -9,6 +9,7 @@ namespace TheEliteWpf
     {
         public Game Game { get; private set; } = Game.GoldenEye;
         public StandingType StandingType { get; private set; } = StandingType.UntiedExceptSelf;
+        public long? PlayerId { get; private set; } = null;
 
         public SelectionWindow()
         {
@@ -23,6 +24,7 @@ namespace TheEliteWpf
             {
                 Game = (Game)GameCombo.SelectedItem;
                 StandingType = (StandingType)TypeCombo.SelectedItem;
+                PlayerId = long.TryParse(PlayerIdText.Text, out long pId) && pId > 0 ? pId : default(long?);
                 Close();
             }
         }
