@@ -72,5 +72,7 @@ namespace TheEliteExplorerDomain.Abstractions
             StandingType standingType,
             bool? stillOngoing,
             Engine? engine);
+
+        Task<IReadOnlyCollection<StageLeaderboard>> GetStageLeaderboardHistoryAsync(Stage stage);
     }
 }

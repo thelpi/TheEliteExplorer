@@ -145,5 +145,16 @@ namespace TheEliteExplorer.Controllers
 
             return Ok(standings.Take(count ?? 100).ToList());
         }
+
+        [HttpGet("stages/{stage}/leaderboard-history")]
+        [ProducesResponseType(typeof(IReadOnlyCollection<StageLeaderboard>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<IReadOnlyCollection<StageLeaderboard>>> GetStageLeaderboardHistoryAsync([FromRoute] Stage stage)
+        {
+            var datas = await _statisticsProvider
+                .GetStageLeaderboardHistoryAsync(stage)
+                .ConfigureAwait(false);
+
+            return Ok(datas);
+        }
     }
 }

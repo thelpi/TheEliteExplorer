@@ -55,6 +55,17 @@ namespace TheEliteExplorerCommon
         }
 
         /// <summary>
+        /// Gets the latest of two dates.
+        /// </summary>
+        /// <param name="date1">First date.</param>
+        /// <param name="date2">Second date.</param>
+        /// <returns>The latest date.</returns>
+        public static DateTime Latest(this DateTime date1, DateTime date2)
+        {
+            return date1 > date2 ? date1 : date2;
+        }
+
+        /// <summary>
         /// Loops between two dates with the step type and a step value of <c>1</c>.
         /// </summary>
         /// <param name="startDate">Start date.</param>
@@ -233,6 +244,34 @@ namespace TheEliteExplorerCommon
             foreach (var element in toAdd)
             {
                 bag.Add(element);
+            }
+        }
+
+        public static void SetRank<T>(this IReadOnlyList<T> items,
+            Func<T, T, bool> equalityComparer,
+            Func<T, int> getRankFunc,
+            Action<T, int> setRankFunc)
+        {
+            var counter = 0;
+            for (var i = 0; i < items.Count; i++)
+            {
+                if (i == 0)
+                {
+                    setRankFunc(items[i], 1);
+                }
+                else
+                {
+                    if (equalityComparer(items[i - 1], items[i]))
+                    {
+                        setRankFunc(items[i], getRankFunc(items[i - 1]));
+                        counter++;
+                    }
+                    else
+                    {
+                        setRankFunc(items[i], getRankFunc(items[i - 1]) + counter + 1);
+                        counter = 0;
+                    }
+                }
             }
         }
     }

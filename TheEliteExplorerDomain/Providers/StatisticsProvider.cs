@@ -778,5 +778,121 @@ namespace TheEliteExplorerDomain.Providers
 
             return wrs;
         }
+
+        public async Task<IReadOnlyCollection<StageLeaderboard>> GetStageLeaderboardHistoryAsync(Stage stage)
+        {
+            var players = await GetPlayersInternalAsync().ConfigureAwait(false);
+
+            var entries = await GetStageEntriesCoreAsync(stage, players).ConfigureAwait(false);
+
+            // builds a leaderboard for every dat with an entry
+            var dates = entries
+                .Select(_ => _.Date.Value)
+                .Distinct()
+                .OrderBy(_ => _)
+                .ToList();
+
+            var leaderboards = new List<StageLeaderboard>(dates.Count + 1);
+            var startDate = stage.GetGame().GetEliteFirstDate();
+            for (var i = 0; i <= dates.Count; i++)
+            {
+                var endDate = i == dates.Count ? ServiceProviderAccessor.ClockProvider.Tomorrow : dates[i];
+
+                var leaderboard = GetSpecificDateStageLeaderboard(stage, players, entries, startDate, endDate);
+
+                leaderboards.Add(leaderboard);
+                startDate = endDate;
+            }
+
+            return leaderboards;
+        }
+
+        private static StageLeaderboard GetSpecificDateStageLeaderboard(Stage stage, IReadOnlyDictionary<long, PlayerDto> players, List<EntryDto> entries, DateTime startDate, DateTime endDate)
+        {
+            var dateEntries = entries
+                .Where(_ => _.Date < endDate)
+                .ToList();
+
+            var playersPoints = new Dictionary<long, (int points, DateTime latestDate)>();
+
+            // adds the player to the leaderboard, or update points and date for the player
+            void AddOrUpdate(int entryPoints, EntryDto entry)
+            {
+                if (!playersPoints.ContainsKey(entry.PlayerId))
+                {
+                    if (entryPoints > 0)
+                        playersPoints.Add(entry.PlayerId, (entryPoints, entry.Date.Value));
+                }
+                else
+                {
+                    var (points, latestDate) = playersPoints[entry.PlayerId];
+                    playersPoints[entry.PlayerId] = (points + entryPoints, latestDate.Latest(entry.Date.Value));
+                }
+            }
+
+            foreach (var level in SystemExtensions.Enumerate<Level>())
+            {
+                // for one level, gets the best time of each player
+                var bestByPlayer = dateEntries
+                    .Where(_ => _.Level == level)
+                    .GroupBy(_ => _.PlayerId)
+                    .Select(_ => _.OrderBy(e => e.Time).ThenBy(e => e.Date).First())
+                    .OrderBy(_ => _.Time)
+                    .ThenBy(_ => _.Date)
+                    .ToList();
+
+                long? time = null;
+                int playersCountForTime = 1;
+                var points = StageLeaderboard.BasePoints;
+                foreach (var rec in bestByPlayer)
+                {
+                    if (!time.HasValue || time != rec.Time)
+                    {
+                        if (time.HasValue)
+                        {
+                            for (var i = 0; i < playersCountForTime; i++)
+                                points = StageLeaderboard.PointsChart.TryGetValue(points, out int tmpPoints) ? tmpPoints : points - 1;
+                        }
+                        AddOrUpdate(points, rec);
+                        playersCountForTime = 1;
+                        time = rec.Time;
+                    }
+                    else
+                    {
+                        AddOrUpdate(points, rec);
+                        playersCountForTime++;
+                    }
+                }
+            }
+
+            var items = playersPoints
+                .Select(_ => new StageLeaderboardItem
+                {
+                    LatestTime = _.Value.latestDate,
+                    Player = new Player(players[_.Key]),
+                    Points = _.Value.points
+                })
+                .OrderByDescending(_ => _.Points)
+                .ThenBy(_ => _.LatestTime)
+                .ToList();
+
+            items.SetRank((r1, r2) => r1.Points == r2.Points, r => r.Rank, (r, i) => r.Rank = i);
+
+            return new StageLeaderboard
+            {
+                DateEnd = endDate,
+                DateStart = startDate,
+                Items = items,
+                Stage = stage
+            };
+        }
+
+        private async Task<List<EntryDto>> GetStageEntriesCoreAsync(Stage stage, IReadOnlyDictionary<long, PlayerDto> players)
+        {
+            var easyEntries = await GetStageLevelEntriesCoreAsync(players, stage, Level.Easy).ConfigureAwait(false);
+            var mediumEntries = await GetStageLevelEntriesCoreAsync(players, stage, Level.Medium).ConfigureAwait(false);
+            var hardEntries = await GetStageLevelEntriesCoreAsync(players, stage, Level.Hard).ConfigureAwait(false);
+            return easyEntries.Concat(mediumEntries).Concat(hardEntries).ToList();
+        }
     }
 }
