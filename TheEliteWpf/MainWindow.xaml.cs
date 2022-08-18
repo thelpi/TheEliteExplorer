@@ -46,7 +46,7 @@ namespace TheEliteWpf
             ChangeButton.IsEnabled = false;
             if (selectionWindow.StandingType == StandingType.LeaderboardView)
             {
-                Task.Run(async () => await LoadStandingsAsync(selectionWindow.Game).ConfigureAwait(false));
+                Task.Run(() => LoadStandings(selectionWindow.Game));
             }
             else
             {
@@ -78,7 +78,7 @@ namespace TheEliteWpf
                 .All(uie => { uie.Visibility = Visibility.Visible; return true; });
         }
 
-        private async Task LoadStandingsAsync(Game game)
+        private void LoadStandings(Game game)
         {
             var stages = Enum
                 .GetValues(typeof(Stage))
@@ -86,18 +86,21 @@ namespace TheEliteWpf
                 .Where(s => game == Game.GoldenEye ? (int)s <= 20 : (int)s > 20)
                 .ToList();
 
-            foreach (var stage in stages)
+            Parallel.For(0, 4, x =>
             {
-                var wrs = await GetLeaderboardsAsync(stage).ConfigureAwait(false);
-
-                foreach (var wr in wrs)
+                foreach (var stage in stages.Skip(x * 5).Take(5))
                 {
-                    Dispatcher.Invoke(() =>
+                    var wrs = GetLeaderboardsAsync(stage).GetAwaiter().GetResult();
+
+                    foreach (var wr in wrs)
                     {
-                        DrawStandingRectangle(game, wr);
-                    });
+                        Dispatcher.Invoke(() =>
+                        {
+                            DrawStandingRectangle(game, wr);
+                        });
+                    }
                 }
-            }
+            });
 
             Dispatcher.Invoke(() => ChangeButton.IsEnabled = true);
         }
