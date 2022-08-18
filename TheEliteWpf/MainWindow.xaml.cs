@@ -80,7 +80,13 @@ namespace TheEliteWpf
 
         private async Task LoadStandingsAsync(Game game)
         {
-            foreach (var stage in Enum.GetValues(typeof(Stage)).Cast<Stage>().Where(s => game == Game.GoldenEye ? (int)s <= 20 : (int)s > 20))
+            var stages = Enum
+                .GetValues(typeof(Stage))
+                .Cast<Stage>()
+                .Where(s => game == Game.GoldenEye ? (int)s <= 20 : (int)s > 20)
+                .ToList();
+
+            foreach (var stage in stages)
             {
                 var wrs = await GetLeaderboardsAsync(stage).ConfigureAwait(false);
 
@@ -119,7 +125,7 @@ namespace TheEliteWpf
                 Timeout = Timeout.InfiniteTimeSpan
             };
 
-            var url = $"stages/{(int)stage}/leaderboard-history";
+            var url = $"stages/{(int)stage}/leaderboard-history?groupOption={LeaderboardGroupOptions.FirstRankedFirst}";
 
             var response = await client
                 .SendAsync(new HttpRequestMessage
@@ -133,27 +139,7 @@ namespace TheEliteWpf
                 .ReadAsStringAsync()
                 .ConfigureAwait(false);
 
-            var stageDatas = JsonConvert.DeserializeObject<IReadOnlyCollection<Leaderboard>>(content);
-
-            long? pId = null;
-            var fs = new List<Leaderboard>(stageDatas.Count);
-            foreach (var sd in stageDatas)
-            {
-                if (sd.Items.Count > 0)
-                {
-                    if (!pId.HasValue || pId != sd.Items.First().Player.Id)
-                    {
-                        fs.Add(sd);
-                        pId = sd.Items.First().Player.Id;
-                    }
-                    else
-                    {
-                        fs.Last().DateEnd = sd.DateEnd;
-                    }
-                }
-            }
-
-            return fs;
+            return JsonConvert.DeserializeObject<IReadOnlyCollection<Leaderboard>>(content);
         }
 
         private async Task LoadStandingsAsync(Game game, StandingType standingType, Engine? engine, long? playerId, int? opacityCap)

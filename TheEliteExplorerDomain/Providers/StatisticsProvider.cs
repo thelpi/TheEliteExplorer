@@ -779,7 +779,7 @@ namespace TheEliteExplorerDomain.Providers
             return wrs;
         }
 
-        public async Task<IReadOnlyCollection<StageLeaderboard>> GetStageLeaderboardHistoryAsync(Stage stage)
+        public async Task<IReadOnlyCollection<StageLeaderboard>> GetStageLeaderboardHistoryAsync(Stage stage, LeaderboardGroupOptions groupOption)
         {
             var players = await GetPlayersInternalAsync().ConfigureAwait(false);
 
@@ -804,7 +804,32 @@ namespace TheEliteExplorerDomain.Providers
                 startDate = endDate;
             }
 
-            return leaderboards;
+            var consolidedLeaderboards = new List<StageLeaderboard>(leaderboards.Count);
+            if (groupOption == LeaderboardGroupOptions.FirstRankedFirst)
+            {
+                long? pId = null;
+                foreach (var sd in leaderboards)
+                {
+                    if (sd.Items.Count > 0)
+                    {
+                        if (!pId.HasValue || pId != sd.Items.First().Player.Id)
+                        {
+                            consolidedLeaderboards.Add(sd);
+                            pId = sd.Items.First().Player.Id;
+                        }
+                        else
+                        {
+                            consolidedLeaderboards.Last().DateEnd = sd.DateEnd;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                consolidedLeaderboards = leaderboards;
+            }
+
+            return consolidedLeaderboards;
         }
 
         private static StageLeaderboard GetSpecificDateStageLeaderboard(Stage stage, IReadOnlyDictionary<long, PlayerDto> players, List<EntryDto> entries, DateTime startDate, DateTime endDate)
