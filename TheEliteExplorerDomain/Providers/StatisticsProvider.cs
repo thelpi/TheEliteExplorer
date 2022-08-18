@@ -804,30 +804,31 @@ namespace TheEliteExplorerDomain.Providers
                 startDate = endDate;
             }
 
+            return ConsolidateLeaderboards(leaderboards, groupOption);
+        }
+
+        private static IReadOnlyCollection<StageLeaderboard> ConsolidateLeaderboards(List<StageLeaderboard> leaderboards, LeaderboardGroupOptions groupOption)
+        {
             var consolidedLeaderboards = new List<StageLeaderboard>(leaderboards.Count);
-            if (groupOption == LeaderboardGroupOptions.FirstRankedFirst)
+            if (StageLeaderboardItem.ComputeGroupOtions.ContainsKey(groupOption) && leaderboards.Count > 0)
             {
-                long? pId = null;
-                foreach (var sd in leaderboards)
+                var compareFunc = StageLeaderboardItem.ComputeGroupOtions[groupOption];
+                
+                IEqualityComparer<StageLeaderboardItem> comparer = EqualityComparer<StageLeaderboardItem>.Default;
+                if (groupOption == LeaderboardGroupOptions.FirstRankedFirst)
+                    comparer = new StageLeaderboardItemSamePlayer();
+
+                consolidedLeaderboards.Add(leaderboards[0]);
+                for (var i = 1; i < leaderboards.Count; i++)
                 {
-                    if (sd.Items.Count > 0)
-                    {
-                        if (!pId.HasValue || pId != sd.Items.First().Player.Id)
-                        {
-                            consolidedLeaderboards.Add(sd);
-                            pId = sd.Items.First().Player.Id;
-                        }
-                        else
-                        {
-                            consolidedLeaderboards.Last().DateEnd = sd.DateEnd;
-                        }
-                    }
+                    if (compareFunc(leaderboards[i - 1].Items).SequenceEqual(compareFunc(leaderboards[i].Items), comparer))
+                        consolidedLeaderboards.Last().DateEnd = leaderboards[i].DateEnd;
+                    else
+                        consolidedLeaderboards.Add(leaderboards[i]);
                 }
             }
             else
-            {
                 consolidedLeaderboards = leaderboards;
-            }
 
             return consolidedLeaderboards;
         }

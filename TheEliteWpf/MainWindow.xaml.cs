@@ -86,13 +86,14 @@ namespace TheEliteWpf
                 .Where(s => game == Game.GoldenEye ? (int)s <= 20 : (int)s > 20)
                 .ToList();
 
-            Parallel.For(0, 4, x =>
+            int countByParallelTask = 5;
+            Parallel.For(0, stages.Count / countByParallelTask, x =>
             {
-                foreach (var stage in stages.Skip(x * 5).Take(5))
+                foreach (var stage in stages.Skip(x * countByParallelTask).Take(countByParallelTask))
                 {
                     var wrs = GetLeaderboardsAsync(stage).GetAwaiter().GetResult();
 
-                    foreach (var wr in wrs)
+                    foreach (var wr in wrs.Where(_ => _.Items.Count > 0))
                     {
                         Dispatcher.Invoke(() =>
                         {
