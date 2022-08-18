@@ -7,6 +7,7 @@
         Unslayed,
         UnslayedExceptSelf,
         BetweenTwoTimes,
-        FirstUnslayed
+        FirstUnslayed,
+        LeaderboardView
     }
 }
