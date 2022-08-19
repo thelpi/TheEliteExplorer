@@ -8,31 +8,31 @@
         Title="MainWindow" SizeToContent="WidthAndHeight">
     <DockPanel Margin="10">
         <Button Margin="0, 0, 0, 10" DockPanel.Dock="Top" Height="25" Width="75" Content="Change" Name="ChangeButton" Click="ChangeButton_Click" />
-        <Grid DockPanel.Dock="Bottom" Name="MainGrid" Height="900" Width="1880" Background="Gainsboro">
+        <Grid DockPanel.Dock="Bottom" Name="MainGrid" Background="Gainsboro">
             <Grid.RowDefinitions>
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
-                <RowDefinition Height="45" />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="70" />
+                <ColumnDefinition />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 

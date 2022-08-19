@@ -16,20 +16,26 @@ namespace TheEliteWpf
     public partial class MainWindow : Window
     {
         private const string EndpointUrl = "http://localhost:54460/";
-        private static readonly Dictionary<Game, DateTime> EliteBeginDate =
-            new Dictionary<Game, DateTime>
-            {
-                { Game.GoldenEye, new DateTime(1998, 05, 14) },
-                { Game.PerfectDark, new DateTime(2000, 06, 06) }
-            };
-        private const int ImageWidth = 90;
+        private const double PicRatio = 1.55;
         private const int PanelHeight = 45;
+        private const double PxPerDay = 0.2;
+
+        private static readonly DateTime FirstDate = new DateTime(1998, 5, 1);
+        private static readonly double TotalDays = (DateTime.Today.AddDays(1) - FirstDate).TotalDays;
+        private static readonly double FirstColWidth = Math.Ceiling(PanelHeight * PicRatio);
+        private static readonly double AvailableWidth = Math.Ceiling(TotalDays * PxPerDay);
 
         private readonly List<Action> _clearers = new List<Action>();
 
         public MainWindow()
         {
             InitializeComponent();
+
+            foreach (var rowDef in MainGrid.RowDefinitions)
+                rowDef.Height = new GridLength(PanelHeight);
+            MainGrid.ColumnDefinitions[0].Width = new GridLength(FirstColWidth);
+            MainGrid.Width = FirstColWidth + AvailableWidth;
+
             SetStandingProcedure();
         }
 
@@ -43,12 +49,10 @@ namespace TheEliteWpf
 
             CollapseImagesFromOtherGame(selectionWindow);
 
-            var width = MainGrid.Width - ImageWidth;
-
             ChangeButton.IsEnabled = false;
             if (selectionWindow.StandingType == StandingType.LeaderboardView)
             {
-                Task.Run(() => LoadStandings(selectionWindow.Game, selectionWindow.PlayerId, width));
+                Task.Run(() => LoadStandings(selectionWindow.Game, selectionWindow.PlayerId));
             }
             else
             {
@@ -58,8 +62,7 @@ namespace TheEliteWpf
                             selectionWindow.StandingType,
                             selectionWindow.Engine,
                             selectionWindow.PlayerId,
-                            selectionWindow.OpacityCap,
-                            width)
+                            selectionWindow.OpacityCap)
                         .ConfigureAwait(false));
             }
         }
@@ -81,10 +84,8 @@ namespace TheEliteWpf
                 .All(uie => { uie.Visibility = Visibility.Visible; return true; });
         }
 
-        private void LoadStandings(Game game, long? playerId, double totalWidth)
+        private void LoadStandings(Game game, long? playerId)
         {
-            var pxPerDay = totalWidth / (DateTime.Today.AddDays(1) - EliteBeginDate[game]).TotalDays;
-
             var stages = Enum
                 .GetValues(typeof(Stage))
                 .Cast<Stage>()
@@ -105,7 +106,7 @@ namespace TheEliteWpf
                         {
                             Dispatcher.Invoke(() =>
                             {
-                                DrawLeaderboardRectangle(game, wr, itemToDisplay, pxPerDay);
+                                DrawLeaderboardRectangle(game, wr, itemToDisplay);
                             });
                         }
                     }
@@ -115,18 +116,18 @@ namespace TheEliteWpf
             Dispatcher.Invoke(() => ChangeButton.IsEnabled = true);
         }
 
-        private void DrawLeaderboardRectangle(Game game, Leaderboard ld, LeaderboardItem it, double pxPerDay)
+        private void DrawLeaderboardRectangle(Game game, Leaderboard ld, LeaderboardItem it)
         {
             var rect = new Rectangle
             {
-                Width = 0.2 * (ld.DateEnd - ld.DateStart).TotalDays,
+                Width = PxPerDay * (ld.DateEnd - ld.DateStart).TotalDays,
                 Height = PanelHeight - 2,
                 Fill = (SolidColorBrush)new BrushConverter().ConvertFrom($"#{it.Player.Color}"),
                 Opacity = it.Rank > 10 ? 0 : (11 - it.Rank) / (double)10
             };
             var canvas = FindName($"Stage{(game == Game.PerfectDark ? (int)ld.Stage - 20 : (int)ld.Stage)}") as Canvas;
             rect.SetValue(Canvas.TopProperty, 1D);
-            rect.SetValue(Canvas.LeftProperty, (ld.DateStart - EliteBeginDate[game]).TotalDays * 0.2);
+            rect.SetValue(Canvas.LeftProperty, (ld.DateStart - FirstDate).TotalDays * PxPerDay);
             canvas.Children.Add(rect);
             _clearers.Add(() => canvas.Children.Remove(rect));
         }
@@ -156,10 +157,8 @@ namespace TheEliteWpf
             return JsonConvert.DeserializeObject<IReadOnlyCollection<Leaderboard>>(content);
         }
 
-        private async Task LoadStandingsAsync(Game game, StandingType standingType, Engine? engine, long? playerId, int? opacityCap, double totalWidth)
+        private async Task LoadStandingsAsync(Game game, StandingType standingType, Engine? engine, long? playerId, int? opacityCap)
         {
-            var pxPerDay = totalWidth / (DateTime.Today.AddDays(1) - EliteBeginDate[game]).TotalDays;
-
             var wrs = await GetStandingWorldRecordsAsync(game, standingType, engine)
                 .ConfigureAwait(false);
 
@@ -170,19 +169,19 @@ namespace TheEliteWpf
             {
                 Dispatcher.Invoke(() =>
                 {
-                    DrawStandingRectangle(game, wr, pxPerDay, playerId.HasValue, opacityCap);
+                    DrawStandingRectangle(game, wr, playerId.HasValue, opacityCap);
                 });
             }
 
             Dispatcher.Invoke(() => ChangeButton.IsEnabled = true);
         }
 
-        private void DrawStandingRectangle(Game game, Standing wr, double pxPerDay, bool anonymize, int? opacityCap = null)
+        private void DrawStandingRectangle(Game game, Standing wr, bool anonymize, int? opacityCap = null)
         {
             var thirdSize = PanelHeight / 3;
             var rect = new Rectangle
             {
-                Width = pxPerDay * wr.Days,
+                Width = PxPerDay * wr.Days,
                 Height = thirdSize - 2,
                 Fill = anonymize || opacityCap.HasValue
                     ? Brushes.Red
@@ -196,7 +195,7 @@ namespace TheEliteWpf
 
             var canvas = FindName($"Stage{(game == Game.PerfectDark ? (int)wr.Stage - 20 : (int)wr.Stage)}") as Canvas;
             rect.SetValue(Canvas.TopProperty, 1D + (thirdSize * iLevel));
-            rect.SetValue(Canvas.LeftProperty, (wr.StartDate - EliteBeginDate[game]).TotalDays * pxPerDay);
+            rect.SetValue(Canvas.LeftProperty, (wr.StartDate - FirstDate).TotalDays * PxPerDay);
             canvas.Children.Add(rect);
             _clearers.Add(() => canvas.Children.Remove(rect));
         }
