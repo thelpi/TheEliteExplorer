@@ -96,7 +96,7 @@ namespace TheEliteWpf
             {
                 foreach (var stage in stages.Skip(x * countByParallelTask).Take(countByParallelTask))
                 {
-                    var wrs = GetLeaderboardsAsync(stage, playerId.HasValue ? LeaderboardGroupOptions.None : LeaderboardGroupOptions.FirstRankedFirst).GetAwaiter().GetResult();
+                    var wrs = GetLeaderboardsAsync(stage, playerId.HasValue ? LeaderboardGroupOptions.RankedTop10 : LeaderboardGroupOptions.FirstRankedFirst).GetAwaiter().GetResult();
 
                     foreach (var wr in wrs)
                     {
@@ -119,14 +119,14 @@ namespace TheEliteWpf
         {
             var rect = new Rectangle
             {
-                Width = pxPerDay * (ld.DateEnd - ld.DateStart).TotalDays,
+                Width = 0.2 * (ld.DateEnd - ld.DateStart).TotalDays,
                 Height = PanelHeight - 2,
                 Fill = (SolidColorBrush)new BrushConverter().ConvertFrom($"#{it.Player.Color}"),
                 Opacity = it.Rank > 10 ? 0 : (11 - it.Rank) / (double)10
             };
             var canvas = FindName($"Stage{(game == Game.PerfectDark ? (int)ld.Stage - 20 : (int)ld.Stage)}") as Canvas;
             rect.SetValue(Canvas.TopProperty, 1D);
-            rect.SetValue(Canvas.LeftProperty, (ld.DateStart - EliteBeginDate[game]).TotalDays * pxPerDay);
+            rect.SetValue(Canvas.LeftProperty, (ld.DateStart - EliteBeginDate[game]).TotalDays * 0.2);
             canvas.Children.Add(rect);
             _clearers.Add(() => canvas.Children.Remove(rect));
         }
@@ -139,7 +139,7 @@ namespace TheEliteWpf
                 Timeout = Timeout.InfiniteTimeSpan
             };
 
-            var url = $"stages/{(int)stage}/leaderboard-history?groupOption={groupOptions}";
+            var url = $"stages/{(int)stage}/leaderboard-history?groupOption={groupOptions}&daysStep=5";
 
             var response = await client
                 .SendAsync(new HttpRequestMessage

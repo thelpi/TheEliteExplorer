@@ -110,6 +110,7 @@ namespace TheEliteExplorerCommon
                 case DateStep.Hour:
                     return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, 0, 0, dateTime.Kind);
                 case DateStep.Day:
+                case DateStep.Week:
                     return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, dateTime.Kind);
                 case DateStep.Month:
                     return new DateTime(dateTime.Year, dateTime.Month, 1, 0, 0, 0, dateTime.Kind);
@@ -127,6 +128,7 @@ namespace TheEliteExplorerCommon
                 { DateStep.Minute, (d, i) => d.AddMinutes(i) },
                 { DateStep.Hour, (d, i) => d.AddHours(i) },
                 { DateStep.Day, (d, i) => d.AddDays(i) },
+                { DateStep.Week, (d, i) => d.AddDays(i * 7) },
                 { DateStep.Month, (d, i) => d.AddMonths(i) },
                 { DateStep.Year, (d, i) => d.AddYears(i) }
             };

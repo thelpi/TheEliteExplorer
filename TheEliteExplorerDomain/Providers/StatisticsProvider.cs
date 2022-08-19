@@ -779,29 +779,23 @@ namespace TheEliteExplorerDomain.Providers
             return wrs;
         }
 
-        public async Task<IReadOnlyCollection<StageLeaderboard>> GetStageLeaderboardHistoryAsync(Stage stage, LeaderboardGroupOptions groupOption)
+        public async Task<IReadOnlyCollection<StageLeaderboard>> GetStageLeaderboardHistoryAsync(Stage stage, LeaderboardGroupOptions groupOption, int daysStep)
         {
             var players = await GetPlayersInternalAsync().ConfigureAwait(false);
 
             var entries = await GetStageEntriesCoreAsync(stage, players).ConfigureAwait(false);
 
-            // builds a leaderboard for every dat with an entry
-            var dates = entries
-                .Select(_ => _.Date.Value)
-                .Distinct()
-                .OrderBy(_ => _)
-                .ToList();
-
-            var leaderboards = new List<StageLeaderboard>(dates.Count + 1);
+            var leaderboards = new List<StageLeaderboard>(9125); // 25y * 365d
             var startDate = stage.GetGame().GetEliteFirstDate();
-            for (var i = 0; i <= dates.Count; i++)
+            foreach (var date in SystemExtensions.LoopBetweenDates(startDate, ServiceProviderAccessor.ClockProvider.Tomorrow, DateStep.Day, daysStep))
             {
-                var endDate = i == dates.Count ? ServiceProviderAccessor.ClockProvider.Tomorrow : dates[i];
+                if (date > startDate)
+                {
+                    var leaderboard = GetSpecificDateStageLeaderboard(stage, players, entries, startDate, date);
 
-                var leaderboard = GetSpecificDateStageLeaderboard(stage, players, entries, startDate, endDate);
-
-                leaderboards.Add(leaderboard);
-                startDate = endDate;
+                    leaderboards.Add(leaderboard);
+                }
+                startDate = date;
             }
 
             return ConsolidateLeaderboards(leaderboards, groupOption);

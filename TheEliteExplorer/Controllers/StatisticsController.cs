@@ -148,10 +148,13 @@ namespace TheEliteExplorer.Controllers
 
         [HttpGet("stages/{stage}/leaderboard-history")]
         [ProducesResponseType(typeof(IReadOnlyCollection<StageLeaderboard>), (int)HttpStatusCode.OK)]
-        public async Task<ActionResult<IReadOnlyCollection<StageLeaderboard>>> GetStageLeaderboardHistoryAsync([FromRoute] Stage stage, [FromQuery] LeaderboardGroupOptions groupOption)
+        public async Task<ActionResult<IReadOnlyCollection<StageLeaderboard>>> GetStageLeaderboardHistoryAsync(
+            [FromRoute] Stage stage,
+            [FromQuery] LeaderboardGroupOptions groupOption,
+            [FromQuery] int daysStep)
         {
             var datas = await _statisticsProvider
-                .GetStageLeaderboardHistoryAsync(stage, groupOption)
+                .GetStageLeaderboardHistoryAsync(stage, groupOption, daysStep)
                 .ConfigureAwait(false);
 
             return Ok(datas);

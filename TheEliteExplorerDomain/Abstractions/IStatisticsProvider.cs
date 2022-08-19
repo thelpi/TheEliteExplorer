@@ -73,6 +73,6 @@ namespace TheEliteExplorerDomain.Abstractions
             bool? stillOngoing,
             Engine? engine);
 
-        Task<IReadOnlyCollection<StageLeaderboard>> GetStageLeaderboardHistoryAsync(Stage stage, LeaderboardGroupOptions groupOption);
+        Task<IReadOnlyCollection<StageLeaderboard>> GetStageLeaderboardHistoryAsync(Stage stage, LeaderboardGroupOptions groupOption, int daysStep);
     }
 }
