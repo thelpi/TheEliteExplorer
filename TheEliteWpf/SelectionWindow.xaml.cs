@@ -18,7 +18,7 @@ namespace TheEliteWpf
         {
             InitializeComponent();
             GameCombo.ItemsSource = System.Enum.GetValues(typeof(Game)).Cast<Game>();
-            EngineComobo.ItemsSource = System.Enum.GetValues(typeof(Engine)).Cast<Engine>();
+            EngineCombo.ItemsSource = System.Enum.GetValues(typeof(Engine)).Cast<Engine>();
             GraphCombo.ItemsSource = GraphTypeDisplay.GetValues();
             PlayerCombo.ItemsSource = players.OrderBy(_ => _.SurName);
             AnonymiseCheckBox.IsChecked = false;
@@ -40,9 +40,9 @@ namespace TheEliteWpf
             }
             GraphType = (GraphCombo.SelectedItem as GraphTypeDisplay).GraphType;
 
-            Engine = EngineComobo.SelectedIndex < 0
+            Engine = EngineCombo.SelectedIndex < 0
                 ? default(Engine?)
-                : (Engine)EngineComobo.SelectedItem;
+                : (Engine)EngineCombo.SelectedItem;
 
             PlayerId = PlayerCombo.SelectedIndex < 0
                 ? default(long?)
@@ -96,6 +96,18 @@ namespace TheEliteWpf
                     }
                 };
             }
+        }
+
+        private void ClearEngineCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            EngineCombo.SelectedIndex = -1;
+            ClearEngineCheckBox.IsChecked = false;
+        }
+
+        private void ClearPlayerCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            PlayerCombo.SelectedIndex = -1;
+            ClearPlayerCheckBox.IsChecked = false;
         }
     }
 }

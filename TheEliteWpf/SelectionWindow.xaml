@@ -19,11 +19,13 @@
         </StackPanel>
         <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
             <Label Width="150" Content="Engine? (optional)" HorizontalContentAlignment="Right" />
-            <ComboBox Width="100" VerticalContentAlignment="Center" Name="EngineComobo" />
+            <ComboBox Width="100" VerticalContentAlignment="Center" Name="EngineCombo" />
+            <CheckBox Margin="10, 0, 0, 0" VerticalAlignment="Center" Content="Clear sel." Name="ClearEngineCheckBox" Checked="ClearEngineCheckBox_Checked" />
         </StackPanel>
         <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
             <Label Width="150" Content="Player? (optional*)" HorizontalContentAlignment="Right" />
             <ComboBox Width="150" VerticalContentAlignment="Center" Name="PlayerCombo" DisplayMemberPath="SurName" />
+            <CheckBox Margin="10, 0, 0, 0" VerticalAlignment="Center" Content="Clear sel." Name="ClearPlayerCheckBox" Checked="ClearPlayerCheckBox_Checked" />
         </StackPanel>
         <Label>* Mandatory for 'Leaderboard' or 'Ranking' kinds of graph</Label>
         <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
