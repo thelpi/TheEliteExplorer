@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using TheEliteExplorerDomain.Abstractions;
@@ -10,12 +11,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
 {
     public sealed class WriteRepository : BaseRepository, IWriteRepository
     {
-        private const string _insertPlayerPsName = "insert_player";
-        private const string _insertEntryPsName = "insert_entry";
-        private const string _updateDirtyPlayerPsName = "update_dirty_player";
-        private const string _updateCleanPlayerPsName = "update_player";
-        private const string _deletePlayerEntriesPsName = "delete_player_entry";
-
         private readonly IConnectionProvider _connectionProvider;
 
         public WriteRepository(IConnectionProvider connectionProvider)
@@ -33,20 +28,24 @@ namespace TheEliteExplorerInfrastructure.Repositories
             try
             {
                 long entryid = await InsertAndGetIdAsync(
-                    _insertEntryPsName,
-                    new
-                    {
-                        player_id = requestEntry.PlayerId,
-                        level_id = (long)requestEntry.Level,
-                        stage_id = (long)requestEntry.Stage,
-                        requestEntry.Date,
-                        requestEntry.Time,
-                        system_id = (long)requestEntry.Engine
-                    }).ConfigureAwait(false);
+                        "INSERT INTO entry " +
+                        "(player_id, level_id, stage_id, date, time, system_id, creation_date) " +
+                        "VALUES " +
+                        "(@player_id, @level_id, @stage_id, @date, @time, @system_id, NOW())",
+                        new
+                        {
+                            player_id = requestEntry.PlayerId,
+                            level_id = (long)requestEntry.Level,
+                            stage_id = (long)requestEntry.Stage,
+                            requestEntry.Date,
+                            requestEntry.Time,
+                            system_id = (long)requestEntry.Engine
+                        })
+                    .ConfigureAwait(false);
 
                 return entryid;
             }
-            catch (System.Data.SqlClient.SqlException ex) when (ex.Number == 2601)
+            catch (Exception ex)
             {
                 return 0;
             }
@@ -55,7 +54,10 @@ namespace TheEliteExplorerInfrastructure.Repositories
         public async Task<long> InsertPlayerAsync(string urlName, string defaultHexColor)
         {
             return await InsertAndGetIdAsync(
-                    _insertPlayerPsName,
+                    "INSERT INTO player " +
+                    "(url_name, real_name, surname, color, control_style, is_dirty, creation_date) " +
+                    "VALUES " +
+                    "(@url_name, @real_name, @surname, @color, @control_style, @is_dirty, NOW())",
                     new
                     {
                         url_name = urlName,
@@ -70,39 +72,45 @@ namespace TheEliteExplorerInfrastructure.Repositories
 
         public async Task UpdateDirtyPlayerAsync(long playerId)
         {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            using (var connection = _connectionProvider.TheEliteConnection)
             {
                 await connection
                     .QueryAsync(
-                        ToPsName(_updateDirtyPlayerPsName),
+                        "UPDATE player SET is_dirty = 1 WHERE id = @id",
                         new { id = playerId },
-                        commandType: CommandType.StoredProcedure)
+                        commandType: CommandType.Text)
                     .ConfigureAwait(false);
             }
         }
 
         public async Task DeletePlayerStageEntriesAsync(Stage stage, long playerId)
         {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            using (var connection = _connectionProvider.TheEliteConnection)
             {
-                await connection.QueryAsync(
-                    ToPsName(_deletePlayerEntriesPsName),
-                    new
-                    {
-                        stage_id = (long)stage,
-                        player_id = playerId
-                    },
-                    commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+                await connection
+                    .QueryAsync(
+                        "DELETE FROM entry " +
+                        "WHERE player_id = @player_id AND stage_id = @stage_id",
+                        new
+                        {
+                            stage_id = (long)stage,
+                            player_id = playerId
+                        },
+                        commandType: CommandType.StoredProcedure)
+                    .ConfigureAwait(false);
             }
         }
 
         public async Task CleanPlayerAsync(PlayerDto player)
         {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            using (var connection = _connectionProvider.TheEliteConnection)
             {
                 await connection
                     .QueryAsync(
-                        ToPsName(_updateCleanPlayerPsName),
+                        "UPDATE player " +
+                        "SET real_name = @real_name, surname = @surname, color = @color, " +
+                        "control_style = @control_style, is_dirty = 0 " +
+                        "WHERE id = @id",
                         new
                         {
                             id = player.Id,
@@ -116,20 +124,21 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
-        private async Task<long> InsertAndGetIdAsync(string psNameBase, object lambdaParameters)
+        private async Task<long> InsertAndGetIdAsync(string sql, object lambdaParameters)
         {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
+            using (var connection = _connectionProvider.TheEliteConnection)
             {
-                var dynamicParameters = new DynamicParameters();
-                dynamicParameters.AddDynamicParams(lambdaParameters);
-                dynamicParameters.Add("@id", dbType: DbType.Int64, direction: ParameterDirection.Output);
+                await connection
+                    .QueryAsync(
+                       sql, lambdaParameters, commandType: CommandType.Text)
+                    .ConfigureAwait(false);
 
-                await connection.QueryAsync(
-                   ToPsName(psNameBase),
-                   dynamicParameters,
-                   commandType: CommandType.StoredProcedure).ConfigureAwait(false);
+                var results = await connection
+                    .QueryAsync<long>(
+                        "SELECT LAST_INSERT_ID()", commandType: CommandType.Text)
+                    .ConfigureAwait(false);
 
-                return dynamicParameters.Get<long>("@id");
+                return results.FirstOrDefault();
             }
         }
     }

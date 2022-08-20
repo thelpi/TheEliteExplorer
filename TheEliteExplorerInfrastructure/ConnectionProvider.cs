@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using MySql.Data.MySqlClient;
 
 namespace TheEliteExplorerInfrastructure
 {
@@ -14,7 +14,7 @@ namespace TheEliteExplorerInfrastructure
         {
             get
             {
-                return new SqlConnection(_configuration.GetConnectionString(_theEliteConfigKey));
+                return new MySqlConnection(_configuration.GetConnectionString(_theEliteConfigKey));
             }
         }
 
