@@ -34,10 +34,26 @@ namespace TheEliteExplorer.Controllers
         /// <returns>Nothing.</returns>
         [HttpPost("new-players")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> ScanTimePageAsync([FromQuery] DateTime? stopAt)
+        public async Task<IActionResult> ScanTimePageForPlayersAsync([FromQuery] DateTime? stopAt)
         {
             await _integrationProvider
-                .ScanTimePageForNewPlayersAsync(stopAt)
+                .ScanTimePageForNewPlayersAsync(stopAt, false)
+                .ConfigureAwait(false);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Scans the site to get new entries (alternative to a full rescan).
+        /// </summary>
+        /// <param name="stopAt">Date to stop loop.</param>
+        /// <returns>Nothing.</returns>
+        [HttpPost("new-entries")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> ScanTimePageForEntriesAsync([FromQuery] DateTime? stopAt)
+        {
+            await _integrationProvider
+                .ScanTimePageForNewPlayersAsync(stopAt, true)
                 .ConfigureAwait(false);
 
             return NoContent();

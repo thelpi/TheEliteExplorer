@@ -6,21 +6,12 @@ using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerDomain
 {
-    /// <summary>
-    /// Extension methods and tools.
-    /// </summary>
     public static class Extensions
     {
         private const int GoldeneyeStagesCount = 20;
 
-        /// <summary>
-        /// Default label for unknown data.
-        /// </summary>
         public const string DefaultLabel = "Unknown";
 
-        /// <summary>
-        /// Formated name of the Perfect Dark special stage "Duel".
-        /// </summary>
         public const string PerfectDarkDuelStageFormatedName = "duel";
 
         private static readonly Dictionary<Game, string> _eliteUrlName = new Dictionary<Game, string>
@@ -97,9 +88,6 @@ namespace TheEliteExplorerDomain
             { Stage.War, "WAR!" },
         };
 
-        /// <summary>
-        /// Formated names for stages of both games.
-        /// </summary>
         public static readonly IReadOnlyDictionary<string, Stage> StageFormatedNames = new Dictionary<string, Stage>
         {
             { "dam", Stage.Dam },
@@ -144,12 +132,6 @@ namespace TheEliteExplorerDomain
             { "war!", Stage.War }
         };
 
-        /// <summary>
-        /// Tries to get a stage from its label.
-        /// </summary>
-        /// <param name="game">Game.</param>
-        /// <param name="stageLabel">Stage label.</param>
-        /// <returns>Stage or <c>Null</c>.</returns>
         public static Stage? GetStageFromLabel(this Game game, string stageLabel)
         {
             var matches = _stageLabels.Where(_ =>
@@ -158,12 +140,6 @@ namespace TheEliteExplorerDomain
             return matches.Any() ? matches.First().Key : default(Stage?);
         }
 
-        /// <summary>
-        /// Tries to get a level from its label.
-        /// </summary>
-        /// <param name="game">Game.</param>
-        /// <param name="levelLabel">Level label.</param>
-        /// <returns>Level or <c>Null</c>.</returns>
         public static Level? GetLevelFromLabel(this Game game, string levelLabel)
         {
             var matches = _levelLabels.Where(_ =>
@@ -172,68 +148,28 @@ namespace TheEliteExplorerDomain
             return matches.Any() ? matches.First().Key.Item1 : default(Level?);
         }
 
-        /// <summary>
-        /// Gets the label associated to a level for specified game.
-        /// </summary>
-        /// <param name="level">The level.</param>
-        /// <param name="game">The game.</param>
-        /// <returns>The label.</returns>
         public static string GetLabel(this Level level, Game game)
         {
             return _levelLabels.ContainsKey((level, game)) ?
                 _levelLabels[(level, game)] : DefaultLabel;
         }
 
-        /// <summary>
-        /// Tries to transform a string representing the control style into a <see cref="ControlStyle"/>.
-        /// </summary>
-        /// <param name="controlStyleLabel">The control style label.</param>
-        /// <returns>The <see cref="ControlStyle"/> value or <c>Null</c>.</returns>
         public static ControlStyle? ToControlStyle(string controlStyleLabel)
         {
             return controlStyleLabel != null && _controlStyleConverters.ContainsKey(controlStyleLabel) ?
                 _controlStyleConverters[controlStyleLabel] : default(ControlStyle?);
         }
 
-        /// <summary>
-        /// Gets the elite beginning date for the specified game.
-        /// </summary>
-        /// <param name="game">Game.</param>
-        /// <returns>Elite beginning date.</returns>
         public static DateTime GetEliteFirstDate(this Game game)
         {
             return _eliteBeginDate[game];
         }
 
-        /// <summary>
-        /// Gets the elite URL name part for the specified game.
-        /// </summary>
-        /// <param name="game">Game.</param>
-        /// <returns>URL name part.</returns>
         public static string GetGameUrlName(this Game game)
         {
             return _eliteUrlName[game];
         }
 
-        /// <summary>
-        /// Checks if a date is in the life span of the game.
-        /// </summary>
-        /// <param name="game">The game.</param>
-        /// <param name="date">The date.</param>
-        /// <returns><c>True</c> if the date is in the lifespan, or <c>Null</c>; <c>False</c> otherwise.</returns>
-        public static bool InGameLifeSpan(this Game game, DateTime? date)
-        {
-            return !date.HasValue || (
-                date?.Date <= ServiceProviderAccessor.ClockProvider.Now.Date
-                && date?.Date >= game.GetEliteFirstDate()
-            );
-        }
-
-        /// <summary>
-        /// Gets every stages of the specified game.
-        /// </summary>
-        /// <param name="game">The <see cref="Game"/>.</param>
-        /// <returns>Collection of <see cref="Stage"/>.</returns>
         public static IReadOnlyCollection<Stage> GetStages(this Game game)
         {
             if (game == Game.GoldenEye)
@@ -250,11 +186,6 @@ namespace TheEliteExplorerDomain
             }
         }
 
-        /// <summary>
-        /// Gets the game related to a stage.
-        /// </summary>
-        /// <param name="stage">Stage.</param>
-        /// <returns>Game.</returns>
         public static Game GetGame(this Stage stage)
         {
             return ((int)stage) <= GoldeneyeStagesCount

@@ -16,26 +16,16 @@ using TheEliteExplorerInfrastructure.Configuration;
 
 namespace TheEliteExplorerInfrastructure
 {
-    /// <summary>
-    /// The-elite website parse.
-    /// </summary>
-    /// <seealso cref="ITheEliteWebSiteParser"/>
     public class TheEliteWebSiteParser : ITheEliteWebSiteParser
     {
         private readonly TheEliteWebsiteConfiguration _configuration;
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> or its inner value is <c>Null</c>.</exception>
         public TheEliteWebSiteParser(IOptions<TheEliteWebsiteConfiguration> configuration)
         {
             _configuration = configuration?.Value ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractTimeEntriesAsync(int year, int month, bool withEngine)
+        public async Task<IReadOnlyCollection<EntryWebDto>> GetMonthPageTimeEntriesAsync(int year, int month)
         {
             var linksValues = new ConcurrentBag<EntryWebDto>();
 
@@ -62,8 +52,7 @@ namespace TheEliteExplorerInfrastructure
                 if (link.Attributes.Contains("class")
                     && link.Attributes["class"].Value == timeClass)
                 {
-                    var linkValues = await ExtractTimeLinkDetailsAsync(link, withEngine)
-                        .ConfigureAwait(false);
+                    var linkValues = ExtractTimeLinkDetails(link);
                     if (linkValues != null)
                     {
                         linksValues.Add(linkValues);
@@ -74,40 +63,6 @@ namespace TheEliteExplorerInfrastructure
             return linksValues;
         }
 
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryWebDto>> ExtractStageAllTimeEntriesAsync(Stage stage)
-        {
-            var entries = new List<EntryWebDto>();
-            var logs = new List<string>();
-
-            string pageContent = await GetPageStringContentAsync($"/ajax/stage/{(long)stage}/{_configuration.AjaxKey}").ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(pageContent))
-            {
-                throw new FormatException($"Unables to load the page content for stage {stage}.");
-            }
-
-            var jsonContent = Newtonsoft.Json.JsonConvert.DeserializeObject<IReadOnlyCollection<IReadOnlyCollection<object>>>(pageContent);
-
-            if (jsonContent == null || jsonContent.Count != SystemExtensions.Count<Level>())
-            {
-                throw new FormatException($"The list of entries by level is invalid.");
-            }
-
-            Dictionary<Level, List<long>> links = ExtractEntryIdListFromJsonContent(jsonContent, logs);
-
-            foreach (Level levelKey in links.Keys)
-            {
-                foreach (long entryId in links[levelKey])
-                {
-                    var entryDetails = await ExtractEntryDetailsAsync(entryId, stage, levelKey, logs).ConfigureAwait(false);
-                    entries.AddRange(entryDetails);
-                }
-            }
-
-            return entries;
-        }
-
-        /// <inheritdoc />
         public async Task<PlayerDto> GetPlayerInformationAsync(string urlName, string defaultHexPlayer)
         {
             var logs = new List<string>();
@@ -176,8 +131,7 @@ namespace TheEliteExplorerInfrastructure
             return p;
         }
 
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EntryWebDto>> GetPlayerEntriesHistoryAsync(Game game, string playerUrlName)
+        public async Task<IReadOnlyCollection<EntryWebDto>> GetPlayerEntriesAsync(Game game, string playerUrlName)
         {
             var entries = new List<EntryWebDto>();
 
@@ -242,172 +196,33 @@ namespace TheEliteExplorerInfrastructure
             return entries;
         }
 
-        private async Task<List<EntryWebDto>> ExtractEntryDetailsAsync(long entryId, Stage stage, Level levelKey, List<string> logs)
+        public async Task<Engine> GetTimeEntryEngineAsync(string url)
         {
-            var finalEntries = new List<EntryWebDto>();
+            const string engineStringBeginString = "System:</strong>";
+            const string engineStringEndString = "</li>";
 
-            // /!\/!\/!\ Any name can go in the URL
-            string linkData = await GetPageStringContentAsync($"/~Karl+Jobst/time/{entryId}")
-                .ConfigureAwait(false);
+            string pageContent = await GetPageStringContentAsync(url).ConfigureAwait(false);
 
-            var htmlDocHead = new HtmlDocument();
-            htmlDocHead.LoadHtml(linkData);
-            
-            string playerUrlName = htmlDocHead
-                .DocumentNode.SelectNodes("//h1/a").First()
-                .Attributes.AttributesWithName("href").First().Value;
-
-            const string playerUrlPrefix = "/~";
-            const string N_A = "N/A";
-
-            playerUrlName = playerUrlName.Replace(playerUrlPrefix, string.Empty).Split('/').First().Replace("+", " ");
-
-            string[] htmlParts = linkData.Split(new string[] { "<table>", "</table>" }, StringSplitOptions.RemoveEmptyEntries);
-            if (htmlParts.Length != 3)
+            if (!string.IsNullOrWhiteSpace(pageContent))
             {
-                HtmlNodeCollection headTitle = htmlDocHead.DocumentNode.SelectNodes("//h1");
-                string headTitleText = (headTitle.Count > 1 ? headTitle[1] : headTitle.First()).InnerText;
-                var indexOfDoubleDot = headTitleText.IndexOf(":");
-
-                string timeFromHead = indexOfDoubleDot < 0 ? N_A : string.Join(string.Empty,
-                    Enumerable.Range(-2, 5).Select(i => headTitleText[indexOfDoubleDot + i]));
-
-                var entryRequest = ExtractEntryFromHead(stage, levelKey, timeFromHead, playerUrlName, htmlParts[0], logs);
-                if (entryRequest != null)
+                int engineStringBeginPos = pageContent.IndexOf(engineStringBeginString);
+                if (engineStringBeginPos >= 0)
                 {
-                    finalEntries.Add(entryRequest);
-                }
-            }
-            else
-            {
-                finalEntries.AddRange(ExtractEntriesFromTable(stage, levelKey, playerUrlName, htmlParts[1], logs));
-            }
-
-            return finalEntries;
-        }
-
-        private EntryWebDto ExtractEntryFromHead(Stage stage, Level levelKey, string timeFromhead, string playerUrlName, string content, List<string> logs)
-        {
-            var versionFromHead = "Unknown";
-            var dateFromHead = "Unknown";
-            const string achievedPart = "<strong>Achieved:</strong>";
-            const string systemPart = "<strong>System:</strong>";
-
-            var i1 = content.IndexOf(achievedPart);
-            if (i1 >= 0)
-            {
-                var subpart = content.Substring(i1 + achievedPart.Length).Split(new string[] { "</li>" }, StringSplitOptions.RemoveEmptyEntries);
-                if (subpart.Length > 0)
-                {
-                    dateFromHead = subpart[0];
-                }
-            }
-
-            var i2 = content.IndexOf(systemPart);
-            if (i2 >= 0)
-            {
-                var subpart = content.Substring(i2 + systemPart.Length).Split(new string[] { "</li>" }, StringSplitOptions.RemoveEmptyEntries);
-                if (subpart.Length > 0)
-                {
-                    versionFromHead = subpart[0];
-                }
-            }
-
-            long? time = ExtractTime(timeFromhead, out bool failToExtract);
-            if (failToExtract || !time.HasValue)
-            {
-                return null;
-            }
-
-            DateTime? date = ParseDateFromString(dateFromHead, out failToExtract);
-            if (failToExtract)
-            {
-                return null;
-            }
-
-            var engine = ToEngine(versionFromHead);
-            return new EntryWebDto
-            {
-                Date = date,
-                Level = levelKey,
-                PlayerUrlName = playerUrlName,
-                Stage = stage,
-                Engine = engine,
-                Time = time.Value
-            };
-        }
-
-        private IEnumerable<EntryWebDto> ExtractEntriesFromTable(Stage stage, Level levelKey, string playerUrlName, string content, List<string> logs)
-        {
-            string tableContent = string.Concat("<table>", content, "</table>");
-
-            var doc = new HtmlDocument();
-            doc.LoadHtml(tableContent);
-            
-            foreach (HtmlNode row in doc.DocumentNode.SelectNodes("//tr[td]"))
-            {
-                var rowDatas = row.SelectNodes("td").Select(td => td.InnerText).ToArray();
-
-                long? time = ExtractTime(rowDatas[1], out bool failToExtract);
-                if (!failToExtract && time.HasValue)
-                {
-                    DateTime? date = ParseDateFromString(rowDatas[0], out failToExtract);
-                    if (!failToExtract)
+                    string pageContentAtBeginPos = pageContent.Substring(engineStringBeginPos + engineStringBeginString.Length);
+                    int engineStringEndPos = pageContentAtBeginPos.Trim().IndexOf(engineStringEndString);
+                    if (engineStringEndPos >= 0)
                     {
-                        var engine = ToEngine(rowDatas[3]);
-                        yield return new EntryWebDto
-                        {
-                            Date = date,
-                            Level = levelKey,
-                            PlayerUrlName = playerUrlName,
-                            Stage = stage,
-                            Engine = engine,
-                            Time = time.Value
-                        };
+                        string engineString = pageContentAtBeginPos.Substring(0, engineStringEndPos + 1);
+
+                        return ToEngine(engineString);
                     }
                 }
             }
+
+            return Engine.UNK;
         }
 
-        private Dictionary<Level, List<long>> ExtractEntryIdListFromJsonContent(IReadOnlyCollection<IReadOnlyCollection<object>> stageJsonContent, List<string> logs)
-        {
-            var entryIdListByLevel = new Dictionary<Level, List<long>>();
-
-            const int positionOfId = 7;
-            const int positionOfStart = 4;
-
-            int m = 0;
-            foreach (IReadOnlyCollection<object> jsonLevelEntries in stageJsonContent)
-            {
-                var entryIdList = new List<long>();
-                entryIdListByLevel.Add(SystemExtensions.Enumerate<Level>().ElementAt(m), entryIdList);
-                int j = positionOfStart;
-                foreach (object jsonEntry in jsonLevelEntries)
-                {
-                    if (j % positionOfId == 0)
-                    {
-                        if (jsonEntry == null)
-                        {
-                            logs.Add("The JSON entry was null.");
-                        }
-                        else if (!long.TryParse(jsonEntry.ToString(), out long entryId))
-                        {
-                            logs.Add($"The JSON entry was not a long - value: {jsonEntry}");
-                        }
-                        else
-                        {
-                            entryIdList.Add(entryId);
-                        }
-                    }
-                    j++;
-                }
-                m++;
-            }
-
-            return entryIdListByLevel;
-        }
-
-        private async Task<EntryWebDto> ExtractTimeLinkDetailsAsync(HtmlNode link, bool withEngine)
+        private EntryWebDto ExtractTimeLinkDetails(HtmlNode link)
         {
             const char linkSeparator = '-';
             const string playerUrlPrefix = "/~";
@@ -478,9 +293,8 @@ namespace TheEliteExplorerInfrastructure
                 Level = level.Value,
                 PlayerUrlName = playerUrl,
                 Stage = Extensions.StageFormatedNames[stageName],
-                Engine = withEngine
-                    ? await ExtractTimeEntryEngineAsync(link).ConfigureAwait(false)
-                    : Engine.UNK,
+                Engine = Engine.UNK,
+                EngineUrl = link.Attributes["href"].Value,
                 Time = time.Value
             };
         }
@@ -505,32 +319,6 @@ namespace TheEliteExplorerInfrastructure
             }
 
             return date;
-        }
-
-        private async Task<Engine> ExtractTimeEntryEngineAsync(HtmlNode link)
-        {
-            const string engineStringBeginString = "System:</strong>";
-            const string engineStringEndString = "</li>";
-
-            string pageContent = await GetPageStringContentAsync(link.Attributes["href"].Value).ConfigureAwait(false);
-
-            if (!string.IsNullOrWhiteSpace(pageContent))
-            {
-                int engineStringBeginPos = pageContent.IndexOf(engineStringBeginString);
-                if (engineStringBeginPos >= 0)
-                {
-                    string pageContentAtBeginPos = pageContent.Substring(engineStringBeginPos + engineStringBeginString.Length);
-                    int engineStringEndPos = pageContentAtBeginPos.Trim().IndexOf(engineStringEndString);
-                    if (engineStringEndPos >= 0)
-                    {
-                        string engineString = pageContentAtBeginPos.Substring(0, engineStringEndPos + 1);
-
-                        return ToEngine(engineString);
-                    }
-                }
-            }
-
-            return Engine.UNK;
         }
 
         private static Engine ToEngine(string engineString)

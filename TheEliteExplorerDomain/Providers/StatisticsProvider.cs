@@ -13,22 +13,11 @@ using TheEliteExplorerDomain.Models;
 
 namespace TheEliteExplorerDomain.Providers
 {
-    /// <summary>
-    /// Statistics provider.
-    /// </summary>
-    /// <seealso cref="IStatisticsProvider"/>
     public sealed class StatisticsProvider : IStatisticsProvider
     {
         private readonly IReadRepository _readRepository;
         private readonly RankingConfiguration _configuration;
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Ranking configuration.</param>
-        /// <param name="readRepository">Instance of <see cref="IReadRepository"/>.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> or inner value is <c>Null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="readRepository"/> is <c>Null</c>.</exception>
         public StatisticsProvider(
             IReadRepository readRepository,
             IOptions<RankingConfiguration> configuration)
@@ -37,9 +26,6 @@ namespace TheEliteExplorerDomain.Providers
             _configuration = configuration?.Value ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        #region IStatisticsProvider implementation
-
-        /// <inheritdoc />
         public async Task<IReadOnlyCollection<RankingEntryLight>> GetRankingEntriesAsync(
             RankingRequest request)
         {
@@ -49,7 +35,6 @@ namespace TheEliteExplorerDomain.Providers
                 .ConfigureAwait(false);
         }
 
-        /// <inheritdoc />
         public async Task<IReadOnlyCollection<StageSweep>> GetSweepsAsync(
             Game game,
             bool untied,
@@ -134,7 +119,6 @@ namespace TheEliteExplorerDomain.Providers
             return finalSweeps;
         }
 
-        /// <inheritdoc />
         public async Task<IReadOnlyCollection<WrBase>> GetAmbiguousWorldRecordsAsync(
             Game game,
             bool untiedSlayAmbiguous)
@@ -154,7 +138,6 @@ namespace TheEliteExplorerDomain.Providers
             return syncWr;
         }
 
-        /// <inheritdoc />
         public async Task<IReadOnlyCollection<Standing>> GetLongestStandingsAsync(
             Game game,
             DateTime? endDate,
@@ -314,7 +297,6 @@ namespace TheEliteExplorerDomain.Providers
             return standings;
         }
 
-        /// <inheritdoc />
         public async Task<IReadOnlyCollection<Player>> GetPlayersAsync()
         {
             var players = await GetPlayersInternalAsync().ConfigureAwait(false);
@@ -324,9 +306,27 @@ namespace TheEliteExplorerDomain.Providers
                 .ToList();
         }
 
-        #endregion IStatisticsProvider implementation
+        public async Task<IReadOnlyCollection<StageLeaderboard>> GetStageLeaderboardHistoryAsync(Stage stage, LeaderboardGroupOptions groupOption, int daysStep)
+        {
+            var players = await GetPlayersInternalAsync().ConfigureAwait(false);
 
-        #region Ranking private methods
+            var entries = await GetStageEntriesCoreAsync(stage, players).ConfigureAwait(false);
+
+            var leaderboards = new List<StageLeaderboard>(9125); // 25y * 365d
+            var startDate = stage.GetGame().GetEliteFirstDate();
+            foreach (var date in SystemExtensions.LoopBetweenDates(startDate, ServiceProviderAccessor.ClockProvider.Tomorrow, DateStep.Day, daysStep))
+            {
+                if (date > startDate)
+                {
+                    var leaderboard = GetSpecificDateStageLeaderboard(stage, players, entries, startDate, date);
+
+                    leaderboards.Add(leaderboard);
+                }
+                startDate = date;
+            }
+
+            return ConsolidateLeaderboards(leaderboards, groupOption);
+        }
 
         // Gets the full game ranking
         private async Task<List<RankingEntryLight>> GetFullGameConsolidatedRankingAsync(RankingRequest request)
@@ -541,8 +541,6 @@ namespace TheEliteExplorerDomain.Providers
 
             return entries;
         }
-
-        #endregion Ranking private methods
 
         // Gets a dictionary of every player by identifier (including dirty, but not banned)
         private async Task<IReadOnlyDictionary<long, PlayerDto>> GetPlayersInternalAsync()
@@ -777,28 +775,6 @@ namespace TheEliteExplorerDomain.Providers
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             return wrs;
-        }
-
-        public async Task<IReadOnlyCollection<StageLeaderboard>> GetStageLeaderboardHistoryAsync(Stage stage, LeaderboardGroupOptions groupOption, int daysStep)
-        {
-            var players = await GetPlayersInternalAsync().ConfigureAwait(false);
-
-            var entries = await GetStageEntriesCoreAsync(stage, players).ConfigureAwait(false);
-
-            var leaderboards = new List<StageLeaderboard>(9125); // 25y * 365d
-            var startDate = stage.GetGame().GetEliteFirstDate();
-            foreach (var date in SystemExtensions.LoopBetweenDates(startDate, ServiceProviderAccessor.ClockProvider.Tomorrow, DateStep.Day, daysStep))
-            {
-                if (date > startDate)
-                {
-                    var leaderboard = GetSpecificDateStageLeaderboard(stage, players, entries, startDate, date);
-
-                    leaderboards.Add(leaderboard);
-                }
-                startDate = date;
-            }
-
-            return ConsolidateLeaderboards(leaderboards, groupOption);
         }
 
         private static IReadOnlyCollection<StageLeaderboard> ConsolidateLeaderboards(List<StageLeaderboard> leaderboards, LeaderboardGroupOptions groupOption)

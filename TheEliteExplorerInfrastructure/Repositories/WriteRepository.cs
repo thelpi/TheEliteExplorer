@@ -8,11 +8,6 @@ using TheEliteExplorerDomain.Enums;
 
 namespace TheEliteExplorerInfrastructure.Repositories
 {
-    /// <summary>
-    /// Write operations in repository (default implementation).
-    /// </summary>
-    /// <seealso cref="IWriteRepository"/>
-    /// <seealso cref="BaseRepository"/>
     public sealed class WriteRepository : BaseRepository, IWriteRepository
     {
         private const string _insertPlayerPsName = "insert_player";
@@ -20,60 +15,43 @@ namespace TheEliteExplorerInfrastructure.Repositories
         private const string _updateDirtyPlayerPsName = "update_dirty_player";
         private const string _updateCleanPlayerPsName = "update_player";
         private const string _deletePlayerEntriesPsName = "delete_player_entry";
-        private const string _updateEntryPsName = "update_entry";
-        private const string _insertRankingEntryPsName = "insert_ranking_entry";
-        private const string _deleteEntryPsName = "delete_entry";
 
         private readonly IConnectionProvider _connectionProvider;
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="connectionProvider">Instance of <see cref="IConnectionProvider"/>.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="connectionProvider"/> is <c>Null</c>.</exception>
         public WriteRepository(IConnectionProvider connectionProvider)
         {
             _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
         }
 
-        /// <inheritdoc />
-        public async Task RemoveEntryAsync(long id)
-        {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                await connection
-                    .QueryAsync(
-                        ToPsName(_deleteEntryPsName),
-                        new { id },
-                        commandType: CommandType.StoredProcedure)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task<long> InsertTimeEntryAsync(EntryDto requestEntry, Game game)
+        public async Task<long> InsertTimeEntryAsync(EntryDto requestEntry)
         {
             if (requestEntry == null)
             {
                 throw new ArgumentNullException(nameof(requestEntry));
             }
 
-            long entryid = await InsertAndGetIdAsync(
-                _insertEntryPsName,
-                new
-                {
-                    player_id = requestEntry.PlayerId,
-                    level_id = (long)requestEntry.Level,
-                    stage_id = (long)requestEntry.Stage,
-                    requestEntry.Date,
-                    requestEntry.Time,
-                    system_id = (long)requestEntry.Engine
-                }).ConfigureAwait(false);
+            try
+            {
+                long entryid = await InsertAndGetIdAsync(
+                    _insertEntryPsName,
+                    new
+                    {
+                        player_id = requestEntry.PlayerId,
+                        level_id = (long)requestEntry.Level,
+                        stage_id = (long)requestEntry.Stage,
+                        requestEntry.Date,
+                        requestEntry.Time,
+                        system_id = (long)requestEntry.Engine
+                    }).ConfigureAwait(false);
 
-            return entryid;
+                return entryid;
+            }
+            catch (System.Data.SqlClient.SqlException ex) when (ex.Number == 2601)
+            {
+                return 0;
+            }
         }
 
-        /// <inheritdoc />
         public async Task<long> InsertPlayerAsync(string urlName, string defaultHexColor)
         {
             return await InsertAndGetIdAsync(
@@ -90,21 +68,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
                 .ConfigureAwait(false);
         }
 
-        /// <inheritdoc />
-        public async Task UpdateEntryAsync(long entryId, DateTime? date, Engine engine)
-        {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                await connection
-                    .QueryAsync(
-                        ToPsName(_updateEntryPsName),
-                        new { entry_id = entryId, date, system_id = (long)engine },
-                        commandType: CommandType.StoredProcedure)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        /// <inheritdoc />
         public async Task UpdateDirtyPlayerAsync(long playerId)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
@@ -118,7 +81,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
-        /// <inheritdoc />
         public async Task DeletePlayerStageEntriesAsync(Stage stage, long playerId)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
@@ -134,7 +96,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
             }
         }
 
-        /// <inheritdoc />
         public async Task CleanPlayerAsync(PlayerDto player)
         {
             using (IDbConnection connection = _connectionProvider.TheEliteConnection)
@@ -149,31 +110,6 @@ namespace TheEliteExplorerInfrastructure.Repositories
                             surname = player.SurName,
                             color = player.Color,
                             control_style = player.ControlStyle
-                        },
-                        commandType: CommandType.StoredProcedure)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task InsertRankingEntryAsync(RankingDto ranking)
-        {
-            using (IDbConnection connection = _connectionProvider.TheEliteConnection)
-            {
-                await connection
-                    .QueryAsync(
-                        ToPsName(_insertRankingEntryPsName),
-                        new
-                        {
-                            @ranking_type_id = ranking.RankingTypeId,
-                            @stage_id  = (long)ranking.Stage,
-                            @level_id = (long)ranking.Level,
-                            @player_id = ranking.PlayerId,
-                            @time = ranking.Time,
-                            @date = ranking.Date,
-                            @rank = ranking.Rank,
-                            @entry_date = ranking.EntryDate,
-                            @is_simulated_date = ranking.IsSimulatedDate ? 1 : 0
                         },
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
