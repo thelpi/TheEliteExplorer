@@ -3,6 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using MySql.Data.MySqlClient;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Dtos;
 using TheEliteExplorerDomain.Enums;
@@ -45,7 +46,7 @@ namespace TheEliteExplorerInfrastructure.Repositories
 
                 return entryid;
             }
-            catch (Exception ex)
+            catch (MySqlException ex) when (ex.Number == 1062)
             {
                 return 0;
             }
