@@ -1,24 +1,21 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Configuration;
 using TheEliteExplorerDomain.Providers;
 using TheEliteExplorerInfrastructure;
-using TheEliteExplorerInfrastructure.Configuration;
 using TheEliteExplorerInfrastructure.Repositories;
 
 namespace TheEliteExplorerUi
 {
     public class Startup
     {
-        private const string _cacheSection = "Cache";
         private const string _rankingSection = "Ranking";
-        private const string _theEliteWebsiteSection = "TheEliteWebsite";
 
         public Startup(IConfiguration configuration)
         {
@@ -46,11 +43,11 @@ namespace TheEliteExplorerUi
                 .AddSingleton<IReadRepository, ReadRepository>()
                 .AddSingleton<IStatisticsProvider, StatisticsProvider>();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc(x => x.EnableEndpointRouting = false);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {

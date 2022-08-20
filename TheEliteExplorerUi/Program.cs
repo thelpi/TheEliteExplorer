@@ -20,14 +20,6 @@ namespace TheEliteExplorerUi
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseKestrel(opt =>
-                {
-                    opt.AddServerHeader = false;
-                    opt.ConfigureHttpsDefaults(s =>
-                    {
-                        s.SslProtocols = SslProtocols.Tls12;
-                    });
-                })
                 .UseStartup<Startup>();
     }
 }

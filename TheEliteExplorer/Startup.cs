@@ -2,8 +2,10 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using TheEliteExplorerCommon;
 using TheEliteExplorerDomain.Abstractions;
 using TheEliteExplorerDomain.Configuration;
@@ -21,8 +23,6 @@ namespace TheEliteExplorer
     public class Startup
     {
         private readonly IConfiguration _configuration;
-
-        private const string _cacheSection = "Cache";
         private const string _rankingSection = "Ranking";
         private const string _theEliteWebsiteSection = "TheEliteWebsite";
 
@@ -43,7 +43,7 @@ namespace TheEliteExplorer
         /// <param name="services">Collection of <see cref="ServiceDescriptor"/>.</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc(x => x.EnableEndpointRouting = false);
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen();
@@ -68,7 +68,7 @@ namespace TheEliteExplorer
         /// </summary>
         /// <param name="app">Application builder.</param>
         /// <param name="env">Environment informations.</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
