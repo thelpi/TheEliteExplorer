@@ -10,33 +10,27 @@
         Title="SelectionWindow" SizeToContent="WidthAndHeight">
     <StackPanel Margin="10" Orientation="Vertical">
         <StackPanel Orientation="Horizontal">
-            <Label Width="100" Content="Game:" HorizontalContentAlignment="Right" />
-            <ComboBox Width="150" VerticalContentAlignment="Center" Name="GameCombo" />
+            <Label Width="150" Content="Game:" HorizontalContentAlignment="Right" />
+            <ComboBox Width="100" VerticalContentAlignment="Center" Name="GameCombo" />
         </StackPanel>
         <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
-            <Label Width="100" Content="Type:" HorizontalContentAlignment="Right" />
-            <ComboBox Width="150" VerticalContentAlignment="Center" Name="TypeCombo" />
+            <Label Width="150" Content="Graph type:" HorizontalContentAlignment="Right" />
+            <ComboBox Width="250" VerticalContentAlignment="Center" Name="GraphCombo" DisplayMemberPath="ExplainValue" />
         </StackPanel>
         <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
-            <Label Width="100" Content="Engine:" HorizontalContentAlignment="Right" />
-            <ComboBox Width="150" VerticalContentAlignment="Center" Name="EngineCombo" />
+            <Label Width="150" Content="Engine? (optional)" HorizontalContentAlignment="Right" />
+            <ComboBox Width="100" VerticalContentAlignment="Center" Name="EngineComobo" />
         </StackPanel>
         <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
-            <Label Width="100" Content="Player:" HorizontalContentAlignment="Right" />
-            <TextBox Width="50" HorizontalContentAlignment="Right" Name="PlayerIdText" />
+            <Label Width="150" Content="Player? (optional*)" HorizontalContentAlignment="Right" />
+            <ComboBox Width="150" VerticalContentAlignment="Center" Name="PlayerCombo" DisplayMemberPath="SurName" />
         </StackPanel>
+        <Label>* Mandatory for 'Leaderboard' or 'Ranking' kinds of graph</Label>
         <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
-            <Label Width="100" Content="Opacity cap:" HorizontalContentAlignment="Right" />
-            <TextBox Width="50" HorizontalContentAlignment="Right" Name="OpacityCapText" />
+            <Label Width="150" Content="Anonymise color? **" HorizontalContentAlignment="Right" />
+            <CheckBox VerticalContentAlignment="Center" VerticalAlignment="Center" Name="AnonymiseCheckBox" />
         </StackPanel>
-        <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
-            <Label Width="100" Content="Anonymise:" HorizontalContentAlignment="Right" />
-            <CheckBox HorizontalContentAlignment="Right" VerticalAlignment="Center" Name="AnonymiseCheckBox" />
-        </StackPanel>
-        <StackPanel Margin="0, 5, 0, 0" Orientation="Horizontal">
-            <Label Width="100" Content="Opacity style:" HorizontalContentAlignment="Right" />
-            <ComboBox Width="150" VerticalContentAlignment="Center" Name="OpacityStyleCombo" />
-        </StackPanel>
-        <Button Margin="0, 10, 0, 0" Name="LaunchButton" Content="Ok" Height="25" Width="75" HorizontalAlignment="Right" Click="LaunchButton_Click" />
+        <Label>** If specified player selected</Label>
+        <Button Margin="0, 10, 0, 0" Name="LaunchButton" Content="GO!" Height="25" Width="75" HorizontalAlignment="Right" Click="LaunchButton_Click" />
     </StackPanel>
 </Window>

@@ -7,7 +7,10 @@
         mc:Ignorable="d" WindowStartupLocation="CenterScreen"
         Title="MainWindow" SizeToContent="WidthAndHeight">
     <DockPanel Margin="10">
-        <Button Margin="0, 0, 0, 10" DockPanel.Dock="Top" Height="25" Width="75" Content="Change" Name="ChangeButton" Click="ChangeButton_Click" />
+        <StackPanel HorizontalAlignment="Center" DockPanel.Dock="Top" Margin="0, 0, 0, 10" Orientation="Horizontal">
+            <Button Height="25" Width="75" Content="Reconfigure" Name="ChangeButton" Click="ChangeButton_Click" />
+            <ProgressBar Margin="10, 0, 0, 0" Visibility="Collapsed" Width="200" Height="25" Name="LoadingBar" IsIndeterminate="True" />
+        </StackPanel>
         <Grid DockPanel.Dock="Bottom" Name="MainGrid" Background="Gainsboro">
             <Grid.RowDefinitions>
                 <RowDefinition />

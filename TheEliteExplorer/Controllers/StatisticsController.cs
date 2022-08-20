@@ -159,5 +159,16 @@ namespace TheEliteExplorer.Controllers
 
             return Ok(datas);
         }
+
+        [HttpGet("players")]
+        [ProducesResponseType(typeof(IReadOnlyCollection<Player>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<IReadOnlyCollection<Player>>> GetPlayersAsync()
+        {
+            var players = await _statisticsProvider
+                .GetPlayersAsync()
+                .ConfigureAwait(false);
+
+            return Ok(players);
+        }
     }
 }

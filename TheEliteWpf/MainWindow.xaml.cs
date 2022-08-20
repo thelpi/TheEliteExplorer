@@ -44,29 +44,58 @@ namespace TheEliteWpf
             _clearers.ForEach(_ => _());
             _clearers.Clear();
 
-            var selectionWindow = new SelectionWindow();
-            selectionWindow.ShowDialog();
+            var players = GetPlayersAsync().GetAwaiter().GetResult();
+
+            SelectionWindow selectionWindow;
+            bool? stop = null;
+            do
+            {
+                selectionWindow = new SelectionWindow(players);
+                selectionWindow.ShowDialog();
+                if (!selectionWindow.Configured)
+                {
+                    var response = MessageBox.Show("Configuration not finished!\nDo you want to retry?\nProgram will shutdown otherwise.", "", MessageBoxButton.OKCancel);
+                    if (response == MessageBoxResult.Cancel)
+                        stop = true;
+                }
+                else
+                    stop = false;
+            }
+            while (!stop.HasValue);
+
+            if (stop == true)
+            {
+                Environment.Exit(0);
+            }
 
             CollapseImagesFromOtherGame(selectionWindow);
 
             ChangeButton.IsEnabled = false;
-            if (selectionWindow.StandingType == StandingType.LeaderboardView)
+            LoadingBar.Visibility = Visibility.Visible;
+            if (selectionWindow.GraphType == GraphType.Leaderboard
+                || selectionWindow.GraphType == GraphType.Ranking)
             {
                 Task.Run(() => LoadStandings(
                     selectionWindow.Game,
                     selectionWindow.PlayerId,
                     selectionWindow.Anonymise,
-                    selectionWindow.OpacityStyle));
+                    selectionWindow.GraphType == GraphType.Leaderboard
+                        ? OpacityStyle.Top10
+                        : OpacityStyle.Points));
             }
             else
             {
                 Task.Run(async () =>
                     await LoadStandingsAsync(
                             selectionWindow.Game,
-                            selectionWindow.StandingType,
+                            selectionWindow.GraphType == GraphType.AllUnslay
+                                ? StandingType.Unslayed
+                                : (selectionWindow.GraphType == GraphType.FirstUnslay
+                                    ? StandingType.FirstUnslayed
+                                    : StandingType.Untied),
                             selectionWindow.Engine,
                             selectionWindow.PlayerId,
-                            selectionWindow.OpacityCap,
+                            null,
                             selectionWindow.Anonymise)
                         .ConfigureAwait(false));
             }
@@ -110,7 +139,7 @@ namespace TheEliteWpf
                         {
                             case OpacityStyle.Points:
                                 opt = LeaderboardGroupOptions.None;
-                                opacityFunc = it => it.Points / (double)300;
+                                opacityFunc = it => (0.00083 * Math.Pow(it.Points, 2) + 0.0839) / 100; // it.Points / (double)300;
                                 break;
                             case OpacityStyle.Top10:
                                 opt = LeaderboardGroupOptions.RankedTop10;
@@ -135,7 +164,7 @@ namespace TheEliteWpf
                 }
             });
 
-            Dispatcher.Invoke(() => ChangeButton.IsEnabled = true);
+            Dispatcher.Invoke(() => { ChangeButton.IsEnabled = true; LoadingBar.Visibility = Visibility.Collapsed; });
         }
 
         private void DrawLeaderboardRectangle(Game game, Leaderboard ld, LeaderboardItem it, bool anonymize, Func<LeaderboardItem, double> opacityFunc)
@@ -147,7 +176,10 @@ namespace TheEliteWpf
                 Fill = anonymize
                     ? Brushes.White
                     : (SolidColorBrush)new BrushConverter().ConvertFrom($"#{it.Player.Color}"),
-                Opacity = opacityFunc(it)
+                Opacity = opacityFunc(it),
+                ToolTip = anonymize
+                    ? null
+                    : $"Date:{ld.DateStart}\nPoints:{it.Points}\nRank:{it.Rank}"
             };
             var canvas = FindName($"Stage{(game == Game.PerfectDark ? (int)ld.Stage - 20 : (int)ld.Stage)}") as Canvas;
             rect.SetValue(Canvas.TopProperty, 1D);
@@ -197,7 +229,7 @@ namespace TheEliteWpf
                 });
             }
 
-            Dispatcher.Invoke(() => ChangeButton.IsEnabled = true);
+            Dispatcher.Invoke(() => { ChangeButton.IsEnabled = true; LoadingBar.Visibility = Visibility.Collapsed; });
         }
 
         private void DrawStandingRectangle(Game game, Standing wr, bool anonymize, int? opacityCap = null)
@@ -208,17 +240,14 @@ namespace TheEliteWpf
                 Width = PxPerDay * wr.Days,
                 Height = thirdSize - 2,
                 Fill = anonymize || opacityCap.HasValue
-                    ? Brushes.Red
+                    ? Brushes.White
                     : (SolidColorBrush)new BrushConverter().ConvertFrom($"#{wr.Author.Color}"),
                 ToolTip = opacityCap.HasValue ? null : wr,
                 Opacity = opacityCap.HasValue ? 1 / (double)opacityCap.Value : 1.0
             };
 
-            var iLevel = (int)wr.Level - 1;
-
-
             var canvas = FindName($"Stage{(game == Game.PerfectDark ? (int)wr.Stage - 20 : (int)wr.Stage)}") as Canvas;
-            rect.SetValue(Canvas.TopProperty, 1D + (thirdSize * iLevel));
+            rect.SetValue(Canvas.TopProperty, 1D + (thirdSize * ((int)wr.Level - 1)));
             rect.SetValue(Canvas.LeftProperty, Math.Ceiling((wr.StartDate - FirstDate).TotalDays * PxPerDay));
             canvas.Children.Add(rect);
             _clearers.Add(() => canvas.Children.Remove(rect));
@@ -249,6 +278,29 @@ namespace TheEliteWpf
                 .ConfigureAwait(false);
 
             return JsonConvert.DeserializeObject<IReadOnlyCollection<Standing>>(content);
+        }
+
+        private static async Task<IReadOnlyCollection<Player>> GetPlayersAsync()
+        {
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri(EndpointUrl),
+                Timeout = Timeout.InfiniteTimeSpan
+            };
+
+            var response = await client
+                .SendAsync(new HttpRequestMessage
+                {
+                    RequestUri = new Uri("players", UriKind.Relative),
+                    Method = HttpMethod.Get
+                })
+                .ConfigureAwait(false);
+
+            var content = await response.Content
+                .ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            return JsonConvert.DeserializeObject<IReadOnlyCollection<Player>>(content);
         }
 
         private void ChangeButton_Click(object sender, RoutedEventArgs e)

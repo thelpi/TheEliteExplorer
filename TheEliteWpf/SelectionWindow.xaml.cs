@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using TheEliteWpf.Datas;
@@ -7,38 +7,94 @@ namespace TheEliteWpf
 {
     public partial class SelectionWindow : Window
     {
-        public Game Game { get; private set; } = Game.GoldenEye;
-        public StandingType StandingType { get; private set; } = StandingType.UntiedExceptSelf;
-        public Engine? Engine { get; private set; } = null;
-        public long? PlayerId { get; private set; } = null;
-        public int? OpacityCap { get; private set; } = null;
-        public bool Anonymise { get; private set; } = false;
-        public OpacityStyle? OpacityStyle { get; private set; } = null;
+        public bool Configured { get; private set; } = false;
+        public Game Game { get; private set; }
+        public GraphType GraphType { get; private set; }
+        public bool Anonymise { get; private set; }
+        public long? PlayerId { get; private set; }
+        public Engine? Engine { get; private set; }
 
-        public SelectionWindow()
+        public SelectionWindow(IReadOnlyCollection<Player> players)
         {
             InitializeComponent();
-            GameCombo.ItemsSource = Enum.GetValues(typeof(Game)).Cast<Game>();
-            TypeCombo.ItemsSource = Enum.GetValues(typeof(StandingType)).Cast<StandingType>();
-            EngineCombo.ItemsSource = Enum.GetValues(typeof(Engine)).Cast<Engine>();
-            OpacityStyleCombo.ItemsSource = Enum.GetValues(typeof(OpacityStyle)).Cast<OpacityStyle>();
-            GameCombo.SelectedItem = Game;
-            TypeCombo.SelectedItem = StandingType;
-            AnonymiseCheckBox.IsChecked = Anonymise;
+            GameCombo.ItemsSource = System.Enum.GetValues(typeof(Game)).Cast<Game>();
+            EngineComobo.ItemsSource = System.Enum.GetValues(typeof(Engine)).Cast<Engine>();
+            GraphCombo.ItemsSource = GraphTypeDisplay.GetValues();
+            PlayerCombo.ItemsSource = players.OrderBy(_ => _.SurName);
+            AnonymiseCheckBox.IsChecked = false;
         }
 
         private void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
-            if (GameCombo.SelectedIndex >= 0 && TypeCombo.SelectedIndex >= 0)
+            if (GameCombo.SelectedIndex < 0)
             {
-                Game = (Game)GameCombo.SelectedItem;
-                StandingType = (StandingType)TypeCombo.SelectedItem;
-                Engine = EngineCombo.SelectedIndex >= 0 ? (Engine)EngineCombo.SelectedItem : default(Engine?);
-                OpacityStyle = OpacityStyleCombo.SelectedIndex >= 0 ? (OpacityStyle)OpacityStyleCombo.SelectedItem : default(OpacityStyle?);
-                PlayerId = long.TryParse(PlayerIdText.Text, out long pId) && pId > 0 ? pId : default(long?);
-                OpacityCap = int.TryParse(OpacityCapText.Text, out int oCap) && oCap > 0 ? oCap : default(int?);
-                Anonymise = AnonymiseCheckBox.IsChecked == true;
-                Close();
+                MessageBox.Show("Select game!");
+                return;
+            }
+            Game = (Game)GameCombo.SelectedItem;
+
+            if (GraphCombo.SelectedIndex < 0)
+            {
+                MessageBox.Show("Select graph type!");
+                return;
+            }
+            GraphType = (GraphCombo.SelectedItem as GraphTypeDisplay).GraphType;
+
+            Engine = EngineComobo.SelectedIndex < 0
+                ? default(Engine?)
+                : (Engine)EngineComobo.SelectedItem;
+
+            PlayerId = PlayerCombo.SelectedIndex < 0
+                ? default(long?)
+                : ((Player)PlayerCombo.SelectedItem).Id;
+
+            Anonymise = AnonymiseCheckBox.IsChecked == true;
+
+            if (!PlayerId.HasValue && (GraphType == GraphType.Leaderboard || GraphType == GraphType.Ranking))
+            {
+                MessageBox.Show("Select a player for this type of graph!");
+                return;
+            }
+
+            Configured = true;
+            Close();
+        }
+
+        private class GraphTypeDisplay
+        {
+            public GraphType GraphType { get; set; }
+            public string ExplainValue { get; set; }
+
+            public static IReadOnlyCollection<GraphTypeDisplay> GetValues()
+            {
+                return new List<GraphTypeDisplay>
+                {
+                    new GraphTypeDisplay
+                    {
+                        GraphType = GraphType.AllUnslay,
+                        ExplainValue = "Every WR (every player or specific one)"
+                    },
+                    new GraphTypeDisplay
+                    {
+                        GraphType = GraphType.FirstUnslay,
+                        ExplainValue = "Standing WR (every player or specific one)"
+                    },
+                    new GraphTypeDisplay
+                    {
+                        GraphType = GraphType.Leaderboard,
+                        ExplainValue = "Leaderboard history of a player"
+                    },
+                    new GraphTypeDisplay
+                    {
+                        GraphType = GraphType.Ranking,
+                        ExplainValue = "Ranking history of a player"
+                    },
+                    new GraphTypeDisplay
+                    {
+                        GraphType = GraphType.Untied,
+                        ExplainValue = "Untied WR (every player or specific one)"
+                    }
+                };
             }
         }
     }
